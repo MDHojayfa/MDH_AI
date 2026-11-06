@@ -112,7 +112,9 @@ block {"mdh_call":{"tool":"…","arguments":{}}}; if the task is done, answer in
 `{{mode:"result"}}`
 ```
 [MDH] Tool result above. Continue the task: call the next tool the same way, or give your final answer
-in text if it is finished.
+in text if it is finished — **no**: the task ends with `finish`, and a prose-only reply is treated as being
+stuck and is nudged. (Changed in 1.0.0 after a real report: a model that says "next I would…" looked exactly
+like a loop that stopped by itself.)
 ```
 
 ~45 tokens. It is the cheapest reliability win we have: without it, models forget their tools after

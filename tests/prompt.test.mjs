@@ -62,7 +62,29 @@ test('the reminder is short and has both modes', () => {
   assert.ok(user.length < 220, `reminder was ${user.length}`);
   assert.ok(result.length < 220);
   assert.match(user, /mdh_call/);
-  assert.match(result, /Continue the task/);
+  assert.match(result, /Continue: call the next tool/);
+});
+
+test('text alone does not end a task: finish does', () => {
+  const result = prompt.reminder('result');
+  const user = prompt.reminder('user');
+  assert.match(result, /call `finish`/);
+  assert.doesNotMatch(result, /final answer in text/i, 'the old wording taught the model to stop by prose');
+  assert.match(user, /Text alone does not end a task/);
+  const promptText = prompt.renderPrompt({ tools: [] });
+  assert.match(promptText, /text is not an action/i);
+  assert.doesNotMatch(promptText, /answer normally in text/);
+});
+
+test('the nudge names the mistake and offers a way out', () => {
+  const first = prompt.continuation(1);
+  const last = prompt.continuation(2);
+  assert.match(first, /^\[MDH_CONTINUE\]/);
+  assert.match(first, /do the next step now/);
+  assert.match(first, /call `finish`/);
+  assert.match(last, /second and last nudge/);
+  assert.ok(!first.includes('second and last'));
+  assert.ok(first.length < 500, 'a nudge has to stay cheap enough to send twice');
 });
 
 test('the tool signature is stable and order-independent', () => {

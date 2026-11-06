@@ -28,16 +28,35 @@
     starting: { icon: '◌', label: 'Starting', action: 'none', title: 'Starting — filling the composer' },
     running: { icon: '⏸', label: 'Pause', action: 'stop', title: 'Pause the loop (it can be resumed)' },
     'waiting-reply': { icon: '⏳', label: 'Waiting', action: 'stop', title: 'Waiting for the model — click to pause' },
+    injecting: { icon: '✎', label: 'Sending', action: 'stop', title: 'Filling the composer and pressing send' },
+    resuming: { icon: '◌', label: 'Resuming', action: 'none', title: 'Picking the task back up' },
+    paused: { icon: '▶', label: 'Continue', action: 'resume', title: 'Paused — nothing lost, click to continue' },
     executing: { icon: '⚙', label: 'Working', action: 'stop', title: 'Running a tool — click to pause after it returns' },
-    done: { icon: '↻', label: 'Again', action: 'resume', title: 'Run the same task again' },
+    done: { icon: '✓', label: 'Done', action: 'resume', title: 'Finished — click to run the same task again' },
     stopped: { icon: '↻', label: 'Resume', action: 'resume', title: 'Continue where it stopped' },
     error: { icon: '!', label: 'Report', action: 'report', title: 'Something failed — open the report card' },
   };
 
+  /**
+   * A phase survives the loop stopping only if it means something to the user. `paused` and `done` are the
+   * two that do: one is waiting for a click, the other is an outcome. Everything else collapses to idle,
+   * because "stopped in the middle of injecting" is not a state a button should advertise.
+   */
+  const STICKY = new Set(['done', 'stopped', 'paused', 'error']);
+
   function stateFor(status) {
-    const phase = status?.agent?.running ? status.agent.phase || 'running' : status?.agent?.phase === 'done' ? 'done' : status?.agent?.phase === 'stopped' ? 'stopped' : 'idle';
+    const agent = status?.agent ?? status ?? {};
+    const running = Boolean(agent.running);
+    const raw = agent.phase ?? 'idle';
+    const phase = running ? (PHASES[raw] ? raw : 'running') : STICKY.has(raw) ? raw : 'idle';
     const known = PHASES[phase] ? phase : 'idle';
-    return { phase: known, ...PHASES[known], turn: status?.agent?.turn ?? 0 };
+    return {
+      phase: known,
+      ...PHASES[known],
+      turn: agent.turn ?? 0,
+      paused: known === 'paused',
+      pauseReason: agent.pauseReason ?? null,
+    };
   }
 
   /** Keep a floating control inside the viewport, whatever the saved position or the window size. */
@@ -73,6 +92,8 @@
     .pill[data-phase="error"] { border-color: #7f1d1d; }
     .pill[data-phase="error"] .icon { color: #f87171; }
     .pill[data-phase="done"] .icon { color: #34d399; }
+    .pill[data-phase="paused"] { border-color: #6d5efc; }
+    .pill[data-phase="paused"] .icon { color: #a5b4fc; }
     .icon { font-size: 13px; line-height: 1; width: 13px; text-align: center; }
     .turn { color: #8b90a5; font-weight: 500; font-variant-numeric: tabular-nums; }
     .panel { position: fixed; z-index: ${Z}; width: 300px; padding: 10px; border-radius: 12px;
@@ -92,6 +113,7 @@
     .dot { width: 6px; height: 6px; border-radius: 999px; background: #34d399; }
     .dot.busy { background: #fbbf24; }
     .dot.bad { background: #f87171; }
+    .dot.paused { background: #a78bfa; }
     @media (prefers-reduced-motion: reduce) { .pill { transition: none; } }
   `;
 
@@ -308,7 +330,11 @@
       if (icon) icon.textContent = state.icon;
       if (label) label.textContent = state.label;
       if (dot) {
-        dot.className = `dot${['running', 'waiting-reply', 'executing', 'starting'].includes(state.phase) ? ' busy' : ''}${state.phase === 'error' ? ' bad' : ''}`;
+        dot.className =
+          'dot' +
+          (['running', 'waiting-reply', 'executing', 'starting', 'injecting', 'resuming'].includes(state.phase) ? ' busy' : '') +
+          (state.phase === 'error' ? ' bad' : '') +
+          (state.phase === 'paused' ? ' paused' : '');
       }
       pill.dataset.phase = state.phase;
       pill.setAttribute('aria-label', state.title);

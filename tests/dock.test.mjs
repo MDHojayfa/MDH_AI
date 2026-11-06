@@ -20,7 +20,7 @@ test('the pill is loaded and mounted on supported pages', () => {
 
 test('every phase has a label, an action and a tooltip a person can read', () => {
   const phases = dock._internals.PHASES;
-  assert.ok(Object.keys(phases).length >= 7);
+  assert.ok(Object.keys(phases).length >= 10, 'paused, resuming and sending are states a user will see');
   for (const [phase, entry] of Object.entries(phases)) {
     assert.ok(entry.icon && entry.label && entry.title, `${phase} is incomplete`);
     assert.ok(['start', 'stop', 'resume', 'report', 'none'].includes(entry.action), `${phase} has a strange action`);
@@ -35,6 +35,13 @@ test('the state follows the agent, including a paused and a finished run', () =>
   assert.equal(dock.stateFor({ agent: { running: true, phase: 'waiting-reply', turn: 3 } }).turn, 3);
   assert.equal(dock.stateFor({ agent: { running: true, phase: 'executing' } }).action, 'stop');
   assert.equal(dock.stateFor({ agent: { running: false, phase: 'stopped' } }).action, 'resume');
+  const paused = dock.stateFor({ agent: { running: false, phase: 'paused', pauseReason: 'no reply arrived' } });
+  assert.equal(paused.action, 'resume', 'a paused task must be one click from continuing');
+  assert.equal(paused.label, 'Continue');
+  assert.equal(paused.paused, true);
+  assert.equal(paused.pauseReason, 'no reply arrived');
+  // a stop in the middle of a send must not advertise a strange state
+  assert.equal(dock.stateFor({ agent: { running: false, phase: 'injecting' } }).phase, 'idle');
   assert.equal(dock.stateFor({ agent: { running: false, phase: 'done' } }).action, 'resume');
   assert.equal(dock.stateFor(null).action, 'start');
   // an unknown phase must not leave the button actionless

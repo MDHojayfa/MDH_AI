@@ -253,8 +253,9 @@
       $('hint').hidden = false;
       $('hint').textContent = 'The host is not answering. It is not sulking — it is probably not installed. Run ./install.sh.';
     }
-    else if (phase === 'running' || phase === 'waiting-reply' || phase === 'executing') setState(phase.replace('-', ' '), '');
-    else if (phase === 'done') setState('idle', 'ok');
+    else if (phase === 'running' || phase === 'waiting-reply' || phase === 'executing' || phase === 'injecting') setState(phase.replace('-', ' '), '');
+    else if (phase === 'paused') setState(`paused — ${s.agent?.pauseReason ?? 'your turn'}`, 'warn');
+    else if (phase === 'done') setState('finished', 'ok');
     else setState('ready', 'ok');
 
     $('start').disabled = !s.supported || s.host !== true;

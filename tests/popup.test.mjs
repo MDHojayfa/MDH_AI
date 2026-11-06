@@ -81,3 +81,10 @@ test('turning the jokes off leaves the help desk on', () => {
   assert.ok(html.indexOf('id="share-sheet"') > barbosAt, 'the sheet is a sibling, not a child');
   assert.match(js, /applyFun\(\)/);
 });
+
+test('a pause says so, in words, in the popup', () => {
+  assert.match(js, /phase === 'paused'/);
+  assert.match(js, /pauseReason/);
+  assert.match(js, /'warn'/);
+  assert.match(js, /finished/);
+});

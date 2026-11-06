@@ -34,12 +34,19 @@
     errors: 0,
     parseFailures: 0,
     resultSeq: 0,
+    // Counts consecutive prose-only replies. A model that describes the next step instead of taking it is
+    // the single most common way a long task dies at turn 2, so it is nudged automatically, not silently.
+    prose: 0,
+    pauseReason: null,
   };
 
   const LIMITS = {
     maxTurns: 60,
     maxSameCall: 4,
     maxErrors: 3,
+    // Two nudges is enough to recover the usual "here is what I would do next" reply, and few enough that a
+    // model which genuinely has nothing to say is not talked to until it invents work.
+    maxNudges: 2,
     dedupWindowMs: 15 * 60 * 1000,
     hiddenIdleFactor: 1,
   };
@@ -497,18 +504,39 @@
           },
         ],
       });
-      S.phase = 'paused';
-      return;
+      return pause('no reply arrived', {
+        detail: `Nothing arrived for ${Math.round(ms / 1000)} s on ${adapter.id}. The tab may have lost the stream, the plan may be rate-limited, or the page may simply have gone quiet.`,
+        allowFinish: false,
+      });
     }
 
     const parsed = MDH.parser.parse(text, { tools: S.tools.map((t) => t.name), schemas: S.schemas });
     if (!parsed.call) {
       if (parsed.reason === 'none') {
-        // The model answered in prose: the task is over as far as the loop is concerned.
-        S.phase = 'done';
-        S.running = false;
-        await MDH.state.patch('session', { phase: 'done', outcome });
-        return;
+        /*
+         * Prose with no tool call. This used to end the run, which looked, from the outside, exactly like a
+         * bug: "it worked once, then it stopped and I had to press Start again". It was not a bug in the
+         * transport — it was the model doing the very human thing of saying "next I would…" instead of
+         * doing it, and the loop treating a sentence as a completion signal.
+         *
+         * The completion signal is `finish`, and only `finish`. So: nudge, twice, with the exact shape it
+         * needs to reply in; then pause in plain sight, with Continue on the screen. Never a silent stop.
+         */
+        S.prose += 1;
+        if (S.prose <= LIMITS.maxNudges) {
+          log()?.info('prose without a call — nudging', S.prose);
+          MDH.ui.notice(
+            `The model described the next step instead of taking it. Asking again (${S.prose}/${LIMITS.maxNudges}).`,
+            { tone: 'warn', ms: 5500 },
+          );
+          S.pendingText = `${MDH.prompt.continuation(S.prose)}\n\n${MDH.prompt.reminder('result')}`;
+          return turn();
+        }
+        return pause('the model stopped calling tools', {
+          detail: 'It answered ' + `${S.prose} times with text and no tool call. The task may be done — or it may ` +
+            'have got stuck in prose. Continue to ask once more, or mark it finished if the last answer said so.',
+          allowFinish: true,
+        });
       }
       S.parseFailures += 1;
       if (S.parseFailures > 1) {
@@ -524,6 +552,7 @@
     }
 
     S.parseFailures = 0;
+    S.prose = 0;
     const call = parsed.call;
 
     const dup = await dedupCheck(call);
@@ -653,6 +682,51 @@
     }
   }
 
+  /**
+   * A pause is not a stop. The work is still there, the pending call is still saved, and the only thing
+   * missing is one click. It exists because a loop that can only run or die has no way to say "your turn".
+   */
+  async function pause(reason, { detail = '', allowFinish = false } = {}) {
+    S.running = false;
+    S.stopped = false;
+    S.phase = 'paused';
+    S.outcome = 'paused';
+    S.pauseReason = reason;
+    log()?.warn('loop paused:', reason);
+    MDH.dock?.sync?.();
+    await MDH.state.patch('session', { phase: 'paused', outcome: 'paused', reason }).catch(() => {});
+
+    const actions = [
+      { label: 'Continue', primary: true, fn: (close) => { close(); resume(); } },
+    ];
+    if (allowFinish) {
+      actions.push({
+        label: 'Mark as finished',
+        fn: (close) => {
+          close();
+          S.phase = 'done';
+          S.outcome = 'completed';
+          S.pauseReason = null;
+          MDH.ui.notice('Marked as finished by the user.', { ms: 5000 });
+          MDH.dock?.sync?.();
+          MDH.state.patch('session', { phase: 'done', outcome: 'completed' }).catch(() => {});
+        },
+      });
+    }
+    actions.push(
+      { label: 'Stop', fn: (close) => { close(); stop(reason); } },
+      { label: 'Report it', fn: (close) => { close(); reportCard(`${reason}\n\n${detail}`, { stage: 'paused' }); } },
+    );
+
+    MDH.ui.countdown({
+      title: 'Paused — your turn',
+      text: `${detail || reason} Nothing is lost: the task and the pending call are saved.`,
+      until: Date.now(),
+      actions,
+    });
+    return { paused: true, reason };
+  }
+
   function stop(reason) {
     const stage = S.phase;
     S.running = false;
@@ -675,6 +749,7 @@
     const pending = await MDH.state.get('pending');
     S.stopped = false;
     S.running = true;
+    S.pauseReason = null;
     S.phase = 'resuming';
     if (pending?.call) {
       S.pendingText = `${frame({ tool: pending.call.tool, status: 'error', body: 'The page reloaded before this call finished. It was not completed — decide whether to call it again.' })}\n\n${MDH.prompt.reminder('result')}`;
@@ -699,6 +774,8 @@
     S.turn = 0;
     S.errors = 0;
     S.parseFailures = 0;
+    S.prose = 0;
+    S.pauseReason = null;
     S.startedAt = Date.now();
     S.phase = 'starting';
     S.tools = [];
@@ -724,7 +801,9 @@
     turn: S.turn,
     platform: S.adapter?.id ?? null,
     startedAt: S.startedAt,
+    pauseReason: S.pauseReason,
+    prose: S.prose,
   });
 
-  MDH.agent = { start, stop, resume, status, diagnostics, _internals: { setComposerText, composerText, isStreaming, assistantText, governorWait, dedupCheck } };
+  MDH.agent = { start, stop, resume, pause, status, diagnostics, _internals: { setComposerText, composerText, isStreaming, assistantText, governorWait, dedupCheck } };
 })();
