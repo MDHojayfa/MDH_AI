@@ -44,6 +44,8 @@
     history: [],     // last 50 turns: { at, tool, status, ms, platform }
     lease: null,     // { tabId, platform, at }
     turn: null,      // the in-flight turn
+    boot: null,      // random id per browser session, so "until restart" is a fact
+    grants: { boot: null, items: [] }, // remembered approvals: session + per-site
   };
 
   const memo = new Map();
@@ -112,6 +114,11 @@
       const out = {};
       for (const n of names) out[n] = await read(n);
       return out;
+    },
+
+    /** Forget a cached value without touching storage — used after the popup edits the grant list. */
+    invalidate(name) {
+      memo.delete(name);
     },
 
     async reset() {

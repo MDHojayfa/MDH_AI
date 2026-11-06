@@ -100,3 +100,8 @@ test('the popup answers "what happened last run" without being asked', () => {
   assert.match(agent, /recordRun\('stopped'/);
   assert.match(agent, /visibilitychange/);
 });
+
+test('the popup shows the plug itself, not just a code', () => {
+  assert.match(html, /id="plug"/);
+  assert.match(js, /plug: \{"tool":"finish","phoenix"/);
+});

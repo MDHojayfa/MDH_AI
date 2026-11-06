@@ -299,8 +299,11 @@
     }
     const rate = stored['mdh:rate'];
     if (rate?.hits) $('ladder').textContent = `hit ${rate.hits} · ${rate.phase || 'idle'}`;
-    // The code the model must echo to end the task. Shown because a hidden rule is a rule nobody can debug.
-    $('phoenix').textContent = status?.agent?.phoenix ?? '—';
+    // The code the model must echo to end the task, and the exact shape it has to send it in. Shown because a
+    // hidden rule is a rule nobody can debug.
+    const code = status?.agent?.phoenix ?? null;
+    $('phoenix').textContent = code ?? '—';
+    $('plug').textContent = code ? `plug: {"tool":"finish","phoenix":"${code}"}` : 'plug: starts with a run';
 
     const history = stored['mdh:history'] ?? [];
     strip.history = history;
@@ -319,6 +322,8 @@
       li.append(mark, name);
       list.append(li);
     }
+    renderGrants();
+
     // The last run, in one line: the first question in every "it stopped" report, answered before it is asked.
     const runs = stored['mdh:runs'] ?? [];
     const last = runs[runs.length - 1];
@@ -328,6 +333,39 @@
 
     $('calls').textContent = `${history.length} calls`;
     $('denied').textContent = `${denied} denied`;
+  }
+
+  /*
+   * Remembered commands, with the only control that makes remembering defensible: a way to forget. Reads the
+   * live list from the page (which owns the state cache), so a revoke is visible to the next approval check.
+   */
+  async function renderGrants() {
+    const box = $('grants');
+    if (!box) return;
+    const res = await send(tabId, { type: 'mdh:grants' }).catch(() => null);
+    const items = res?.ok ? res.items ?? [] : [];
+    if (!items.length) {
+      box.innerHTML = '<span class="muted">none — the drop-down on an approval can add one</span>';
+      return;
+    }
+    box.textContent = '';
+    for (const item of items) {
+      const row = document.createElement('div');
+      row.className = 'grow';
+      const cmd = document.createElement('code');
+      cmd.textContent = item.command || '(command)';
+      cmd.title = `${item.scope === 'site' ? 'permanent, this site' : 'until the browser restarts'}`;
+      const forget = document.createElement('button');
+      forget.className = 'x';
+      forget.textContent = '✕';
+      forget.title = 'Forget this approval';
+      forget.addEventListener('click', async () => {
+        await send(tabId, { type: 'mdh:forget-grant', key: item.key, command: item.command });
+        renderGrants();
+      });
+      row.append(cmd, forget);
+      box.append(row);
+    }
   }
 
   $('start').addEventListener('click', async () => {

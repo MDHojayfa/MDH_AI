@@ -168,6 +168,8 @@ nav.bar { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justif
   margin-top: 14px; padding: 10px 12px; border: 1px solid #232434; border-radius: 10px; background: #0d0e16; }
 .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 12px; color: #9aa1b8; }
 .filters label { display: inline-flex; gap: 4px; align-items: center; cursor: pointer; }
+.filters .n { color: #6b7280; font-size: 10.5px; }
+.filter-state { margin: 2px 0 10px; }
 .filters .fl { text-transform: uppercase; letter-spacing: .06em; font-size: 10.5px; color: #6b7280; }
 .filters input[type=search] { padding: 4px 7px; border-radius: 6px; border: 1px solid #2a2547; background: #12111c; color: #e5e7eb; font: inherit; }
 .filters button, .btn { border-radius: 7px; border: 1px solid #2a2547; background: #171627; color: #e5e7eb;
@@ -272,6 +274,20 @@ export function renderPage({
     return `?${params.toString()}`;
   };
 
+  /*
+   * A sentence, not a puzzle: which boxes are ticked, and what happens if you tick none. Multi-select is the
+   * normal case here (two statuses, one level), and the page is honest about when it is showing everything.
+   */
+  const activeFilters = [
+    ...(query.status ?? []).map((v) => `status ${v}`),
+    ...(query.level ?? []).map((v) => `level ${v}`),
+    ...(query.q ? [`text “${query.q}”`] : []),
+    ...(query.tool ? [`tool ${query.tool}`] : []),
+  ];
+
+  // `allEntries` is optional (tests pass entries only): counts must never be the reason a page 500s.
+  const every = Array.isArray(allEntries) ? allEntries : Array.isArray(entries) ? entries : [];
+
   const title = `MDH_AI · ${stat.calls} calls`;
 
   return `<!doctype html>
@@ -295,20 +311,23 @@ ${live ? '<meta http-equiv="refresh" content="5">' : ''}
 <nav class="bar" aria-label="Log controls">
   <form method="get" class="filters">
     <input type="hidden" name="token" value="${esc(meta.tokenValue ?? '')}">
-    <span class="fl">Show</span>
-    ${STATUSES.map(
-      (status) =>
-        `<label><input type="checkbox" name="status" value="${status}"${(query.status ?? []).includes(status) ? ' checked' : ''}> ${status}</label>`,
-    ).join('')}
-    <span class="fl">Log levels</span>
-    ${LEVELS.map(
-      (level) =>
-        `<label><input type="checkbox" name="level" value="${level}"${(query.level ?? []).includes(level) ? ' checked' : ''}> ${level}</label>`,
-    ).join('')}
+    <span class="fl" title="Tick any number of boxes — two, three, or none">Show</span>
+    ${STATUSES.map((status) => {
+      const count = every.filter((e) => e.status === status).length;
+      return `<label><input type="checkbox" name="status" value="${status}"${(query.status ?? []).includes(status) ? ' checked' : ''}> ${status} <span class="n">${count}</span></label>`;
+    }).join('')}
+    <span class="fl" title="Tick any number of boxes — two, three, or none">Log levels</span>
+    ${LEVELS.map((level) => {
+      const count = every.filter((e) => (e.level ?? 'info') === level).length;
+      return `<label><input type="checkbox" name="level" value="${level}"${(query.level ?? []).includes(level) ? ' checked' : ''}> ${level} <span class="n">${count}</span></label>`;
+    }).join('')}
     <input class="q" type="search" name="q" value="${esc(query.q ?? '')}" placeholder="filter text…" aria-label="Filter text">
     <button type="submit">Apply</button>
-    <a class="reset" href="?token=${esc(encodeURIComponent(meta.tokenValue ?? ''))}">Reset</a>
+    <a class="reset" href="?token=${esc(encodeURIComponent(meta.tokenValue ?? ''))}" title="No filters at all: every call in the log">Show all</a>
   </form>
+  <p class="sub filter-state">${activeFilters.length
+    ? `Filtering by ${esc(activeFilters.join(' · '))} — <a href="?token=${esc(encodeURIComponent(meta.tokenValue ?? ''))}">clear all</a>. Tick more boxes for a narrower view, or none for everything.`
+    : 'No filters — showing every call and every log line.'}</p>
   <div class="tools">
     ${
       view === 'stats'

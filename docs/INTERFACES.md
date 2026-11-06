@@ -42,6 +42,7 @@ Every module is an IIFE that attaches exactly one object:
 |---|---|
 | `MDH.log` | `debug/info/warn/error`, `buffer()`, `export()` |
 | `MDH.state` | `get/set/patch`, `session`, `reset` |
+| `MDH.grants` | `empty()`, `expire(store, boot)`, `isGranted(store, key, {site, boot})`, `add(store, {key, command, scope, site, boot})`, `forget(store, key, {site})`, `list(store, {site, boot})`, `describe(scope)` |
 | `MDH.policy` | `normalize`, `isInside`, `pathsIn`, `check(call, policy)`, `describe(call, policy)` |
 | `MDH.parser` | `parse(text, ctx)`, `explain(reason)`, `repair(text)`, `coerceArguments()` |
 | `MDH.prompt` | `renderPrompt({tools, phoenix})`, `wrapFirstMessage(prompt, text)`, `reminder(mode, {phoenix})`, `continuation(n, {phoenix})`, `BUDGET_CHARS` |
@@ -84,6 +85,8 @@ Four-byte little-endian length, then UTF-8 JSON. One frame in, one frame out.
 {t:'progress', id, message}         → resets the pending timeout
 {t:'audit'}                         → {t:'audit', ok, lines, brokenAt?}
 {t:'config'}                        → {t:'config', config, paths}
+{t:'grants', …}                     popup → page: list remembered approvals
+{t:'forget-grant', key}             popup → page: remove one
 {t:'diag', op}                      → {t:'diag', ok, facts?, disk?, ip?, clockSkewMs?, …}
 {t:'viewer'}                        → {t:'viewer', url, port}   (loopback, token in the URL)
 {t:'snapshot'}                      → {t:'snapshot', path}       (~/.local/state/mdh/log.html)

@@ -142,7 +142,7 @@ codebase to leak something by accident.
 | `&&`, `;`, pipe, redirect, `$(…)`, backticks, glob, `~` | refused, with a reason a human can read |
 | non-command tool / empty command | refused |
 | lifetime | a new run clears grants; a granted command skips the card; the block never calls `state.set` |
-| the card | third button only when earned; "Allow once" / "Always" still present |
+| the card | one big "Allow once" plus a caret offering run / session / site |
 | policy | `run_command` still asks even when the tool is set to allow |
 
 ## 3f2. Page probe — `tests/probe.test.mjs`

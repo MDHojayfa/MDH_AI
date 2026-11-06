@@ -82,6 +82,8 @@
     return [
       '# Completion code (this session)',
       '',
+      `The plug is **${code}**. Nothing else ends this task: not "done", not a summary, not a friendly sign-off.`,
+      '',
       `**${code}**`,
       '',
       'The task ends in exactly one way:',

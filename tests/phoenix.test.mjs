@@ -89,3 +89,12 @@ test('the prompt carries the code into every reminder, not just the first messag
   assert.ok(prompt.includes('continuation(n = 1, { phoenix = null }'), 'so does the nudge');
   assert.match(prompt, /MDH\.phoenix\?\.call/, 'the reminder names the exact call, not just the idea');
 });
+
+test('the plug is defined in one sentence before any rule', () => {
+  const block = phoenix.block('PHX-ABC234');
+  const lines = block.split('\n').filter(Boolean);
+  assert.match(lines[1], /The plug is \*\*PHX-ABC234\*\*/);
+  assert.match(lines[1], /not "done", not a summary/);
+  assert.match(phoenix.call('PHX-ABC234'), /"tool":"finish"/, 'the plug is a call, not a phrase');
+  assert.match(phoenix.call('PHX-ABC234'), /"phoenix":"PHX-ABC234"/);
+});

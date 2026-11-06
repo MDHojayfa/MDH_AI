@@ -96,6 +96,27 @@ function askHost(frame, timeoutMs = 8000) {
   });
 }
 
+/*
+ * A boot id per browser session, so "allow for this session" ends when the browser does — by definition rather
+ * than by a timer that might never fire. Stamped only when missing (a background restart inside one session must
+ * not throw session grants away) and refreshed on `onStartup` (a real browser start must).
+ */
+async function stampBoot(fresh) {
+  try {
+    const existing = await MDH.state.get('boot');
+    if (fresh || !existing) await MDH.state.set('boot', MDH.util.uuid());
+  } catch (e) {
+    MDH.log.warn('could not stamp the boot id', e);
+  }
+}
+stampBoot(false);
+
+try {
+  api.runtime.onStartup.addListener(() => stampBoot(true));
+} catch {
+  // Firefox may not expose onStartup in every version; the missing-id path still stamps a first boot.
+}
+
 api.runtime.onInstalled.addListener((details) => {
   MDH.log.info('installed', details.reason);
   if (details.reason === 'install') welcomeOnce();

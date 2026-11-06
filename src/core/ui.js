@@ -91,6 +91,18 @@
       width: 100%; box-sizing: border-box; font: inherit; font-size: 13px; color: #e6edf3;
       background: #0b0f13; border: 1px solid #1e2830; border-radius: 8px; padding: 8px 10px;
     }
+    /* The allow drop-down: one caret, three promises of different lengths. */
+    .split { position: relative; display: inline-flex; }
+    .split .caret { border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 5px 8px; }
+    .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 2; min-width: 258px;
+            display: flex; flex-direction: column; gap: 2px; padding: 6px; border: 1px solid #26313a;
+            border-radius: 10px; background: #0d1318; box-shadow: 0 18px 40px rgba(0,0,0,.5); text-align: left; }
+    .menu[hidden] { display: none; }
+    .menuitem { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; width: 100%;
+                padding: 7px 9px; border: 0; border-radius: 7px; background: transparent; color: #e6edf3;
+                font: inherit; font-size: 12.5px; cursor: pointer; text-align: left; }
+    .menuitem:hover, .menuitem:focus-visible { background: #1a232b; outline: none; }
+    .menuitem .mn { font-size: 11px; color: #8b949e; }
   `;
 
   let host = null;
@@ -148,6 +160,7 @@
         settled = true;
         clearTimeout(timer);
         document.removeEventListener('keydown', onKey, true);
+        document.removeEventListener('click', onDocClick, true);
         removeCard(card);
         resolve(decision);
       };
@@ -178,30 +191,62 @@
       }
 
       /*
-       * A grant is offered only after the same exact command has already been approved twice, and only for a
-       * plain command. Approval fatigue is how a safety prompt becomes a reflex, so the answer is fewer, more
-       * meaningful prompts — never a quieter lock.
+       * Long-lived answers live behind one caret, not as a row of buttons: the safe answer stays the big one and
+       * the irreversible ones take a second, deliberate click. A grant is only offered for a plain command — an
+       * exact, single command line with no chaining, which is the only thing worth remembering.
        */
-      if (grant?.key) {
-        body.append(el('div', { class: 'why', text: grant.note ?? 'You have approved this exact command more than once in this run.' }));
+      if (grant?.key && grant.note) {
+        body.append(el('div', { class: 'why', text: grant.note }));
+      }
+      if (grant && !grant.key && grant.reason) {
+        body.append(el('div', { class: 'why', text: grant.reason }));
       }
 
       const footer = el('div', { class: 'ft' });
+      let menu = null;
+      let caret = null;
       const deny = el('button', { class: 'danger', text: 'Deny', onclick: () => finish('deny') });
       footer.append(deny, el('div', { class: 'spacer' }));
 
       if (desc.verdict.decision !== 'deny') {
+        footer.append(el('button', { class: 'primary', text: 'Allow once', onclick: () => finish('once') }));
+
+        // The drop-down: run / session / site. Built only from options that mean something for this call.
+        const options = [];
         if (grant?.key) {
-          footer.append(el('button', {
-            text: 'Allow for this run',
-            title: 'Stop asking for this exact command until the run ends. Nothing is saved.',
-            onclick: () => finish('run'),
-          }));
+          options.push(
+            { label: 'Allow for this run', value: 'run', note: 'no more cards for this exact command until the task ends' },
+            { label: 'Allow for this session', value: 'session', note: 'until the browser restarts' },
+            { label: 'Always allow on this site', value: 'site', note: `saved until you remove it · ${grant.site ?? 'this site'}` },
+          );
+        } else {
+          options.push({ label: `Always allow ${desc.tool}`, value: 'always', note: 'for this exact tool, on this machine' });
         }
-        footer.append(
-          el('button', { text: 'Allow once', onclick: () => finish('once') }),
-          el('button', { class: 'primary', text: 'Always', title: 'Always for this exact call, this tab', onclick: () => finish('always') }),
-        );
+
+        menu = el('div', { class: 'menu', role: 'menu', hidden: 'hidden' });
+        for (const option of options) {
+          menu.append(el('button', {
+            class: 'menuitem',
+            role: 'menuitem',
+            title: option.note,
+            onclick: () => finish(option.value),
+          }, el('span', { text: option.label }), el('span', { class: 'mn', text: option.note })));
+        }
+
+        caret = el('button', {
+          class: 'primary caret',
+          text: '▾',
+          title: 'More ways to allow',
+          'aria-haspopup': 'menu',
+          'aria-expanded': 'false',
+          onclick: (ev) => {
+            ev.stopPropagation();
+            const open = menu.hidden;
+            menu.hidden = !open;
+            caret.setAttribute('aria-expanded', String(open));
+          },
+        });
+        footer.append(el('div', { class: 'split' }, caret, menu));
       } else {
         footer.append(el('button', { text: 'OK', onclick: () => finish('deny') }));
       }
@@ -216,6 +261,12 @@
         if (ev.key === 'Escape') {
           ev.preventDefault();
           ev.stopPropagation();
+          // Escape closes the menu first, then the card: one keypress should not undo two things.
+          if (!menu.hidden) {
+            menu.hidden = true;
+            caret.setAttribute('aria-expanded', 'false');
+            return;
+          }
           finish('deny');
         } else if (ev.key === 'Enter' && document.activeElement?.tagName !== 'INPUT') {
           ev.preventDefault();
@@ -223,6 +274,17 @@
           finish(desc.verdict.decision === 'deny' ? 'deny' : 'once');
         }
       };
+      // A click anywhere else closes the menu, so a stale open menu cannot swallow the next click.
+      const onDocClick = (ev) => {
+        if (!card.contains(ev.target)) return;
+        if (!menu) return;
+        if (menu.hidden) return;
+        if (ev.target.closest?.('.split')) return;
+        menu.hidden = true;
+        caret?.setAttribute('aria-expanded', 'false');
+      };
+      document.addEventListener('click', onDocClick, true);
+
       // Focus the card, not a button: a keystroke must never mean "allow" by accident.
       card.tabIndex = -1;
       document.addEventListener('keydown', onKey, true);

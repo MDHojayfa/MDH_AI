@@ -100,6 +100,7 @@
         "shared/compat.js",
         "core/log.js",
         "core/diag.js",
+        "core/grants.js",
         "core/phoenix.js",
         "core/probe.js",
         "core/state.js",

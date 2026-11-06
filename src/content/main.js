@@ -84,6 +84,27 @@
         return { ok: true, result };
       }
 
+      /*
+       * Remembered approvals, and the one thing that must always exist beside them: a way to forget one.
+       * Both go through `MDH.state` so the agent's cache and storage stay in agreement.
+       */
+      case 'mdh:grants': {
+        const boot = await MDH.state.get('boot').catch(() => null);
+        const store = await MDH.state.get('grants');
+        const items = MDH.grants?.list?.(store, { site: location.hostname, boot }) ?? [];
+        return { ok: true, items: items.map(({ key, command, scope, at }) => ({ key, command, scope, at })) };
+      }
+
+      case 'mdh:forget-grant': {
+        if (!msg.key) return { ok: false, reason: 'no key' };
+        const store = await MDH.state.get('grants');
+        const next = MDH.grants.forget(store, msg.key, { site: location.hostname });
+        await MDH.state.set('grants', next);
+        MDH.state.invalidate?.('grants');
+        log()?.info('approval forgotten', String(msg.command ?? '').slice(0, 80));
+        return { ok: true };
+      }
+
       case 'mdh:policy': {
         const policy = await MDH.state.get('policy');
         return { ok: true, policy };

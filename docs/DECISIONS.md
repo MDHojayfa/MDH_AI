@@ -276,6 +276,14 @@ reminder, in the `finish` tool description, and in the popup's Advanced panel �
 nobody can debug. A wrong or missing code gets **one** correction, then a pause with *Mark as finished*, because
 at that point the model has failed the rule and the human should decide.
 
+**D45 · Three scopes, because "always" is three different promises.**
+A single *Always* button forces the user to mean the longest-lived thing every time. The approval card now offers
+one safe answer (**Allow once**) and a caret with the rest: **for this run** (memory, dies with the task),
+**for this session** (stored with a boot id, so a browser restart ends it by construction), **always on this site**
+(stored per chat hostname, listed in the popup with a ✕). All three are still restricted to an exact single
+command, and all three run *after* the policy check, so none of them can widen a rule. The menu exists because
+the alternative — a row of four equally loud buttons — teaches people to click the leftmost one.
+
 **D44 · Approval fatigue is a safety bug, so grants are narrow and forgetful.**
 A prompt you see twenty times is a prompt you stop reading — that is how a guardrail becomes a formality. The
 answer is not a quieter lock but fewer, better-earned questions: after the **same exact** command has been

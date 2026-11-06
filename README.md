@@ -142,6 +142,7 @@ it over a pipe, which is why a web page cannot reach it. Details: [`docs/ARCHITE
 | [`docs/MANUAL.md`](docs/MANUAL.md) | install, first run, approvals, recovery, troubleshooting |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | the five layers and why each exists |
 | [`docs/PLATFORMS.md`](docs/PLATFORMS.md) | per-platform read mode, selectors, quirks |
+| [`docs/PLUG.md`](docs/PLUG.md) | the completion code: what ends a task, and why a sentence cannot |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | threat model, controls, residual risk |
 | [`docs/FAQ.md`](docs/FAQ.md) | the questions people actually ask |
 | [`docs/DIAGNOSTICS.md`](docs/DIAGNOSTICS.md) | what a failure collects, what it refuses to, the signature table |

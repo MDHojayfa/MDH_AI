@@ -180,3 +180,29 @@ test('hiding the log keeps the filter you just set', async () => {
   const showHref = hidden.match(/href="\?([^"]*view=all[^"]*)"/)?.[1] ?? '';
   assert.equal(new URLSearchParams(showHref.replace(/&amp;/g, '&')).get('status'), 'error', 'and so does the way back');
 });
+
+test('the filter form is multi-select, counted, and honest about "everything"', () => {
+  const rows = [
+    { at: Date.now(), tool: 'run-command', status: 'error', level: 'warn' },
+    { at: Date.now(), tool: 'read-file', status: 'ok' },
+    { at: Date.now(), tool: 'read-file', status: 'denied' },
+  ];
+  const plain = renderPage({ entries: rows, allEntries: rows, meta: { tokenValue: 'tok' }, query: {} });
+  assert.match(plain, /name="status" value="error"/, 'statuses are checkboxes');
+  assert.match(plain, /name="level" value="warn"/, 'levels are checkboxes');
+  assert.match(plain, /error <span class="n">1<\/span>/, 'each box shows how many it would match');
+  assert.match(plain, /info <span class="n">2<\/span>/, 'a row without a level counts as info');
+  assert.match(plain, /No filters — showing every call/, 'ticking nothing means everything');
+  assert.match(plain, /Show all/, 'and there is one click back to it');
+
+  const two = renderPage({
+    entries: rows, allEntries: rows, meta: { tokenValue: 'tok' },
+    query: { status: ['error', 'denied'], level: ['warn'] },
+  });
+  assert.match(two, /name="status" value="error" checked/, 'two statuses can be ticked at once');
+  assert.match(two, /name="status" value="denied" checked/);
+  assert.match(two, /name="level" value="warn" checked/);
+  assert.match(two, /name="level" value="debug">/, 'an unticked box stays unticked');
+  assert.match(two, /Filtering by status error · status denied · level warn/, 'the page says which are active');
+  assert.match(two, /clear all/);
+});

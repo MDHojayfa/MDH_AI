@@ -477,31 +477,45 @@
       MDH.ui.notice(`${call.tool}: ${desc.verdict.reason}`, { tone: 'err', ms: 6000 });
       return 'deny';
     }
+    /*
+     * Three memories, three lifetimes. `run` lives in this function's state and dies with the task; `session`
+     * is stored with the boot id it was granted under, so a browser restart ends it by construction; `site` is
+     * stored per chat hostname and only removed when the user says so. The policy check above already ran and a
+     * deny has already returned, so none of this can widen a rule — it only remembers an approval.
+     */
     const grant = MDH.policy.grantable?.(call) ?? { ok: false };
     const key = grant.ok ? grant.key : null;
+    const site = typeof location !== 'undefined' ? location.hostname : null;
+    const boot = await MDH.state.get('boot').catch(() => null);
+    const store = MDH.grants?.expire?.(await MDH.state.get('grants'), boot) ?? { boot, items: [] };
 
-    // Already earned this run: run it, and say so once in the log so the audit trail is not a blank.
-    if (key && S.grants.has(key)) {
-      log()?.info('run grant used', grant.command);
+    if (key && (S.grants.has(key) || MDH.grants?.isGranted?.(store, key, { site, boot }))) {
+      log()?.info('grant used', grant.command, S.grants.has(key) ? 'run' : 'remembered');
       return 'run';
     }
 
     const seen = key ? S.approvals.get(key) ?? 0 : 0;
-    const offer = key && seen >= 2
-      ? {
-          key,
-          note: `You have approved this exact command ${seen} times in this run.`,
-        }
-      : null;
+    const offer = {
+      key,
+      site,
+      command: grant.command ?? '',
+      reason: grant.ok ? null : grant.reason,
+      note: key && seen >= 2 ? `You have approved this exact command ${seen} times in this run.` : null,
+    };
 
     const decision = await MDH.ui.showApproval(desc, { timeoutMs: policy.approvalTimeoutMs ?? 120000, grant: offer });
 
-    if (key && (decision === 'once' || decision === 'run')) {
+    if (key && (decision === 'once' || decision === 'run' || decision === 'session' || decision === 'site')) {
       S.approvals.set(key, seen + 1);
     }
     if (decision === 'run' && key) {
       S.grants.add(key);
       log()?.info('granted for this run', grant.command);
+    }
+    if ((decision === 'session' || decision === 'site') && key) {
+      const next = MDH.grants.add(store, { key, command: grant.command, scope: decision, site, boot });
+      await MDH.state.set('grants', next);
+      log()?.info(decision === 'site' ? 'granted for this site' : 'granted for this session', grant.command, site ?? '');
     }
     if (decision === 'always') {
       policy.approval[call.tool] = 'allow';

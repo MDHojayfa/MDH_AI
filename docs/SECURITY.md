@@ -40,17 +40,23 @@ This software hands a language model a shell on a Linux machine. That sentence i
 | C10 | **No IP, no page snapshots, no DOM dumps** in a report; paths and foreign URLs redacted before the URL is built | a public bug tracker becoming a leak |
 | C11 | **The diagnostics frames are not tools** (`t:'diag'` never appears in `t:'list'`) | a prompt asking for the user's address |
 
-### Run grants
+### Remembered approvals
 
-A grant covers **one exact command** (tool + folder + normalised text) for the **rest of the current run**:
+A grant always covers **one exact command** (tool + folder + normalised text), never a pattern, and is refused for
+anything containing shell chaining, pipes, redirection, substitution or globs. Three lifetimes:
 
-- offered only after that command was approved twice in the same run, so it answers a real repetition;
-- cleared on Start/Stop, never persisted, never exported — nothing to leak, nothing to forget to revoke;
-- refused for any command containing shell chaining, pipes, redirection, command substitution or globs;
-- logged twice (`granted for this run`, then `run grant used`), so the audit trail still names every execution,
-  including the ones the user stopped seeing a card for.
+| Scope | Where it lives | Ends when |
+|---|---|---|
+| run | memory (`S.grants`) | the task ends, or a new one starts |
+| session | `storage.local`, stamped with the boot id | the browser restarts (pruned on read) |
+| site | `storage.local`, keyed by chat hostname | you press ✕ in the popup |
 
-It cannot widen a deny rule: the deny check runs before any grant is consulted.
+- Every stored grant is listed in **Popup → Advanced → Remembered approvals**, so revoking is a click, not a file
+  edit. Revoking goes through the content script so the agent's cached store is dropped too.
+- All three scopes are consulted **after** `policy.check()`. A deny is a deny; a grant only answers "you already
+  approved this exact command".
+- Every use is logged (`grant used`, with its scope), so the audit trail still names executions the user stopped
+  seeing a card for.
 
 ## 4. Residual risk — stated plainly, not hidden
 
