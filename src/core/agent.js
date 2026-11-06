@@ -644,7 +644,13 @@
     } catch (e) {
       log()?.warn('could not build the report', e);
     }
-    MDH.ui.issue?.({ reason: String(detail), detail: String(detail), bundle });
+    try {
+      MDH.ui.issue?.({ reason: String(detail), detail: String(detail), bundle });
+    } catch (e) {
+      // A card that fails to render must not take the failure handler down with it.
+      log()?.error('could not render the report card', e);
+      MDH.ui.notice?.('MDH stopped. The report card could not be drawn; use the popup to report it.', { tone: 'err', ms: 8000 });
+    }
   }
 
   function stop(reason) {
