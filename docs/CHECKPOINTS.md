@@ -43,7 +43,7 @@ the content script). Research findings now live *inside* the repo so a reset can
 **Next action:** M1 scaffold — `src/manifest.base.json`, both overlays, `tools/build.mjs`, empty module
 skeletons that satisfy `INTERFACES.md`, and a `dist/` that loads clean in all three browsers.
 
-## CP-005 · 2026-11-06 · second research pass, design revised ← **you are here**
+## CP-005 · 2026-11-06 · second research pass, design revised
 `docs/research/**` (8 files) · `docs/DECISIONS.md` D13–D19 · `docs/specs/02,04,06,09` · `docs/PLATFORMS.md`
 · `docs/prompt/SYSTEM.md` · `docs/PLAN.md §9` · `docs/INTERFACES.md`
 
@@ -59,6 +59,24 @@ in `research/00 §Corrections`.
 
 **Next action:** M1 — scaffold `src/` + `tools/build.mjs` so `dist/{chrome,firefox}` loads clean, with the
 thirteen tool names and the thirteen error codes from `INTERFACES.md` stubbed.
+
+## CP-006 · 2026-11-06 · matrix complete, injection verified ← **you are here**
+`docs/research/09` · `docs/research/10` · `docs/DECISIONS.md` D20–D21 · `docs/PLATFORMS.md`
+· `docs/specs/01` · `docs/M8-PLAYBOOK.md` · `docs/MANUAL.md` · `docs/FAQ.md` · `CONTRIBUTING.md`
+
+**Done:** the round-2 pass continued until every one of the eight platforms had a **named transport** —
+Claude `/chat_conversations/…/completion` (SSE, `stop_reason`), Gemini `BardChatUi/StreamGenerate` (whole-body
+RPC), Kimi `/api/chat/{id}/completion/stream` (`all_done`), Grok `/rest/app-chat/conversations/…` (SSE,
+`[DONE]`). The interceptor therefore gains three read modes (`sse` / `binary` / `body`). MAIN-world
+injection was verified against BCD 8.1.8 (Chrome 111, Firefox 128 — under our minimums) and pinned as D20;
+the worker blind spot is documented with a detection rule (D21). Archived: 19 repositories, 11 research
+files, ~1,500 lines, all inside the repo so a sandbox reset cannot destroy them.
+
+**Not done (by instruction):** no v1 code. `app/` is still the only runnable artifact.
+
+**Next action:** M1 scaffold — manifests (with the MAIN-world entry), `tools/build.mjs`, module skeletons
+matching `INTERFACES.md`, a `dist/` that loads clean in Chrome, Brave and Firefox, and a test that asserts
+the built Firefox manifest has `background.scripts` and no `service_worker`.
 
 ---
 
