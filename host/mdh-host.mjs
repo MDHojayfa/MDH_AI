@@ -259,8 +259,27 @@ function readLoop() {
       const length = buffer.readUInt32LE(0);
       if (length === 0 || length > 64 * 1024 * 1024) {
         log('framing error: bad length', length);
-        buffer = Buffer.alloc(0);
-        return;
+        // Do not throw the whole buffer away: the next valid frame is usually already in it, and discarding the
+        // chunk turned one stray byte into a host that ignores everything the browser says afterwards. Walk
+        // forward until a header produces JSON, or give up and drop what cannot be trusted.
+        let at = -1;
+        for (let i = 1; i < buffer.length - 4 && i < 8192; i += 1) {
+          const candidate = buffer.readUInt32LE(i);
+          if (candidate === 0 || candidate > 64 * 1024 * 1024) continue;
+          if (buffer.length < i + 4 + candidate) continue;
+          try {
+            JSON.parse(buffer.subarray(i + 4, i + 4 + candidate).toString('utf8'));
+            at = i;
+            break;
+          } catch { /* not a frame header, keep walking */ }
+        }
+        if (at < 0) {
+          buffer = Buffer.alloc(0);
+          return;
+        }
+        log('framing resync at byte', at);
+        buffer = buffer.subarray(at);
+        continue;
       }
       if (buffer.length < 4 + length) return;
       const body = buffer.subarray(4, 4 + length).toString('utf8');

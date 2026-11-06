@@ -81,6 +81,10 @@ Four-byte little-endian length, then UTF-8 JSON. One frame in, one frame out.
 
 ```
 {t:'ping'}                          → {t:'pong', host, version, pid, audit, by}
+
+A frame whose length prefix is zero or absurd is a framing error: the host logs it to stderr, then walks forward
+through the buffer looking for the next header that parses as JSON. Dropping the whole buffer instead — the obvious
+implementation — means one stray byte silently swallows everything the browser sends afterwards.
 {t:'list'}                          → {t:'tools', tools:[{server,name,description,inputSchema,local}]}
 {t:'call', name, arguments, run, via}    → {t:'reply', status, body, ms} | {t:'error', code, message}
 {t:'progress', id, message}         → resets the pending timeout

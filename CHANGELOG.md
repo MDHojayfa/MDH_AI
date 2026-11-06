@@ -6,11 +6,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 First release. One script, one extension, eight platforms, no API key.
 
-**What ships:** 300 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
+**What ships:** 305 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
 `docs/RELEASE.md` is the checklist that was followed.
 
 ### Added
 
+- **The host no longer swallows a chunk after a framing error.** A bad length prefix discarded the whole buffer,
+  including frames that had arrived in the same read — so one stray byte made the host ignore everything the
+  browser said afterwards, quietly and for as long as the port lived. It now logs the error and walks forward to
+  the next header that parses, and `tests/nativeframing.test.mjs` sends a zero-length frame followed by a ping in
+  the same write to prove it.
+- **`tests/nativeframing.test.mjs` talks to a real host process.** Every other host test imports functions; this
+  one starts `host/mdh-host.mjs`, writes the 4-byte length prefix the browser writes, and reads the reply — ping,
+  catalogue, a real `run_command` that leaves a verified audit line, a refused path, and the framing error above.
+  It is still not a browser, and `docs/VERIFICATION.md` is explicit about the difference.
 - **`npm run live-check`: the check that uses a real browser.** Nothing in `tests/` runs inside Chrome — a `vm`
   context is not a browser, and four things (service worker registration, `connectNative`, shadow-DOM layout, and
   the pill's position above a live composer) can only be checked in one. `tools/live-check.mjs` drives the browser
@@ -213,7 +222,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **300 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **305 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 
