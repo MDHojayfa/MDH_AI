@@ -133,6 +133,17 @@ codebase to leak something by accident.
 | paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
+## 3d2. Skills — `tests/skills.test.mjs`
+
+| Case | Expected |
+|---|---|
+| parsing | `#`, `###`, `####` all start a playbook; a heading with no body is dropped |
+| limits | at most 12 playbooks; names clipped to 40 characters |
+| prompt | names only — a body must never appear in the first prompt |
+| lookup | exact, case-insensitive, then prefix; unknown names are answered with the list |
+| execution | `read_skill` is declared to the model and answered in the browser, not the host |
+| editing | popup textarea, saved on blur, stored locally as `[{name, body}]` |
+
 ## 3e0. Per-run notes — `tests/memory.test.mjs`
 
 | Case | Expected |

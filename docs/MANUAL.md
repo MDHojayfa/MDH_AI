@@ -98,6 +98,25 @@ Never touch ~/work/legacy. Answer in Bangla if I write in Bangla.
 Saved when the field loses focus (no Save button to forget), stored locally, quoted verbatim. It is not sent to
 anyone but the chat you are already driving.
 
+## 3a2 · Skills (playbooks)
+
+**Advanced → Skills** holds short playbooks, one `## name` block each:
+
+```
+## build
+pnpm build && pnpm test
+
+## deploy
+only from main, and only after the tests pass
+```
+
+The model sees **only the names** — `Skills the user has written: build, deploy` — and calls `read_skill` with a
+name when one matches the task. The body then arrives as a tool result. That is the whole trick: a playbook
+costs nothing until it is needed, and an unused playbook for another day's task never eats the context.
+
+There is no folder to find and no file to edit, which is deliberate: this product has no repository to keep a
+`CLAUDE.md` in, and telling a potato-PC user to `mkdir -p ~/.config/mdh/skills` is a setup step, not a feature.
+
 ## 3b · The allow drop-down
 
 The approval card has one big safe answer — **Allow once** — and a caret with the longer promises:

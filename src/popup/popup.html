@@ -77,6 +77,9 @@
       <label for="memory">Notes for every run</label>
       <textarea id="memory" rows="3" placeholder="e.g. I use pnpm, not npm. Python is python3. Never touch ~/work/legacy."></textarea>
       <span id="memory-state" class="muted small">saved locally, sent with each new run</span>
+      <label for="skills">Skills (playbooks)</label>
+      <textarea id="skills" rows="4" placeholder="## build&#10;pnpm build && pnpm test&#10;&#10;## deploy&#10;only from main, after tests pass"></textarea>
+      <span id="skills-state" class="muted small">one `## name` per playbook · the model sees only the names until it opens one</span>
       <label>Remembered approvals</label>
       <div id="grants" class="rows"><span class="muted">—</span></div>
       <label>Last page check</label>
@@ -149,6 +152,7 @@
   <script src="../core/diag.js"></script>
   <script src="../core/probe.js"></script>
   <script src="../core/grants.js"></script>
+  <script src="../core/skills.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

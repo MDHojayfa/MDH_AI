@@ -419,6 +419,22 @@
       MDH.ui.showPlan(S.plan);
       return { status: 'ok', body: 'plan shown to the user' };
     }
+    if (tool === 'read_skill') {
+      const skills = await MDH.state.get('skills').catch(() => []);
+      const name = call.arguments?.name ?? '';
+      const found = MDH.skills?.find?.(skills, name);
+      if (!found) {
+        const list = MDH.skills?.names?.(skills) ?? [];
+        return {
+          status: 'error',
+          body: list.length
+            ? `no skill called "${name}". Available: ${list.join(', ')}`
+            : 'the user has not written any skills yet — continue without one',
+        };
+      }
+      log()?.info('skill opened', found.name);
+      return { status: 'ok', body: found.body };
+    }
     if (tool === 'ask_user') {
       const answer = await MDH.ui.askQuestion(call.arguments?.question ?? '', call.arguments?.options ?? []);
       return answer === null
@@ -542,7 +558,8 @@
     if (first) {
       await ensureTools().catch((e) => log()?.warn('tool list failed', e));
       const memory = await MDH.state.get('memory').catch(() => '');
-      const prompt = MDH.prompt.renderPrompt({ tools: S.tools, phoenix: S.phoenix, memory });
+      const skills = await MDH.state.get('skills').catch(() => []);
+      const prompt = MDH.prompt.renderPrompt({ tools: S.tools, phoenix: S.phoenix, memory, skills });
       message = MDH.prompt.wrapFirstMessage(prompt, S.task);
     } else {
       message = S.pendingText ?? '';

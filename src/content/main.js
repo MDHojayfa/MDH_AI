@@ -117,6 +117,17 @@
         return { ok: true, length: value.length };
       }
 
+      // Skills: saved as text, parsed into {name, body}. Names go into the prompt; bodies wait for read_skill.
+      case 'mdh:get-skills':
+        return { ok: true, skills: await MDH.state.get('skills').catch(() => []) };
+
+      case 'mdh:set-skills': {
+        const skills = MDH.skills?.parse?.(String(msg.text ?? '')) ?? [];
+        await MDH.state.set('skills', skills);
+        log()?.info('skills updated', skills.length, 'playbooks');
+        return { ok: true, count: skills.length, names: MDH.skills?.names?.(skills) ?? [] };
+      }
+
       case 'mdh:policy': {
         const policy = await MDH.state.get('policy');
         return { ok: true, policy };

@@ -84,7 +84,7 @@ test('the finish tool advertises the code, so the model is told twice', () => {
 
 test('the prompt carries the code into every reminder, not just the first message', () => {
   const prompt = readFileSync(join(ROOT, 'src/core/prompt.js'), 'utf8');
-  assert.match(prompt, /renderPrompt\(\{ tools = \[\], phoenix = null, memory = '' \}/);
+  assert.match(prompt, /function renderPrompt\(\{ tools = \[\], phoenix = null/);
   assert.ok(prompt.includes('phoenix = null'), 'the reminder accepts a code');
   assert.ok(prompt.includes('continuation(n = 1, { phoenix = null }'), 'so does the nudge');
   assert.match(prompt, /MDH\.phoenix\?\.call/, 'the reminder names the exact call, not just the idea');

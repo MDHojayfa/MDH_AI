@@ -337,6 +337,7 @@
     }
     renderGrants();
     loadMemory();
+    loadSkills();
 
     /*
      * The layout check runs once per page load, in the content script. Showing the verdict here means a user can
@@ -384,6 +385,33 @@
   }
 
   $('memory').addEventListener('blur', saveMemory);
+
+  /*
+   * Playbooks, one `## name` block each. The model gets the names and nothing else; the body arrives only if it
+   * asks, which is the difference between a useful prompt and a context window full of instructions for another
+   * day's task.
+   */
+  let skillsLoaded = false;
+  async function loadSkills() {
+    if (skillsLoaded) return;
+    const res = await send(tabId, { type: 'mdh:get-skills' }).catch(() => null);
+    if (res?.ok) {
+      $('skills').value = MDH.skills.render(res.skills ?? []);
+      skillsLoaded = true;
+    }
+  }
+
+  async function saveSkills() {
+    const res = await send(tabId, { type: 'mdh:set-skills', text: $('skills').value }).catch(() => null);
+    $('skills-state').textContent = res?.ok
+      ? `${res.count} playbook${res.count === 1 ? '' : 's'} saved${res.names?.length ? `: ${res.names.join(', ')}` : ''}`
+      : 'could not save: this page has no MDH content script';
+    setTimeout(() => {
+      $('skills-state').textContent = 'one `## name` per playbook · the model sees only the names until it opens one';
+    }, 3000);
+  }
+
+  $('skills').addEventListener('blur', saveSkills);
 
   /*
    * Remembered commands, with the only control that makes remembering defensible: a way to forget. Reads the

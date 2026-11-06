@@ -66,7 +66,7 @@
    */
   const MEMORY_LIMIT = 1200;
 
-  function renderPrompt({ tools = [], phoenix = null, memory = '' } = {}) {
+  function renderPrompt({ tools = [], phoenix = null, memory = '', skills = [] } = {}) {
     const grouped = groupByServer(tools);
     const lines = [];
 
@@ -111,6 +111,13 @@
       lines.push('# Notes from the user (apply these every run)');
       lines.push('');
       lines.push(notes.slice(0, MEMORY_LIMIT));
+    }
+
+    // Names only: a playbook nobody needs this run would be pure cost in the prompt budget.
+    const skillLine = MDH.skills?.promptLine?.(skills);
+    if (skillLine) {
+      lines.push('');
+      lines.push(skillLine);
     }
 
     // The completion code is the only thing that can end a session, so it goes in the prompt itself rather

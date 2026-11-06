@@ -97,7 +97,7 @@ skills hub, routing). Sorted by "would this actually help *this* product".
 | Capability | What it is there | What it could be here | Verdict |
 |---|---|---|---|
 | **Hooks** | deterministic scripts on lifecycle events; enforce rules without asking the model | our host *is* a hook: every call passes through `policy` + `runBuiltin`. A user-supplied hook script would be a second, weaker policy layer | **partially exists** — document it instead of building it |
-| **Skills** | Markdown playbooks the model loads on demand | `~/.config/mdh/skills/*.md`, offered as `read_file` targets and named in the prompt. Zero code, zero context until used | **partly shipped**: per-run notes cover the "always apply this" case; named playbooks are still open |
+| **Skills** | Markdown playbooks the model loads on demand | **shipped**: `popup → Advanced → Skills`, names in the prompt, bodies behind `read_skill` | **shipped in v1.0** |
 | **Subagents** | isolated contexts for parallel research | two tabs, two models, one task — expensive and hard to keep honest. A read-only "research tab" is the only version that feels safe | **not worth it yet** |
 | **Compaction** | summarise history when context fills | we do not own the context — the platform does. Our equivalent is the handoff prompt (see rotation) | **subset via handoff** |
 | **MCP** | connect external tools | **already shipped**: `host/mcp_client.mjs`, servers from `~/.config/mdh/servers.json` | **exists** |

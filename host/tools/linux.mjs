@@ -321,6 +321,8 @@ const HOST = [
   { name: 'send_stdin', description: 'Continue a background command (not available in v1 — see docs)', inputSchema: { type: 'object', properties: { session_id: str('id'), input: str('text') }, required: ['session_id', 'input'] }, run: async () => 'background sessions are not enabled in this build' },
   { name: 'search_files', description: 'Regex search across files', inputSchema: { type: 'object', properties: { pattern: str('regex'), path: str('folder'), glob: str('file glob') }, required: ['pattern'] }, run: searchFiles },
   { name: 'file_info', description: 'Size, type, mode and mtime of a path', inputSchema: { type: 'object', properties: { path: str('path') }, required: ['path'] }, run: fileInfoTool },
+  // Local: handled in the browser from the user's own skill list. Declared here so the model can see it.
+  { name: 'read_skill', description: 'Read one of the user’s skills (playbooks) by name', inputSchema: { type: 'object', properties: { name: str('skill name') }, required: ['name'] }, local: true },
   { name: 'sys_info', description: 'OS, kernel, session, CPU, memory, disk, cwd', inputSchema: { type: 'object', properties: {} }, run: () => sysInfo() },
   { name: 'open_app', description: 'Launch a GUI application in the user session', inputSchema: { type: 'object', properties: { name_or_command: str('command or app name') }, required: ['name_or_command'] }, run: openApp },
 ];

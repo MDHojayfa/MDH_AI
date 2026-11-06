@@ -47,6 +47,7 @@
     boot: null,      // random id per browser session, so "until restart" is a fact
     grants: { boot: null, items: [] }, // remembered approvals: session and per-site
     memory: '',
+    skills: [],      // [{ name, body }] — playbooks the model opens on demand, names only in the prompt
     probes: {},      // last layout check per chat host: { at, ok, missing }      // free text the user wants in every prompt — the CLAUDE.md of a no-files product
   };
 

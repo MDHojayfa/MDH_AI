@@ -103,6 +103,7 @@
         "core/grants.js",
         "core/phoenix.js",
         "core/probe.js",
+        "core/skills.js",
         "core/state.js",
         "core/policy.js",
         "core/parser.js",
