@@ -77,3 +77,12 @@ test('starting from the page remembers the task and does not require the popup',
   assert.match(source, /MDH\.agent\?\.stop\?\./);
   assert.match(source, /MDH\.agent\?\.resume\?\./);
 });
+
+test('the pill cannot squeeze the page: it floats and never edits the composer', () => {
+  assert.match(source, /document\.documentElement\.append\(host\)/, 'the host element is a child of <html>');
+  assert.doesNotMatch(source, /composer\.style/, 'never style the page\'s composer');
+  assert.doesNotMatch(source, /insertAdjacentElement|appendChild\(.*composer/, 'never inject into the composer subtree');
+  assert.match(source, /position: fixed/);
+  // anchoring is measurement-based, so a renamed layout slot moves the pill instead of breaking the page
+  assert.match(source, /getBoundingClientRect/);
+});

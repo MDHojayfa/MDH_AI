@@ -116,6 +116,10 @@ reputation for being broken. The silly lines are a separate pool, so help never 
 hand once, and what nobody has ever run. The short version is that one person on one Linux machine tested as
 far as that allows, which is not the same as tested everywhere.
 
+**How do I know it would tell me if my network was the problem?**
+Read [`SCENARIOS.md`](SCENARIOS.md) — ten failures walked through end to end, including the blocked-IP one,
+the MTU one and the clock one. Those three are the ones that look like a broken extension and almost never are.
+
 **Why does it say the developer has no NASA PC?**
 Because it is true and it is the reason bug reports are worth more than donations. One laptop, eight sites
 that redesign on a Tuesday, no staging cluster. Assume the code was tested as far as one machine allows and

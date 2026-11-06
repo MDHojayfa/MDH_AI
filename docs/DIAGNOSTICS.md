@@ -121,7 +121,13 @@ fact can reveal it.
 All four are the user's own files in the user's own home directory. `--uninstall` leaves them in place on
 purpose, because deleting somebody's records is not an uninstall; the installer prints exactly what to remove.
 
-## 8. Honest limits
+## 8. What it looks like when it happens
+
+[`docs/SCENARIOS.md`](SCENARIOS.md) is the companion: ten real failure classes, from the blocked IP to the
+filled disk, each with the exact card, the exact words and the next action. If a report does not resemble any
+of them, that is the interesting case — and the form is one click away.
+
+## 9. Honest limits
 
 `docs/KNOWN-LIMITS.md` has the full table. The three that matter for this document:
 

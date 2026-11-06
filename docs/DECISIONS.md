@@ -226,3 +226,13 @@ ban that looked like a broken selector, a rate limit that looked like a crash, a
 TLS bug, an MTU that looked like a flaky provider. The table is ordered, testable, and every row has an action.
 It is also labelled as hypotheses in every surface that shows it, because a confident wrong answer is more
 expensive than an honest guess.
+
+**D38 · The pill floats; it does not live inside the composer.**
+Extensions in this space usually insert a bar *into* the composer's layout slots, and that is a standing bug:
+when one of the eight sites renames a slot, the bar falls into whatever container still matches, and because it
+is a flex child of the composer it can squeeze the textarea to zero width — the page still loads, the input is
+simply gone. This product's pill is `position: fixed`, appended to `documentElement`, and never touches the
+composer's DOM or its styles. It is anchored by *measurement* (the composer's bounding rect, re-read on resize
+and scroll) instead of by *structure*, so a redesign moves it rather than breaking it, and the worst case is a
+pill in a silly place rather than an unusable page. When the composer disappears entirely, the pill drops to
+the corner and reports the drift instead of guessing.

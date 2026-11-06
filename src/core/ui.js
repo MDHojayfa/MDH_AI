@@ -457,6 +457,27 @@
       },
     });
 
+    // Some people would rather attach a file to an email than open a GitHub tab. Same bytes, no network.
+    const saveBtn = el('button', {
+      text: 'Save .md',
+      onclick: () => {
+        try {
+          const text = bundle?.body ?? `${reason}\n\n${detail}`;
+          const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `mdh-report-${new Date().toISOString().replace(/[:.]/g, '-')}.md`;
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 4000);
+          saveBtn.textContent = 'Saved';
+          setTimeout(() => (saveBtn.textContent = 'Save .md'), 1500);
+        } catch {
+          saveBtn.textContent = 'Could not save';
+        }
+      },
+    });
+
     const viewerBtn = el('button', {
       text: 'Log viewer',
       onclick: async () => {
@@ -488,7 +509,7 @@
       },
     });
 
-    const footer = el('div', { class: 'ft' }, openIssue, copyReport, viewerBtn, copyBtn, el('div', { class: 'spacer' }));
+    const footer = el('div', { class: 'ft' }, openIssue, copyReport, saveBtn, viewerBtn, copyBtn, el('div', { class: 'spacer' }));
     footer.append(el('button', { text: 'Dismiss', onclick: () => close() }));
 
     const card = el('div', { class: 'card' },
