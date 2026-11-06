@@ -36,7 +36,7 @@ those projects are the right answer and this one is not. What MDH_AI has that th
 $ npm run weigh
 extension (unpacked)  404 KB in 40 files
 extension (zip)       140 KB
-source                11,376 lines
+source                11,395 lines
 npm dependencies      0 — Node standard library only
 host startup          61 ms to ready
 host memory           55 MB resident

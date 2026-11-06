@@ -9,7 +9,7 @@ The chat you are already signed into can read, write, run and search on your Lin
 one approval per step, one hash-chained log, no API key anywhere.</p>
 
 <p>
-<img alt="tests" src="https://img.shields.io/badge/tests-300%20passing-34d399?style=flat-square">
+<img alt="tests" src="https://img.shields.io/badge/tests-305%20passing-34d399?style=flat-square">
 <img alt="runtime dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-6d5efc?style=flat-square">
 <img alt="extension size" src="https://img.shields.io/badge/extension-140%20KB-8b5cf6?style=flat-square">
 <img alt="Chrome and Brave" src="https://img.shields.io/badge/Chrome%20%7C%20Brave-116%2B-4285F4?style=flat-square">
@@ -138,8 +138,8 @@ not marketing: [`docs/KNOWN-LIMITS.md`](docs/KNOWN-LIMITS.md).
 |---|---|
 | extension | **140 KB** zipped · 404 KB unpacked · 40 files |
 | host | **~70 ms** to ready · **55 MB** resident · 0 npm dependencies |
-| source | 11,376 lines, tests included |
-| tests | **300**, run with `node --test tests/*.test.mjs` |
+| source | 11,395 lines, tests included |
+| tests | **305**, run with `node --test tests/*.test.mjs` |
 | budgets | 300 KB zip · 80 MB RSS · 1,500 ms startup · 0 dependencies — a build fails when one is crossed |
 
 `npm run weigh` prints that table on your machine, compares the prose in the docs against the real artifact, and
@@ -183,7 +183,7 @@ runs.
 <a href="https://github.com/MDHojayfa"><img src="https://github.com/MDHojayfa.png" width="76" align="right" alt="MDHojayfa"></a>
 
 **MDH_AI** is designed and written by **[MDHojayfa](https://mdhojayfa.github.io/)** — extension, host,
-installers, docs, the approvals, the 300 tests that argue with him, the lot. One person, one potato PC that
+installers, docs, the approvals, the 305 tests that argue with him, the lot. One person, one potato PC that
 wheezes when Firefox is open, and a rule that nothing ships until the tests and the numbers agree. The 140 KB
 budget is not a marketing figure; it is what the machine could build without catching fire.
 

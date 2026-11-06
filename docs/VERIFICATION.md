@@ -6,7 +6,7 @@ it is in the second or the third, and it should not be read as tested.
 
 ## 1. What the suite proves
 
-`npm test` runs `node --test tests/*.test.mjs` — 300 checks, no browser needed, ~16 seconds on one core. The
+`npm test` runs `node --test tests/*.test.mjs` — 305 checks, no browser needed, ~16 seconds on one core. The
 tests load **the same script files the extension ships** into a `vm` context with a fake `chrome.*`, a fake page
 and a fake storage (`tests/helpers.mjs`). There is no second copy of the logic anywhere, which is why the
 numbers below mean something.
@@ -21,6 +21,7 @@ numbers below mean something.
 | eight platform adapters parse their own reply shapes | `tests/parser.test.mjs`, `tests/via.test.mjs` |
 | rejection → reload → wait → fresh chat → pause, in that order | `tests/phoenix.test.mjs`, `tests/planmode.test.mjs` |
 | the host speaks the same frame protocol the extension sends | `tests/host.test.mjs`, `tests/handoff.test.mjs` |
+| the host answers a real length-prefixed frame, in a real process, and audits it | `tests/nativeframing.test.mjs` |
 | the log page filters, hides and never deletes | `tests/logcli.test.mjs`, `tests/viewer.test.mjs` |
 | the manifest asks for nothing it does not use | `tests/manifest.test.mjs` |
 | the version is the same in all seven places | `tests/version.test.mjs` |
@@ -57,10 +58,16 @@ why it is a flag and not the default.
 Said plainly, because the alternative is a README that lies:
 
 - **This repository's test run has never had a browser in it.** The machine that produced these commits has no
-  Chrome, no Firefox, and no way to install one: the package mirrors a browser download needs are not reachable
-  from it, and the shared libraries Chromium links against are not installed. `npm run live-check` is written for
-  a machine where they are; **it has not been run here**, and its own tests cover its argument parsing, browser
-  discovery, manifest parsing and DevTools client — not a browser session.
+  Chrome, no Firefox, and no way to install one, and that was checked rather than assumed: a Chromium build
+  fetched from npm extracts and then refuses to start — `error while loading shared libraries: libnspr4.so` — and
+  the NSS, NSPR, ATK and GBM libraries it needs are not installed and cannot be fetched from the mirrors this
+  machine can reach. `npm run live-check` is written for a machine where they are; **it has not been run here**,
+  and its own tests cover its argument parsing, browser discovery, manifest parsing and DevTools client — not a
+  browser session.
+- **The two halves are tested separately, not together.** `tests/nativeframing.test.mjs` starts the real host,
+  writes real length-prefixed frames to its stdin and reads the replies; the content script is tested against saved
+  page fixtures. What no test does is run **both in a browser at the same time** — that is exactly the gap
+  `npm run live-check` closes, and it needs the browser this machine does not have.
 - **The eight platform adapters have not been fired at the eight live sites from here.** They are tested against
   saved fixtures of the reply shapes they parse. A site redesign breaks an adapter the day it ships, and no test
   can prevent that; `docs/PLATFORMS.md` says which platforms are marked tested, and by whom.
@@ -75,7 +82,7 @@ Said plainly, because the alternative is a README that lies:
 
 ```bash
 git clone https://github.com/MDHojayfa/MDH_AI && cd MDH_AI
-npm test                       # 300 checks, no network, no browser
+npm test                       # 305 checks, no network, no browser
 npm run weigh                  # the numbers in the README, measured again
 ./install.sh --diagnose        # the host, talking to itself
 npm run live-check             # the four things a fake page cannot test

@@ -23,7 +23,7 @@ cheap way to notice that a zip claiming to be this project was built from a tree
 
 Enforced by `npm test` (`tests/credit.test.mjs`):
 
-- the banner line is present in all 90 source files, checked by re-running the same audit `npm run stamp --check`
+- the banner line is present in all 91 source files, checked by re-running the same audit `npm run stamp --check`
   runs, so removing it from one file is a red build;
 - `package.json` → `author`, `LICENSE` → copyright line, `CREDITS.md` and `NOTICE` all spell the name the same way;
 - the packager writes the zip comment and the build writes the banner into `dist/` — both are asserted against the
