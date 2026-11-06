@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * host/logs.mjs — reading the state directory, for the viewer and the CLI.
  *

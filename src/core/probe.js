@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * core/probe.js — "does this site still look the way the adapter thinks it does?"
  *

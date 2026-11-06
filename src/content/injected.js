@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * content/injected.js — runs in the page's own world (MAIN), before any page script.
  *

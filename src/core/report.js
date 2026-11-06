@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * core/report.js — the two doors a user actually needs: "report it" and "tell someone".
  *

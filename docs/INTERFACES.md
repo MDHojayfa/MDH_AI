@@ -80,7 +80,7 @@ Storage keys: `mdh:settings`, `mdh:policy`, `mdh:pace`, `mdh:rate`, `mdh:pending
 Four-byte little-endian length, then UTF-8 JSON. One frame in, one frame out.
 
 ```
-{t:'ping'}                          → {t:'pong', host, version, pid, audit}
+{t:'ping'}                          → {t:'pong', host, version, pid, audit, by}
 {t:'list'}                          → {t:'tools', tools:[{server,name,description,inputSchema,local}]}
 {t:'call', name, arguments, run, via}    → {t:'reply', status, body, ms} | {t:'error', code, message}
 {t:'progress', id, message}         → resets the pending timeout

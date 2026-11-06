@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * tests/a11y.test.mjs — the parts of the interface that were invisible to everybody who was not looking.
  *

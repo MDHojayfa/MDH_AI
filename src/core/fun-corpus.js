@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * core/fun-corpus.js — the mission log's actual script, and the largest file in the project that does no
  * work at all.

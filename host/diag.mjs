@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * host/diag.mjs — the facts a browser cannot see about the machine it is running on.
  *

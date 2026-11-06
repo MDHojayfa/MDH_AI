@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * host/mcp_client.mjs — a minimal, strict MCP over stdio client.
  *

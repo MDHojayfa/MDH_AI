@@ -19,11 +19,14 @@
     "package": "node tools/package.mjs",
     "og": "node tools/make-og.mjs",
     "site": "node tools/make-og.mjs && node -e \"console.log('site/index.html is a static file; serve the folder to preview')\"",
-    "verify": "node tools/build.mjs && node tools/package.mjs && node tools/weigh.mjs && node --test tests/*.test.mjs",
+    "verify": "node tools/stamp.mjs --check && node tools/build.mjs && node tools/package.mjs && node tools/weigh.mjs && node --test tests/*.test.mjs",
     "logs": "node host/mdh-log.mjs",
     "logs:serve": "node host/mdh-log.mjs --serve --open",
     "weigh": "node tools/weigh.mjs",
-    "art": "node tools/make-readme-art.mjs"
+    "art": "node tools/make-readme-art.mjs",
+    "live-check": "node tools/live-check.mjs",
+    "stamp": "node tools/stamp.mjs",
+    "stamp:check": "node tools/stamp.mjs --check"
   },
   "files": [
     "src",

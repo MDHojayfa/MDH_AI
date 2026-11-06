@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * tools/package.mjs — turn dist/ into the two files a store will actually accept.
  *
@@ -15,6 +16,7 @@ import { deflateRawSync } from 'node:zlib';
 import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { AUTHOR, fingerprint } from './stamp.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const DIST = join(ROOT, 'dist');
@@ -56,7 +58,7 @@ function dosTime(date) {
   return { time, day };
 }
 
-export function makeZip(files, when = new Date()) {
+export function makeZip(files, when = new Date(), comment = '') {
   const { time, day } = dosTime(when);
   const locals = [];
   const centrals = [];
@@ -110,6 +112,10 @@ export function makeZip(files, when = new Date()) {
   }
 
   const centralBuf = Buffer.concat(centrals);
+  // The comment field at the end of the archive: `unzip -z`, `zipinfo -z` and every archive inspector prints it,
+  // and it survives the zip being unzipped, re-packed or renamed. It is the one piece of provenance that is not a
+  // file somebody can delete from inside the archive.
+  const note = Buffer.from(comment.slice(0, 512), 'utf8');
   const end = Buffer.alloc(22);
   end.writeUInt32LE(0x06054b50, 0);
   end.writeUInt16LE(0, 4);
@@ -118,9 +124,9 @@ export function makeZip(files, when = new Date()) {
   end.writeUInt16LE(files.length, 10);
   end.writeUInt32LE(centralBuf.length, 12);
   end.writeUInt32LE(offset, 16);
-  end.writeUInt16LE(0, 20);
+  end.writeUInt16LE(note.length, 20);
 
-  return Buffer.concat([...locals, centralBuf, end]);
+  return Buffer.concat([...locals, centralBuf, end, note]);
 }
 
 /* ─────────────────────────────────────────────────────────────────── main ── */
@@ -130,7 +136,8 @@ function packageTarget(target) {
   if (!files.some((f) => f.path === 'manifest.json')) {
     throw new Error(`${dir} has no manifest.json — run \`npm run build\` first`);
   }
-  const zip = makeZip(files);
+  const note = `${AUTHOR.product} ${VERSION} · ${AUTHOR.name} · ${AUTHOR.licence} · ${AUTHOR.repo} · fingerprint ${fingerprint(VERSION)}`;
+  const zip = makeZip(files, new Date(), note);
   mkdirSync(OUT, { recursive: true });
   const out = join(OUT, `mdh-ai-${target}-${VERSION}.zip`);
   writeFileSync(out, zip);

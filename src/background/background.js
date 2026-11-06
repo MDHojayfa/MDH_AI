@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * background/background.js — the service worker (Chromium) / event page (Firefox).
  *

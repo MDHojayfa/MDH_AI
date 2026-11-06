@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * core/parser.js — turn a chat reply into exactly one tool call, or into a reason.
  *

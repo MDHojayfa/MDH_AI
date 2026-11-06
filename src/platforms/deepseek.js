@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * platforms/deepseek.js — DeepSeek (chat.deepseek.com). The best-measured platform in the project.
  *
