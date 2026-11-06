@@ -76,6 +76,8 @@
       cursor: pointer; white-space: nowrap; }
     .ipbox { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; font-size: 11.5px; color: #9ca3af; cursor: pointer; }
     .ipbox input { margin-top: 2px; accent-color: #8b7bff; }
+    .ok-card { border-color: #14532d; }
+    .dot.ok { background: #34d399; }
     .quip { margin-top: 8px; font-size: 12.5px; color: #a78bfa; font-style: italic; }
     .row-btns { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     .shimmer { height: 2px; background: #1e2830; overflow: hidden; }
@@ -547,6 +549,62 @@
   }
 
   /**
+   * The completion card. A finished task should look finished, not like the absence of an error: summary,
+   * how long it took, how many turns, and the three things a person wants next (again, share, report).
+   */
+  function done({ summary = '', turns = 0, ms = 0, platform = '', onAgain = null } = {}) {
+    mount();
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.round((ms % 60000) / 1000);
+    const clock = minutes ? `${minutes} min ${seconds} s` : `${seconds} s`;
+
+    const body = el('div', { class: 'bd' },
+      el('div', { class: 'cmd', text: summary || 'The model called finish without a summary. That is allowed, barely.' }),
+      el('div', { class: 'quip', text: `${turns} turn${turns === 1 ? '' : 's'} · ${clock}${platform ? ` · ${platform}` : ''}` }),
+    );
+
+    const again = el('button', {
+      class: 'primary',
+      text: 'Run again',
+      onclick: () => {
+        close();
+        onAgain ? onAgain() : MDH.ui.notice('Press Start on the pill to run it again.', { ms: 4000 });
+      },
+    });
+    const share = el('button', {
+      text: 'Share the project',
+      onclick: async () => {
+        const payload = MDH.report?.clipboard?.() ?? MDH.report?.REPO ?? '';
+        try {
+          await navigator.clipboard.writeText(payload);
+          share.textContent = 'Link copied';
+          setTimeout(() => (share.textContent = 'Share the project'), 1600);
+        } catch {
+          share.textContent = 'Copy failed';
+        }
+      },
+    });
+    const bug = el('button', {
+      text: 'Report a problem',
+      onclick: () => {
+        const url = MDH.report?.issueUrl?.({ title: '[bug] finished but wrong', stage: 'done', platform, detail: '' });
+        if (url) globalThis.open?.(url, '_blank', 'noopener');
+      },
+    });
+
+    const card = el('div', { class: 'card ok-card' },
+      el('div', { class: 'hd' }, el('span', { class: 'dot ok' }), el('span', { class: 'title', text: 'Finished' })),
+      body,
+      el('div', { class: 'ft' }, again, share, bug, el('div', { class: 'spacer' }), el('button', { text: 'Close', onclick: () => close() })),
+    );
+    card.id = 'mdh-done';
+    root?.getElementById('mdh-done')?.remove();
+    addCard(card);
+    const close = () => removeCard(card);
+    return { close };
+  }
+
+  /**
    * Adapter drift: the page is still one of the eight, but the button it used to have is gone. That is the
    * single most likely breakage in this product's life, and it is the one case where the extension knows
    * exactly which selector failed — so it says the selector out loud and puts it in the report.
@@ -592,5 +650,5 @@
     stack = [];
   }
 
-  MDH.ui = { mount, showApproval, askQuestion, showPlan, notice, countdown, mission, issue, drift, clear, el, removeCard };
+  MDH.ui = { mount, showApproval, askQuestion, showPlan, notice, countdown, mission, issue, drift, done, clear, el, removeCard };
 })();

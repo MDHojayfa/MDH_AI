@@ -264,6 +264,12 @@
     $('elapsed').textContent = MDH.util.clock(Date.now() - (s.agent?.startedAt || startedAt));
     if ((s.agent?.turn ?? 0) > 0) $('session').hidden = false;
 
+    // The pill is the main control now, so its visibility is a first-class setting, not a hidden one.
+    const dock = s.dock ?? {};
+    const dockButton = $('dock-toggle');
+    dockButton.textContent = dock.hidden ? 'Pill: hidden' : 'Pill: shown';
+    dockButton.disabled = !s.supported;
+
     if (!s.host) {
       $('hint').hidden = false;
       $('hint').textContent = `Host offline — run ./install.sh again. ${s.hostError ?? ''}`.trim();
@@ -447,6 +453,20 @@
   $('report-idea').addEventListener('click', () => openIssue('idea'));
   $('share-open').addEventListener('click', () => showShare(true));
   $('viewer').addEventListener('click', openViewer);
+  $('dock-toggle').addEventListener('click', async () => {
+    const button = $('dock-toggle');
+    const hidden = button.textContent === 'Pill: shown';
+    button.disabled = true;
+    try {
+      const res = await send(tabId, { type: 'mdh:dock', hidden });
+      button.textContent = res?.hidden ? 'Pill: hidden' : 'Pill: shown';
+      barbo('sys', `pill ${res?.hidden ? 'hidden' : 'shown'} on this site`);
+    } catch {
+      barbo('sys', 'could not change the pill on this page');
+    } finally {
+      button.disabled = false;
+    }
+  });
   $('share-close').addEventListener('click', hideShare);
   $('share-sheet').addEventListener('click', (e) => {
     if (e.target === $('share-sheet')) hideShare();

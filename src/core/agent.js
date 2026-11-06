@@ -421,6 +421,13 @@
       MDH.dock?.sync?.();
       S.running = false;
       MDH.ui.notice(summary ? `Finished: ${MDH.util.truncate(summary, 140)}` : 'Finished.', { ms: 8000 });
+      MDH.ui.done?.({
+        summary: summary ? MDH.util.truncate(summary, 600) : '',
+        turns: S.turn,
+        ms: Date.now() - (S.startedAt || Date.now()),
+        platform: S.adapter?.id ?? '',
+        onAgain: () => start(S.task, S.adapter),
+      });
       await MDH.state.patch('session', { phase: 'done', outcome: 'completed' });
       return { status: 'ok', body: 'finished', finish: true };
     }

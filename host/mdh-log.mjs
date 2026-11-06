@@ -21,12 +21,20 @@ import { paths } from './config.mjs';
 const VERSION = '1.0.0';
 
 function parseArgs(argv) {
-  const args = { serve: false, open: false, json: false, port: 0, lines: 500, out: null };
+  const args = { serve: false, open: false, json: false, watch: false, interval: 5, port: 0, lines: 500, out: null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--serve') args.serve = true;
     else if (arg === '--open') args.open = true;
     else if (arg === '--json') args.json = true;
+    else if (arg === '--watch') {
+      args.watch = true;
+      const next = Number(argv[i + 1]);
+      if (Number.isFinite(next) && next > 0) {
+        args.interval = Math.max(2, next);
+        i += 1;
+      }
+    }
     else if (arg === '--help' || arg === '-h') args.help = true;
     else if (arg === '--port') args.port = Number(argv[++i] ?? 0) || 0;
     else if (arg === '--lines') args.lines = Math.max(1, Number(argv[++i] ?? 500) || 500);
@@ -46,6 +54,7 @@ const HELP = `mdh-log ${VERSION} — the log page behind the product
   --port <n>       port for --serve (default: random)
   --open           open the result in the default browser
   --json           print a summary as JSON instead of writing a page
+  --watch [sec]    re-render the snapshot file every N seconds (default 5); no server, no port
   --lines <n>      how many audit entries to include (default 500)
   --out <file>     where to write the snapshot
 
@@ -110,11 +119,34 @@ async function main() {
 
   const out = args.out ?? join(paths.stateDir, 'log.html');
   mkdirSync(dirname(out), { recursive: true });
-  const html = renderPage({ ...state, generatedAt: Date.now() });
-  writeFileSync(out, html);
+
+  const writeOnce = () => {
+    const fresh = stateSnapshot({ limit: args.lines, hostVersion: VERSION });
+    writeFileSync(out, renderPage({ ...fresh, generatedAt: Date.now() }));
+    return fresh;
+  };
+
+  const first = writeOnce();
   process.stdout.write(`${out}\n`);
-  process.stdout.write(`${state.entries.length} calls · audit ${state.meta.audit.ok ? 'intact' : 'broken'}\n`);
+  process.stdout.write(`${first.entries.length} calls · audit ${first.meta.audit.ok ? 'intact' : 'broken'}\n`);
   if (args.open) openUrl(`file://${out}`);
+
+  if (args.watch) {
+    process.stdout.write(`watching every ${args.interval} s · Ctrl-C to stop · the file is the interface\n`);
+    const timer = setInterval(() => {
+      try {
+        const fresh = writeOnce();
+        process.stdout.write(`re-rendered · ${fresh.entries.length} calls · ${new Date().toLocaleTimeString()}\n`);
+      } catch (e) {
+        process.stderr.write(`re-render failed: ${e.message}\n`);
+      }
+    }, args.interval * 1000);
+    process.on('SIGINT', () => {
+      clearInterval(timer);
+      process.exit(0);
+    });
+    return null;
+  }
   return 0;
 }
 

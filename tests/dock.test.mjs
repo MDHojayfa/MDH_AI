@@ -93,3 +93,26 @@ test('the pill cannot squeeze the page: it floats and never edits the composer',
   // anchoring is measurement-based, so a renamed layout slot moves the pill instead of breaking the page
   assert.match(source, /getBoundingClientRect/);
 });
+
+test('the pill can be hidden per site, and put back', () => {
+  const main = readFileSync(join(ROOT, 'src/content/main.js'), 'utf8');
+  const popup = readFileSync(join(ROOT, 'src/popup/popup.js'), 'utf8');
+  const html = readFileSync(join(ROOT, 'src/popup/popup.html'), 'utf8');
+  assert.match(source, /setHidden/);
+  assert.match(source, /dockHidden/);
+  assert.match(source, /if \(hiddenHere\) return/, 'a hidden pill must not be rebuilt on load');
+  assert.match(main, /mdh:dock/);
+  assert.match(main, /dock: \{ mounted/, 'the popup needs to know the current state');
+  assert.match(popup, /dock-toggle/);
+  assert.match(html, /id="dock-toggle"/);
+});
+
+test('a finished task gets a finish card, not silence', () => {
+  const ui = readFileSync(join(ROOT, 'src/core/ui.js'), 'utf8');
+  const agent = readFileSync(join(ROOT, 'src/core/agent.js'), 'utf8');
+  assert.match(ui, /function done\(/);
+  assert.match(ui, /Run again/);
+  assert.match(ui, /Report a problem/);
+  assert.match(agent, /MDH\.ui\.done\?\.\(/);
+  assert.match(agent, /onAgain:/);
+});

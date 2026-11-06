@@ -110,6 +110,8 @@
     .row button.primary { background: #4c3fd6; border-color: #6d5efc; }
     .row button:disabled { opacity: .5; cursor: not-allowed; }
     .hint { flex: 1; color: #7c8298; font-size: 11px; }
+    .hide-link { background: none; border: 0; padding: 0; color: #6b7280; font: inherit; font-size: 11px;
+      text-decoration: underline; cursor: pointer; }
     .dot { width: 6px; height: 6px; border-radius: 999px; background: #34d399; }
     .dot.busy { background: #fbbf24; }
     .dot.bad { background: #f87171; }
@@ -127,6 +129,7 @@
   let raf = 0;
   let poll = 0;
   let lastPhase = null;
+  let hiddenHere = false;
 
   function el(tag, props = {}, ...children) {
     const node = document.createElement(tag);
@@ -253,12 +256,20 @@
       if (event.key === 'Escape') togglePanel(false);
     });
 
+    const hideLink = el('button', { class: 'hide-link', type: 'button', text: 'Hide on this site' });
+    hideLink.addEventListener('click', () => setHidden(true));
+
     const startBtn = el('button', { class: 'primary', type: 'button', text: 'Start' });
     startBtn.addEventListener('click', () => startWithTask(input.value));
     const cancel = el('button', { type: 'button', text: 'Close' });
     cancel.addEventListener('click', () => togglePanel(false));
 
-    panel.append(label, input, el('div', { class: 'row' }, startBtn, cancel, el('span', { class: 'hint', text: 'Enter to start · Esc to close' })));
+    panel.append(
+      label,
+      input,
+      el('div', { class: 'row' }, startBtn, cancel, el('span', { class: 'hint', text: 'Enter to start · Esc to close' })),
+      el('div', { class: 'row' }, hideLink),
+    );
     shadow.append(pill, panel);
     document.documentElement.append(host);
   }
@@ -350,9 +361,13 @@
     try {
       const settings = (await MDH.state?.get?.('settings')) ?? {};
       manual = settings.dockPos ?? null;
+      hiddenHere = Boolean(settings.dockHidden?.[location.hostname]);
     } catch {
       manual = null;
     }
+    // Some layouts put their send button exactly where the pill wants to live. Hidden is a per-site choice,
+    // remembered, and reversible from the popup — never a state the user cannot get out of.
+    if (hiddenHere) return;
     build();
     sync();
     place();
@@ -360,6 +375,28 @@
     window.addEventListener('scroll', queuePlace, { passive: true, capture: true });
     poll = setInterval(sync, 1200);
     queuePlace();
+  }
+
+  /**
+   * Hide or show the pill for this host, remembered in settings. The popup owns the switch as well, so a pill
+   * hidden by accident is one click from coming back — the classic way a feature disappears forever.
+   */
+  async function setHidden(hidden, nextAdapter = null) {
+    hiddenHere = Boolean(hidden);
+    if (nextAdapter) adapter = nextAdapter;
+    try {
+      const settings = (await MDH.state?.get?.('settings')) ?? {};
+      const map = { ...(settings.dockHidden ?? {}) };
+      const key = location.hostname;
+      if (hidden) map[key] = true;
+      else delete map[key];
+      await MDH.state.set('settings', { ...settings, dockHidden: map });
+    } catch {
+      /* the choice still applies for this page */
+    }
+    if (hidden) destroy();
+    else await mount(adapter ?? undefined);
+    return { hidden: hiddenHere };
   }
 
   function destroy() {
@@ -375,9 +412,13 @@
     mount,
     sync,
     destroy,
+    setHidden,
     stateFor,
     get mounted() {
       return Boolean(host);
+    },
+    get hidden() {
+      return hiddenHere;
     },
     _internals: { clampPos, anchorFor, PHASES },
   };

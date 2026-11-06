@@ -8,6 +8,9 @@ First release. One script, one extension, eight platforms, no API key.
 
 ### Added
 
+- **`mdh-log --watch [sec]`** re-renders the snapshot on a timer for people who would rather not open a socket;
+  **a finish card** with the summary, turn count, elapsed time, *Run again* and *Report a problem*; and a
+  per-site **Hide the pill** switch (in the pill's panel, restored from the popup).
 - **Log page controls**: `ok`/`denied`/`error` and `debug`/`info`/`warn`/`error` filters, free-text filter,
   *Hide log* / *Show log*, and **Archive & clear** — a confirm card over a token-bound POST that renames the
   chain and starts a fresh one instead of deleting anything. No script; one CSP relaxation for the form.

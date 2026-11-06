@@ -30,6 +30,7 @@
       agent,
       bootedAt: booted,
       log: log.tail(30),
+      dock: { mounted: Boolean(MDH.dock?.mounted), hidden: Boolean(MDH.dock?.hidden) },
     };
   }
 
@@ -65,6 +66,12 @@
       case 'mdh:resume':
         await MDH.agent.resume();
         return { ok: true };
+
+      case 'mdh:dock': {
+        if (!adapter) return { ok: false, reason: 'unsupported page' };
+        const res = await MDH.dock.setHidden(Boolean(msg.hidden), adapter);
+        return { ok: true, ...res };
+      }
 
       case 'mdh:policy': {
         const policy = await MDH.state.get('policy');

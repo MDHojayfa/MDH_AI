@@ -81,7 +81,11 @@ mdh-log              # ~/.local/state/mdh/log.html, prints the path
 mdh-log --open       # …and opens it
 mdh-log --serve      # live view on 127.0.0.1 only
 mdh-log --json       # summary for a script or a paste
+mdh-log --watch 5    # re-render the file every five seconds, no port involved
 ```
+
+`--watch` exists for people who would rather not open a socket at all: the file is the interface, the browser
+is the viewer, and a refresh is a reload.
 
 The same page is reachable from the popup (**Advanced → Log viewer**) and from the failure card. Properties:
 
