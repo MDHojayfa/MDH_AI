@@ -65,6 +65,8 @@
     }
     .mission .line { font-size: 13px; color: #93a3b1; min-height: 1.4em; }
     .mission .real { font-size: 12px; color: #7d8b98; margin-top: 6px; }
+    .quip { margin-top: 8px; font-size: 12.5px; color: #a78bfa; font-style: italic; }
+    .row-btns { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     .shimmer { height: 2px; background: #1e2830; overflow: hidden; }
     .shimmer > i {
       display: block; height: 100%; width: 30%; background: linear-gradient(90deg, transparent, #7dd3fc, transparent);
@@ -351,10 +353,53 @@
     };
   }
 
+  /**
+   * The failure card. Three things, in this order: what broke (true), a line about the developer having no
+   * NASA PC (labelled as a joke), and a button that opens the bug form with the context already filled.
+   * A dead end with a door in it is the whole idea.
+   */
+  function issue({ reason = 'Something went wrong', detail = '', seed = Date.now() } = {}) {
+    mount();
+    const quip = MDH.report?.issueLine(seed) ?? 'If you found a bug, the issue tracker is the QA team.';
+    const body = el('div', { class: 'bd' },
+      el('div', { class: 'cmd', text: String(detail || reason) }),
+      el('div', { class: 'quip', text: quip }),
+    );
+    const open = el('button', {
+      class: 'primary',
+      text: 'Open an issue',
+      onclick: () => {
+        const url = MDH.report?.issueUrl({
+          title: '[bug] ',
+          stage: 'agent',
+          platform: globalThis.MDH?.platforms?.match?.(location.hostname)?.id ?? 'unknown',
+          browser: navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Chrome',
+          detail: String(detail || reason).slice(0, 600),
+        });
+        if (url) globalThis.open?.(url, '_blank', 'noopener');
+        close();
+      },
+    });
+    const footer = el('div', { class: 'ft' }, open, el('div', { class: 'spacer' }));
+    const closeBtn = el('button', { text: 'Dismiss', onclick: () => close() });
+    footer.append(closeBtn);
+
+    const card = el('div', { class: 'card' },
+      el('div', { class: 'hd' }, el('span', { class: 'dot err' }), el('span', { class: 'title', text: 'MDH stopped' })),
+      body,
+      footer,
+    );
+    card.id = 'mdh-issue';
+    root?.getElementById('mdh-issue')?.remove();
+    addCard(card);
+    const close = () => removeCard(card);
+    return { close };
+  }
+
   function clear() {
     for (const card of [...stack]) card.remove();
     stack = [];
   }
 
-  MDH.ui = { mount, showApproval, askQuestion, showPlan, notice, countdown, mission, clear, el, removeCard };
+  MDH.ui = { mount, showApproval, askQuestion, showPlan, notice, countdown, mission, issue, clear, el, removeCard };
 })();

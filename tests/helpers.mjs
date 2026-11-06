@@ -55,6 +55,12 @@ export function loadExtension(files, page = {}) {
     atob: (s) => Buffer.from(s, 'base64').toString('binary'),
     btoa: (s) => Buffer.from(s, 'binary').toString('base64'),
     crypto: { randomUUID: () => 'test-uuid' },
+    // Browsers have these; a bare vm context does not. Forgetting them makes a passing module look broken.
+    URL,
+    URLSearchParams,
+    encodeURIComponent,
+    decodeURIComponent,
+    navigator: { userAgent: 'Mozilla/5.0 (X11; Linux x86_64) test', clipboard: { writeText: async () => {} } },
     location: { hostname: page.hostname ?? 'chatgpt.com', pathname: page.pathname ?? '/', origin: 'https://example.test' },
     document: {
       visibilityState: 'visible',

@@ -105,6 +105,7 @@
         "core/prompt.js",
         "core/fun-corpus.js",
         "core/fun.js",
+        "core/report.js",
         "core/ui.js",
         "core/transport.js",
         "core/interceptor.js",

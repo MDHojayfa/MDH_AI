@@ -86,6 +86,21 @@ does not own a NASA PC, so the bug was not caught by a fleet of test machines �
 one laptop, at the worst possible moment. Give him the popup's **Copy log**, the platform and the stage,
 and the odds get very good. Vague reports still get read; they just get read twice.
 
+**It keeps telling me to report bugs. Is it nagging?**
+It is one line, on every run, in a place you already look, with two buttons that do something. The
+alternative — a footer link nobody reads — is how a tool with one developer ends up with zero reports and a
+reputation for being broken. The silly lines are a separate pool, so help never sounds like a joke.
+
+**Why does it say the developer has no NASA PC?**
+Because it is true and it is the reason bug reports are worth more than donations. One laptop, eight sites
+that redesign on a Tuesday, no staging cluster. Assume the code was tested as far as one machine allows and
+no further; that is the honest description.
+
+**It asked me to share it. Was that a dark pattern?**
+It asks once, on the first run of a profile, and never again. There is no tracking parameter on the link and
+nothing is counted. Instagram and TikTok have no way to accept a pre-filled post, so the sheet copies the
+link and opens the site and says so, instead of showing a button that quietly does nothing.
+
 **Why does it not just follow you on GitHub when it opens the profile?**
 Because GitHub has no URL for that. The old endpoint died years ago and required a logged-in POST with a
 CSRF token; arranging one silently would be a dark pattern wearing a marketing hat. The profile opens

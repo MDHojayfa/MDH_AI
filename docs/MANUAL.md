@@ -104,6 +104,28 @@ that enforces each of those three rules (`tests/fun.test.mjs`).
 | reply never arrives | tab was closed, page reloaded | the pending call is saved; press **Resume** |
 | Firefox lost the extension | temporary add-on | re-load from `about:debugging` |
 
+## 5b · Reporting a problem, and sharing the project
+
+The popup opens with one line about reporting problems — a different one each run, from a pool of twenty —
+and three buttons under it:
+
+| Button | What it does |
+|---|---|
+| **Report a bug** | opens the GitHub bug form with the stage, platform and browser filled in. Add the log. |
+| **Send an idea** | opens the feature form. No template required, one sentence is enough. |
+| **Share** | opens the share sheet; copies the link, or opens a pre-filled post |
+
+When the loop fails, the same form appears **inside the page**, directly under the real error, because that
+is the moment you have the information and the motivation at the same time. The card is not a joke: the
+error text is printed above it in the same colour as any other error.
+
+Two things the bug form will never contain, by design: your file paths and the URLs you visited. They are
+replaced with `<path>` and `<url>` before the link is built. If the path matters, type it yourself.
+
+The share sheet opens itself **once per profile** and then stays a button. Instagram and TikTok cannot accept
+a pre-filled post from a URL, so those two copy the link and open the app — the sheet labels them that way
+rather than pretending.
+
 ## 6 · Habits that keep you out of trouble
 
 1. Start with a fresh chat per task. A 40-turn chat with tools is hard for the model to keep straight.

@@ -47,7 +47,14 @@ First release. One script, one extension, eight platforms, no API key.
 - **`install.sh`** that finds every installed browser, writes the host manifests with the pinned extension
   ID, builds both artifacts, and finishes with a live ping/pong self-check. `--dry-run` and `--uninstall`
   included.
-- **72 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **A help desk in the UI** (`src/core/report.js`): twenty issue lines, twelve share lines, a bug-form and
+  idea-form URL builder that pre-fills stage, platform and browser while redacting paths and URLs, and share
+  endpoints for ten destinations. The popup shows an issue line first on every run, with **Report a bug**,
+  **Send an idea** and **Share** buttons; a failed loop opens the same form in a card inside the page.
+- **The share sheet**, opened automatically once per profile and available as a permanent button after that,
+  with copy-to-clipboard and a native share fallback on browsers that have one. Instagram and TikTok are
+  labelled honestly: neither has a web intent, so the sheet copies the link first.
+- **100 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

@@ -147,7 +147,19 @@ something breaks, it is almost never "the developer was careless" and almost alw
 seen that coming on a laptop with 8 GB of RAM and a cat".
 
 Which means: **open an issue.** It is genuinely the most useful thing you can do, and it costs you two
-minutes.
+minutes. The product tries to make that obvious instead of hiding it in a footer:
+
+- **Every run starts with one line** about reporting a problem, picked at random from twenty. It sits in
+  the popup above everything else, next to two real buttons — **Report a bug** and **Send an idea** — that
+  open the GitHub form with the stage, platform and browser already filled in.
+- **When the loop fails, the failure card carries the form.** A crash is the one moment you might actually
+  file a report, so it is the one moment the button appears inside the page, next to the real error.
+- **The jokes are a separate pool.** Twenty help-desk lines and twelve share lines live in
+  `src/core/report.js`; the 1,365-line mission corpus in `src/core/fun-corpus.js` never gets mixed in, so
+  asking for help never reads like a punchline and a punchline never reads like an error.
+- **Nothing is pre-filled that could embarrass you.** The bug form gets the stage, platform and browser —
+  never a filesystem path, never a URL you visited. Both are redacted before the URL is built, and a test
+  holds that door shut.
 
 - Use the [bug form](https://github.com/MDHojayfa/MDH_AI/issues/new?template=bug_report.yml) — it asks
   for the stage, the platform and the log, which is 90 % of the diagnosis.
@@ -164,6 +176,20 @@ minutes.
 
 If you are here to report that the ninth platform is missing: yes, it is. It is on the
 [roadmap](docs/ROADMAP.md), right below "sleep".
+
+## Tell someone, if it earned it
+
+The popup has a **Share** button, and it opens the sheet automatically **once per profile** — after that it
+stays a button, because a product that asks every launch is a product people uninstall.
+
+| Where | What happens |
+|---|---|
+| X, Facebook, WhatsApp, Telegram, Reddit, LinkedIn, Bluesky, Email | a pre-filled post, link and one line included |
+| Instagram, TikTok | **no web intent exists that pre-fills a post** — the sheet copies the link and opens the site, labelled as exactly that |
+| Copy link | one sentence plus the repo URL, ready for anywhere |
+
+No tracking parameters, no referral code, no "shared by" watermark. The link is the plain repository URL,
+because the point is that someone else can install it in two minutes, not that it can be counted.
 
 ## Credit
 

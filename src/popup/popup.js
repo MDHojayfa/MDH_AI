@@ -55,6 +55,70 @@
     pre.scrollTop = pre.scrollHeight;
   }
 
+  /* ── report + share ─────────────────────────────────────────────────────────────────────────────
+     Two doors, one rule: never open a blank page. Every button here goes to a real URL with real
+     context, and the share sheet appears once per profile because a permanent prompt is an advert. */
+  const report = MDH.report;
+  const sessionSeed = Math.floor(Date.now() / 60000); // changes per run, stable while it is open
+  let sharePrompted = null;
+
+  const openUrl = (url) => {
+    if (!url) return;
+    if (/^mailto:/.test(url) || /^https?:/.test(url)) api.tabs.create({ url }).catch(() => {});
+  };
+
+  async function copy(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function contextForIssue() {
+    return {
+      stage: status?.agent?.phase ?? 'popup',
+      platform: status?.platform?.id ?? 'unknown',
+      browser: navigator.userAgent.includes('Firefox') ? 'Firefox' : navigator.userAgent.includes('Brave') ? 'Brave' : 'Chrome',
+    };
+  }
+
+  function openIssue(kind = 'bug') {
+    const ctx = contextForIssue();
+    const detail = kind === 'idea'
+      ? ''
+      : `<!-- what were you doing, and what did you expect? -->\n\n`;
+    const url = kind === 'idea'
+      ? report.ideaUrl({ title: '[idea] ', body: '' })
+      : report.issueUrl({ ...ctx, title: '[bug] ', detail });
+    barbo('sys', `opening the ${kind} form`);
+    openUrl(url);
+  }
+
+  function showShare(force = false) {
+    $('share-line').textContent = report.shareLine(sessionSeed);
+    $('share-sheet').hidden = false;
+    if (force) barbo('sys', 'share sheet opened by the user');
+    $('share-close').focus({ preventScroll: true });
+  }
+
+  function hideShare() {
+    $('share-sheet').hidden = true;
+    markSharePrompted();
+  }
+
+  async function markSharePrompted() {
+    if (sharePrompted === true) return;
+    sharePrompted = true;
+    try {
+      const { 'mdh:settings': stored } = await api.storage.local.get('mdh:settings');
+      await api.storage.local.set({ 'mdh:settings': { ...(stored ?? {}), sharePrompted: true } });
+    } catch {
+      /* storage is a convenience here, never a blocker */
+    }
+  }
+
   const startedAt = Date.now();
   let tabId = null;
   let status = null;
@@ -111,6 +175,10 @@
       ? `${s.platform.name} · ${s.interceptor}`
       : 'Unsupported page — open one of the 8 platforms.';
 
+    strip.host = s.host === true;
+    strip.phase = s.agent?.phase ?? 'idle';
+    paintIssueStrip();
+
     const name = `${s.platform?.id ?? 'none'}:${s.agent?.phase ?? 'idle'}:${s.host === true}`;
     if (name !== lastName) {
       lastName = name;
@@ -163,6 +231,8 @@
     if (rate?.hits) $('ladder').textContent = `hit ${rate.hits} · ${rate.phase || 'idle'}`;
 
     const history = stored['mdh:history'] ?? [];
+    strip.history = history;
+    paintIssueStrip();
     const list = $('history');
     list.textContent = '';
     let denied = 0;
@@ -249,8 +319,91 @@
     else barbo(MDH.fun.tagAt(barboTick), MDH.fun.missionAt(barboTick));
   }, 4200);
 
+  // Everything the strip needs to decide whether this is a routine reminder or a post-mortem.
+  const strip = { host: null, phase: null, history: [] };
+
+  /**
+   * The issue strip is not decoration and it is not a notification: it is the support channel, and it has
+   * to know when the last run went wrong. A host that is not answering and a session that stopped on an
+   * error both promote the strip — the line stays in the same place, it just stops whispering.
+   */
+  function paintIssueStrip() {
+    const failed = strip.history.filter((item) => item.status && item.status !== 'ok').length;
+    const trouble = strip.host === false || strip.phase === 'stopped' || failed > 0;
+    const seed = trouble ? sessionSeed + failed * 7 + 3 : sessionSeed;
+
+    $('issue-line').textContent = trouble
+      ? `The last run had a problem. ${report.issueLine(seed)}`
+      : report.issueLine(seed);
+    $('report').classList.toggle('loud', trouble);
+    $('report-bug').classList.toggle('primary', trouble);
+    $('report-hint').textContent = trouble
+      ? 'The form already has the stage, platform and browser. Paste the log and it is a useful report.'
+      : 'A bug report is worth more than a star, and the developer reads every one.';
+  }
+  $('report-bug').addEventListener('click', () => openIssue('bug'));
+  $('report-idea').addEventListener('click', () => openIssue('idea'));
+  $('share-open').addEventListener('click', () => showShare(true));
+  $('share-close').addEventListener('click', hideShare);
+  $('share-sheet').addEventListener('click', (e) => {
+    if (e.target === $('share-sheet')) hideShare();
+  });
+
+  const links = report.shareLinks();
+  for (const button of document.querySelectorAll('[data-share]')) {
+    button.addEventListener('click', async () => {
+      const name = button.dataset.share;
+      if (name === 'instagram' || name === 'tiktok') {
+        // No web intent carries a post; copy the payload and open the app's site, honestly.
+        const copied = await copy(report.clipboard());
+        barbo('sys', `${name}: link ${copied ? 'copied' : 'ready to copy by hand'}`);
+        button.textContent = copied ? 'Link copied' : 'Copy failed';
+        openUrl(links[name]);
+        return;
+      }
+      barbo('sys', `share → ${name}`);
+      openUrl(links[name]);
+    });
+  }
+
+  $('share-copy').addEventListener('click', async () => {
+    const ok = await copy(report.clipboard());
+    $('share-copy').textContent = ok ? 'Copied' : 'Copy failed';
+    barbo('sys', `share link ${ok ? 'copied' : 'copy failed (clipboard blocked)'}`);
+    setTimeout(() => ($('share-copy').textContent = 'Copy link'), 1400);
+  });
+
+  if (navigator.share) {
+    $('share-native').hidden = false;
+    $('share-native').addEventListener('click', async () => {
+      const payload = report.shareText();
+      try {
+        await navigator.share({ title: payload.title, text: payload.text, url: payload.url });
+        barbo('sys', 'shared through the system sheet');
+      } catch {
+        /* the user cancelled; not an error worth a log line */
+      }
+    });
+  }
+
   barbo('sys', `MDH_AI ${MDH.VERSION} · popup opened`);
   barbo('deep', 'mission control online; no budget for an actual mission');
 
   refresh();
+
+  // Once per profile, and only after the first refresh has painted: a modal over a blank popup looks
+  // like a crash, which is the exact impression this product cannot afford.
+  (async () => {
+    try {
+      const { 'mdh:settings': stored } = await api.storage.local.get('mdh:settings');
+      sharePrompted = stored?.sharePrompted === true;
+      if (!sharePrompted) {
+        await markSharePrompted();
+        showShare();
+        barbo('sys', 'first run: share sheet shown once');
+      }
+    } catch {
+      /* no storage, no prompt; the Share button still works */
+    }
+  })();
 })();

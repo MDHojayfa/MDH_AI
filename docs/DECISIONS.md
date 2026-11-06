@@ -142,3 +142,20 @@ punchline.
 **D24 · No remote configuration.**
 The extension never fetches a config, a selector list, an update manifest or a font. A site change is a new
 release, reviewed like any other code. Remote config is a backdoor with a friendly name.
+
+**D27 · The help desk is part of the interface, and the jokes live somewhere else.**
+A product that cannot be fully tested — this one is written on one laptop against eight websites that ship
+on their own schedule — has an obligation to make reporting trivial. So the popup's first element is an
+issue line and two real buttons, the failure card carries the same form next to the actual error, and every
+run shows a different line from a pool of twenty. That pool is deliberately **separate** from the mission
+corpus: a user asking for help must never be answered with a punchline, and a punchline must never look like
+an error. The pre-filled body is limited to stage, platform and browser; paths and URLs are redacted before
+the URL is built, because a public form is not the place to discover what else the extension knows.
+
+**D28 · Ask once, then stay quiet. Share links are honest about their limits.**
+The share sheet opens automatically on the first run of a profile and never again; afterwards it is a button.
+The flag lives in `mdh:settings.sharePrompted`, next to the other settings, so the promise survives reloads.
+Eight of the ten destinations have a real web intent that pre-fills the text. Instagram and TikTok do not —
+there is no URL that opens their composer with a caption — so the sheet copies the link first and opens the
+site, and says so. Faking a share endpoint would produce a button that appears to work and silently does
+nothing, which is worse than a button that explains itself.

@@ -53,6 +53,24 @@ Beyond the ping, the host is exercised by hand for the risky paths:
 | an MCP server that never starts | `TOOL_MISSING` for its tools; host stays alive |
 | kill the host mid-call | extension reports `NO_HOST` and offers Retry |
 
+## 3b. Report and share — `tests/report.test.mjs`
+
+Twelve tests, and four of them exist because the alternative is a support tool that damages trust:
+
+| Case | Expected |
+|---|---|
+| `ISSUES.length` | between 15 and 30; every line contains a call to action |
+| mission corpus | never merged into the issue or share pools |
+| joke safety | no line claims a success or mentions a credential, key or passphrase |
+| `issueUrl()` | `issues/new?template=bug_report.yml`, title and body encoded, stage/platform/browser present |
+| redaction | a home path and an internal URL in `detail` arrive as `<path>` / `<url>`, never verbatim |
+| `ideaUrl()` | `feature_request.yml` |
+| `shareLinks()` | ten endpoints, each on its documented host; X and Reddit carry the repo URL |
+| honest limits | Instagram and TikTok carry no repo URL (they have no intent), and the sheet says so |
+| rotation | deterministic per seed, and two seeds do not collide |
+| popup wiring | nine platform labels, `#share-copy`, `#report-bug`, `#report-idea`, `navigator.clipboard`, `navigator.share` |
+| ask-once | `sharePrompted` is read, written, and guards the auto-open |
+
 ## 4. Loop — deterministic parts
 
 The agent's `_internals` are exported for exactly this. The cases that decide whether the product is safe:

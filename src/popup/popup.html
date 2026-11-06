@@ -28,6 +28,16 @@
     <span id="ticker" aria-hidden="true">contacting the aliens on the Moon…</span>
   </section>
 
+  <section class="report" id="report">
+    <p class="issue-line" id="issue-line">The developer does not have a NASA PC. If you found a bug, open an issue.</p>
+    <div class="row">
+      <button id="report-bug" class="ghost small">Report a bug</button>
+      <button id="report-idea" class="ghost small">Send an idea</button>
+      <button id="share-open" class="ghost small">Share</button>
+    </div>
+    <p class="report-hint" id="report-hint">A bug report is worth more than a star, and the developer reads every one.</p>
+  </section>
+
   <section class="platform">
     <span id="platform">not a supported page</span>
   </section>
@@ -77,6 +87,36 @@
     <pre id="barbos-log" aria-live="off"></pre>
   </details>
 
+  <div id="share-sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="share-title">
+    <div class="sheet-card">
+      <div class="sheet-hd">
+        <strong id="share-title">Share MDH_AI</strong>
+        <button id="share-close" class="ghost small" aria-label="Close">✕</button>
+      </div>
+      <p class="share-line" id="share-line">No ads, no tracking, no budget. If this saved you an hour, share it with someone.</p>
+      <div class="share-grid">
+        <button data-share="x">X</button>
+        <button data-share="facebook">Facebook</button>
+        <button data-share="whatsapp">WhatsApp</button>
+        <button data-share="telegram">Telegram</button>
+        <button data-share="reddit">Reddit</button>
+        <button data-share="linkedin">LinkedIn</button>
+        <button data-share="bluesky">Bluesky</button>
+        <button data-share="email">Email</button>
+        <button data-share="instagram">Instagram</button>
+        <button data-share="tiktok">TikTok</button>
+      </div>
+      <div class="row">
+        <button id="share-copy" class="primary small">Copy link</button>
+        <button id="share-native" class="ghost small" hidden>More…</button>
+      </div>
+      <p class="sheet-note">
+        Instagram and TikTok have no web link that can carry a post, so those two copy the link for you —
+        open the app and paste. Everything here is a normal link; nothing is posted on your behalf.
+      </p>
+    </div>
+  </div>
+
   <footer>
     <a id="home" href="https://github.com/MDHojayfa" target="_blank" rel="noopener" title="Follow on GitHub">github.com/MDHojayfa</a>
     <a id="site" href="https://mdhojayfa.github.io/" target="_blank" rel="noopener">site</a>
@@ -86,6 +126,7 @@
   <script src="../shared/compat.js"></script>
   <script src="../core/log.js"></script>
   <script src="../core/fun.js"></script>
+  <script src="../core/report.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

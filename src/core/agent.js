@@ -475,6 +475,16 @@
         actions: [
           { label: 'Keep waiting', primary: true, fn: (close) => close() },
           { label: 'Stop', fn: (close) => { close(); stop('stalled'); } },
+          {
+            label: 'Report it',
+            fn: (close) => {
+              close();
+              MDH.ui.issue?.({
+                reason: 'stalled',
+                detail: `No reply arrived after ${Math.round(ms / 1000)} s on ${adapter.id}.`,
+              });
+            },
+          },
         ],
       });
       S.phase = 'paused';
@@ -551,12 +561,23 @@
 
   // ────────────────────────────────────────────────────────────── lifecycle
 
+  /** Failures a user can actually report, and the reason we only show the card once per minute. */
+  const REPORTABLE = new Set(['stalled', 'failed', 'error', 'timeout', 'NO_HOST', 'NO_TAB', 'SEND_FAILED']);
+  let lastIssueAt = 0;
+
   function stop(reason) {
     S.running = false;
     S.stopped = true;
     S.phase = 'stopped';
     log()?.warn('loop stopped:', reason);
     MDH.ui.notice(`MDH stopped: ${reason}`, { tone: 'warn', ms: 6000 });
+    if (REPORTABLE.has(String(reason)) && Date.now() - lastIssueAt > 60000) {
+      lastIssueAt = Date.now();
+      MDH.ui.issue?.({
+        reason: String(reason),
+        detail: `The loop stopped (${reason}) after ${S.turn} turn${S.turn === 1 ? '' : 's'}.\nStage: ${S.phase}`,
+      });
+    }
     MDH.state.patch('session', { phase: 'stopped', outcome: reason }).catch(() => {});
   }
 
@@ -598,7 +619,12 @@
 
     turn().catch((e) => {
       log()?.error('loop failed', e);
-      MDH.ui.notice(`MDH failed: ${e.message}`, { tone: 'err', ms: 8000 });
+      // A failure is the one moment a user might actually file an issue, so it is the one moment we hand
+      // them the form. The joke is labelled; the reason is not.
+      MDH.ui.issue?.({
+        reason: e.code ?? 'error',
+        detail: `The loop stopped: ${e.message}\n\nStage: ${S.phase} · turn ${S.turn}`,
+      });
       stop(e.code ?? 'error');
     });
     return { ok: true };
