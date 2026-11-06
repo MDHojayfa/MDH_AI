@@ -133,6 +133,15 @@ codebase to leak something by accident.
 | paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
+## 3d0a. Tool-failure hints — `tests/hints.test.mjs`
+
+| Case | Expected |
+|---|---|
+| known codes | PATH_DENIED, ENOENT, TIMEOUT, TOOL_MISSING, DENIED, EACCES, truncation, NO_HOST each get a next action |
+| unknown | no invented advice, and a plain exit code gets none |
+| framing | the hint is appended below the untouched error, and never on a successful call |
+| size | the table stays short enough to read |
+
 ## 3d0b. Pill tooltip — `tests/dock.test.mjs`
 
 | Case | Expected |

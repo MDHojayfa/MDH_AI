@@ -51,6 +51,8 @@ First release. One script, one extension, eight platforms, no API key.
   gain write access to a plan-mode run.
 - **Skills (playbooks)**: write `## build` / `## deploy` blocks in the popup; the model sees the *names* and opens
   a body with `read_skill` only when it needs one. No folder, no `~/.config` edit, no context cost until used.
+- **Failure hints**: a known host error (path denied, missing file, timeout, denied call, no host) now carries one
+  line telling the model what to do next, appended below the untouched error text.
 - **"Why is the pill like that?"**: the pill's tooltip and `aria-label` carry the phase, the turn and the reason a
   run paused — the same sentence the card would give you, without opening it.
 - **Session replay in the log**: every row opens to its record (arguments, full hash, run id), and selecting a run
@@ -154,7 +156,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **246 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **250 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

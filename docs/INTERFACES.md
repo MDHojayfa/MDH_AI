@@ -122,6 +122,16 @@ The only accepted envelope, inside a json fence:
 ```json
 {"mdh_call":{"tool":"run_command","arguments":{"cmd":"git status","cwd":"~/projects/app"}}}
 
+When a tool fails with a code the host is known to return, the result frame carries one extra line below the
+untouched error text:
+
+```
+[MDH_RESULT tool="read_file" status="error"]
+[PATH_DENIED] /etc/shadow is on the deny list
+[MDH_HINT] pick a path inside the allowed folders (or ask the user to widen the list in ~/.config/mdh/config.json)
+[/MDH_RESULT]
+```
+
 A `finish` call carries the session code, and nothing else ends a task:
 
 ```

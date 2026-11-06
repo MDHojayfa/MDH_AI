@@ -519,9 +519,34 @@
     return Boolean(MDH.phoenix?.matches?.(given, S.phoenix ?? ''));
   }
 
+  /**
+   * Codes the host is known to return, and the sentence that turns each into a next action. A model that reads
+   * "[PATH_DENIED] /etc/shadow" and tries again in the same folder wastes a turn; one that reads "the allowed
+   * folders are …" does not. The hint is a hint — the real error text stays above it, unedited.
+   */
+  const HINTS = [
+    { match: /PATH_DENIED|outside the allowed folders|deny list/i, hint: 'pick a path inside the allowed folders (or ask the user to widen the list in ~/.config/mdh/config.json)' },
+    { match: /ENOENT|no such file or directory/i, hint: 'the file or folder does not exist — list the parent folder before retrying' },
+    { match: /TIMEOUT|timed out/i, hint: 'the command hit its time limit — run something narrower, or raise timeout_ms' },
+    { match: /TOOL_MISSING|not available in this build/i, hint: 'that tool is not installed in this build; continue with the ones you have' },
+    { match: /\[DENIED\]|the user denied/i, hint: 'the user said no — do not retry this call; ask what they would prefer instead' },
+    { match: /permission denied|EACCES/i, hint: 'the host is not allowed to touch this — a different file, or ask the user to run it themselves' },
+    { match: /MAX_BYTES|too large|truncated/i, hint: 'the result was cut to fit; read a smaller range instead of the whole thing' },
+    { match: /NO_HOST|host (is )?not (running|connected)/i, hint: 'the local host is not answering — tell the user to run ./install.sh, then try again' },
+  ];
+
+  function hintFor(body) {
+    const text = String(body ?? '');
+    if (!text) return null;
+    for (const { match, hint } of HINTS) if (match.test(text)) return hint;
+    return null;
+  }
+
   function frame({ tool, status, body }) {
     const safe = MDH.util.truncate(String(body ?? ''), 128 * 1024);
-    return `[MDH_RESULT tool="${tool}" status="${status}"]\n${safe}\n[/MDH_RESULT]`;
+    const hint = status === 'ok' ? null : hintFor(safe);
+    const tail = hint ? `\n[MDH_HINT] ${hint}` : '';
+    return `[MDH_RESULT tool="${tool}" status="${status}"]\n${safe}${tail}\n[/MDH_RESULT]`;
   }
 
   /** Decides whether this call may run, and returns the user's decision. */
@@ -1090,6 +1115,7 @@
       dedupCheck,
       finishAccepts,
       handoffText,
+      hintFor,
     },
   };
 })();
