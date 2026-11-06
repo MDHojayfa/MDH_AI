@@ -187,6 +187,17 @@ codebase to leak something by accident.
 | stale prose | a quoted KB figure more than 15% from the built zip fails the run |
 | v2 notes | rotation and messaging are named, and marked as notes rather than promises |
 
+## 3e2b. Documentation coverage — `tests/docs.test.mjs`
+
+The docs are part of the product, so the late-v1 features have to exist in them:
+
+| Doc | Expected |
+|---|---|
+| SCENARIOS | plug, layout watch, grants, runs, handoff — and the closing count matches |
+| FAQ | completion code, plan first, skills, remembered approvals, the weigh numbers |
+| KNOWN-LIMITS | a 1.0.0 table saying what was tested and what was not |
+| README | links to WHY, PLUG, V2-NOTES, RELEASE, TESTPLAN and `npm run weigh` |
+
 ## 3e3. Runs in the log — `tests/audit.test.mjs`, `tests/viewer.test.mjs`
 
 | Case | Expected |

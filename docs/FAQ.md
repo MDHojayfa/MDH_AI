@@ -116,6 +116,33 @@ reputation for being broken. The silly lines are a separate pool, so help never 
 hand once, and what nobody has ever run. The short version is that one person on one Linux machine tested as
 far as that allows, which is not the same as tested everywhere.
 
+**Why does a task need a "completion code"?**
+Because a sentence cannot be checked. Every run gets a short code (`PHX-7KQ2MD`), and only a `finish` call
+carrying it ends the task — "done", a summary or a tidy sign-off changes nothing. The popup shows the code and
+the exact call. If the model cannot produce it twice, you get **Mark as finished** and the last word.
+[`docs/PLUG.md`](PLUG.md) is the long version, including why the vendors cannot help here.
+
+**What is "Plan first"?**
+An optional read-only mode. The loop allows only look-around tools, the model proposes steps with
+`propose_plan`, and nothing that changes your machine runs until you press **Approve and continue**. It is an
+allowlist in the loop, not a polite request in the prompt, so a tool added later cannot quietly gain write
+access to a plan-mode run.
+
+**What are "Skills"?**
+Short playbooks you write once (`## build`, `## deploy`) in the popup. The model sees only the names and opens
+a body with `read_skill` when the task matches — so an unused playbook costs nothing.
+
+**What is "Remembered approvals" and why does it have an expiry?**
+Approving the same exact command repeatedly turns a safety prompt into a reflex. Once you have approved one
+twice in a run, the card offers *for this run*, *for this session* (ends when the browser restarts, by boot
+stamp) or *always on this site* (listed in the popup with a ✕). All three are one exact command; none of them
+can widen a deny rule.
+
+**"Runs on a potato" — prove it.**
+`npm run weigh`. It weighs the extension, starts the host for real, times it to the first `ready` frame, reads
+its memory, counts dependencies, and re-checks the KB figures quoted in the docs. Current: 139 KB zipped,
+~60 ms to ready, 55 MB resident, 0 npm dependencies. Any of those crossing a budget fails the command.
+
 **How do I know it would tell me if my network was the problem?**
 Read [`SCENARIOS.md`](SCENARIOS.md) — ten failures walked through end to end, including the blocked-IP one,
 the MTU one and the clock one. Those three are the ones that look like a broken extension and almost never are.
