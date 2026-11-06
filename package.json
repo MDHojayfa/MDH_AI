@@ -22,7 +22,8 @@
     "verify": "node tools/weigh.mjs && npm test && npm run build && npm run package",
     "logs": "node host/mdh-log.mjs",
     "logs:serve": "node host/mdh-log.mjs --serve --open",
-    "weigh": "node tools/weigh.mjs"
+    "weigh": "node tools/weigh.mjs",
+    "art": "node tools/make-readme-art.mjs"
   },
   "files": [
     "src",

@@ -160,7 +160,7 @@ npm run weigh -- --json
 ```
 
 It weighs the extension you actually install, starts the host for real and times it to the first `ready` frame,
-reads the host's resident memory, and counts dependencies. Current numbers on a two-core test box: **139 KB
+reads the host's resident memory, and counts dependencies. Current numbers on a two-core test box: **140 KB
 zipped · ~60 ms to ready · 55 MB resident · 0 dependencies**. If any of those crosses its budget the script exits
 non-zero, so the claim cannot quietly rot. The comparison this backs up is in
 [`WHY.md`](WHY.md) — including what other tools do better.

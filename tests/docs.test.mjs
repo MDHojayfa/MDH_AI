@@ -32,7 +32,7 @@ test('the questions people will actually ask are answered', () => {
   ]) {
     assert.ok(faq.includes(question), `FAQ answers "${question}"`);
   }
-  assert.match(faq, /139 KB/, 'and quotes the measured bundle size, not a remembered one');
+  assert.match(faq, /140 KB/, 'and quotes the measured bundle size, not a remembered one');
 });
 
 test('the honest gap list covers what 1.0.0 added', () => {
