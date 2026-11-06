@@ -261,6 +261,10 @@ The page has four controls, all of them honest about being URLs:
 | **Hide log / Show log** | collapses the call table when you are screen-sharing; the totals stay |
 | **Archive & clear…** | renames `audit.jsonl` with a timestamp and starts a new chain — a POST, with a confirm card, and it **never deletes** |
 
+Above the filters, **Runs** groups the calls by the run that made them: id, call count, failures. Click one to see
+only that run (`?run=…`) — the fastest way to answer "what did it actually do in that session?", and the id is
+also shown in the popup's *Last run* line if you need to quote it.
+
 Filters live in the query string, so a narrowed view is a link you can bookmark or paste into a bug report —
 `?status=error&status=denied&level=warn&q=exit` is a valid view. **Show all** clears every box at once. The
 page still contains no script: the only CSP relaxation is `form-action 'self'`, for the filter form. The page shows totals,

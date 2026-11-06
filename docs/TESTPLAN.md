@@ -164,6 +164,16 @@ codebase to leak something by accident.
 | honesty | `weigh.mjs` exits non-zero over budget; `docs/WHY.md` tells the reader to run it |
 | v2 notes | rotation and messaging are named, and marked as notes rather than promises |
 
+## 3e3. Runs in the log — `tests/audit.test.mjs`, `tests/viewer.test.mjs`
+
+| Case | Expected |
+|---|---|
+| audit | `run` is stored, clipped to 40 chars, and inside the chain hash |
+| absent | entries without a run stay valid and verifiable |
+| grouping | calls group by run; pre-run entries land under "earlier calls" |
+| filter | `?run=` narrows the table; an unknown id shows nothing; empty means all |
+| links | the token and the run both survive Hide/Show and Archive |
+
 ## 3e3. Layout watch — `tests/probe.test.mjs`
 
 | Case | Expected |

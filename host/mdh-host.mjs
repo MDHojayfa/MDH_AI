@@ -133,7 +133,14 @@ async function callTool(name, args, meta = {}) {
     };
   }
 
-  appendAudit({ tool: name, args: meta.args ?? args, status: result.status, ms: result.ms, detail: result.body?.slice(0, 160) });
+  appendAudit({
+    tool: name,
+    args: meta.args ?? args,
+    status: result.status,
+    ms: result.ms,
+    detail: result.body?.slice(0, 160),
+    run: meta.run,
+  });
   return result;
 }
 
@@ -152,7 +159,7 @@ async function handle(frame) {
       return;
 
     case 'call': {
-      const result = await callTool(frame.name, frame.arguments ?? {}, { args: frame.arguments });
+      const result = await callTool(frame.name, frame.arguments ?? {}, { args: frame.arguments, run: frame.run });
       reply(id, { t: 'reply', ...result });
       return;
     }

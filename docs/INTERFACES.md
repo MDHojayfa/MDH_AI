@@ -81,7 +81,7 @@ Four-byte little-endian length, then UTF-8 JSON. One frame in, one frame out.
 ```
 {t:'ping'}                          → {t:'pong', host, version, pid, audit}
 {t:'list'}                          → {t:'tools', tools:[{server,name,description,inputSchema,local}]}
-{t:'call', name, arguments}         → {t:'reply', status, body, ms} | {t:'error', code, message}
+{t:'call', name, arguments, run}         → {t:'reply', status, body, ms} | {t:'error', code, message}
 {t:'progress', id, message}         → resets the pending timeout
 {t:'audit'}                         → {t:'audit', ok, lines, brokenAt?}
 {t:'config'}                        → {t:'config', config, paths}

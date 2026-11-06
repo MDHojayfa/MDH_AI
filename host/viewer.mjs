@@ -53,7 +53,7 @@ export const STATUSES = ['ok', 'denied', 'error'];
  * Server-side filtering, because the page has no script and never will. Anything the user can narrow is a
  * query parameter, which also means every filtered view is a URL they can bookmark or paste into a report.
  */
-export function filterEntries(entries = [], { status = [], tool = '', q = '', level = [] } = {}) {
+export function filterEntries(entries = [], { status = [], tool = '', q = '', level = [], run = '' } = {}) {
   const wanted = Array.isArray(status) ? status.filter((v) => STATUSES.includes(v)) : [];
   const needle = String(q ?? '').trim().toLowerCase();
   const toolName = String(tool ?? '').trim().toLowerCase();
@@ -61,6 +61,7 @@ export function filterEntries(entries = [], { status = [], tool = '', q = '', le
   return entries.filter((entry) => {
     if (wanted.length && !wanted.includes(entry.status)) return false;
     if (toolName && !String(entry.tool ?? '').toLowerCase().includes(toolName)) return false;
+    if (run && entry.run !== run) return false;
     if (needle) {
       const hay = `${entry.tool ?? ''} ${entry.detail ?? ''} ${entry.args?.path ?? ''} ${entry.args?.cmd ?? ''}`.toLowerCase();
       if (!hay.includes(needle)) return false;
@@ -170,6 +171,12 @@ nav.bar { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justif
 .filters label { display: inline-flex; gap: 4px; align-items: center; cursor: pointer; }
 .filters .n { color: #6b7280; font-size: 10.5px; }
 .filter-state { margin: 2px 0 10px; }
+.runs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+.runs .run { display: inline-flex; gap: 6px; align-items: baseline; padding: 4px 9px; border-radius: 999px;
+             border: 1px solid #2a2547; background: #14121f; color: #e5e7eb; text-decoration: none; font-size: 11.5px; }
+.runs .run b { font-family: var(--mono, monospace); font-weight: 600; }
+.runs .run.active { border-color: #6d5efc; background: #1b1836; }
+.runs .bad { color: #fca5a5; }
 .filters .fl { text-transform: uppercase; letter-spacing: .06em; font-size: 10.5px; color: #6b7280; }
 .filters input[type=search] { padding: 4px 7px; border-radius: 6px; border: 1px solid #2a2547; background: #12111c; color: #e5e7eb; font: inherit; }
 .filters button, .btn { border-radius: 7px; border: 1px solid #2a2547; background: #171627; color: #e5e7eb;
@@ -265,6 +272,7 @@ export function renderPage({
   for (const level of query.level ?? []) base.append('level', level);
   if (query.q) base.set('q', query.q);
   if (query.tool) base.set('tool', query.tool);
+  if (query.run) base.set('run', query.run);
   const link = (overrides = {}) => {
     const params = new URLSearchParams(base);
     for (const [key, value] of Object.entries(overrides)) {
@@ -283,10 +291,52 @@ export function renderPage({
     ...(query.level ?? []).map((v) => `level ${v}`),
     ...(query.q ? [`text “${query.q}”`] : []),
     ...(query.tool ? [`tool ${query.tool}`] : []),
+    ...(query.run ? [`run ${query.run}`] : []),
   ];
 
   // `allEntries` is optional (tests pass entries only): counts must never be the reason a page 500s.
   const every = Array.isArray(allEntries) ? allEntries : Array.isArray(entries) ? entries : [];
+
+  /*
+   * Runs, not events. "Show me everything that run did" is the first question after a failure, and grouping by the
+   * id the extension stamps on every call turns it into a link. Entries from before the id existed are grouped
+   * honestly under "earlier" rather than guessed at.
+   */
+  const runKey = (entry) => entry.run ?? '';
+  const runs = new Map();
+  for (const entry of every) {
+    const key = runKey(entry);
+    const row = runs.get(key) ?? { key, calls: 0, errors: 0, first: null, last: null, tools: new Set() };
+    row.calls += 1;
+    if (entry.status && entry.status !== 'ok') row.errors += 1;
+    const at = Date.parse(entry.at ?? '') || null;
+    if (at) {
+      row.first = row.first ? Math.min(row.first, at) : at;
+      row.last = row.last ? Math.max(row.last, at) : at;
+    }
+    if (entry.tool) row.tools.add(entry.tool);
+    runs.set(key, row);
+  }
+  const recentRuns = [...runs.values()]
+    .sort((a, b) => (b.last ?? 0) - (a.last ?? 0))
+    .slice(0, 6);
+  const runsBlock = recentRuns.length
+    ? `<div class="runs">
+         <span class="fl">Runs</span>
+         ${recentRuns
+           .map((row) => {
+             const label = row.key ? esc(row.key) : 'earlier calls';
+             const stamp = row.last ? esc(when(row.last)) : '—';
+             const bad = row.errors ? ` · <span class="bad">${row.errors} failed</span>` : '';
+             const active = query.run && query.run === row.key ? ' active' : '';
+             return `<a class="run${active}" href="${esc(link({ run: row.key || null }))}" title="${stamp} · ${row.tools.size} tools">
+                       <b>${label}</b> <span class="muted">${row.calls} calls${bad}</span>
+                     </a>`;
+           })
+           .join('')}
+         ${query.run ? `<a class="reset" href="${esc(link({ run: null }))}">all runs</a>` : ''}
+       </div>`
+    : '';
 
   const title = `MDH_AI · ${stat.calls} calls`;
 
@@ -306,6 +356,7 @@ ${live ? '<meta http-equiv="refresh" content="5">' : ''}
 <p class="sub">Generated ${esc(when(generatedAt))}${live ? ' · auto-refresh 5 s' : ''} · host ${esc(meta.hostVersion ?? '?')} · pid ${esc(meta.pid ?? '?')} · ${chain}</p>
 
 <div class="tiles">${tiles}</div>
+${runsBlock}
 <p class="sub">${esc(filteredCount(entries.length, total))}</p>
 
 <nav class="bar" aria-label="Log controls">
@@ -477,6 +528,7 @@ export function startViewer({ getState, clear, port = 0, token = null, host = '1
       q: url.searchParams.get('q') ?? '',
       tool: url.searchParams.get('tool') ?? '',
       view: url.searchParams.get('view') ?? 'all',
+      run: url.searchParams.get('run') ?? '',
     };
     const entries = filterEntries(state.entries ?? [], query);
     const payload = {

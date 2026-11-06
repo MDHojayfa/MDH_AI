@@ -453,7 +453,7 @@
       return { status: 'ok', body: 'finished', finish: true };
     }
 
-    const reply = await MDH.transport.callTool(tool, call.arguments, { timeout: 130000 });
+    const reply = await MDH.transport.callTool(tool, call.arguments, { timeout: 130000, run: S.runId });
     const status = reply?.status ?? (reply?.ok === false ? 'error' : 'ok');
     return { status, body: reply?.body ?? reply?.result ?? '', meta: reply };
   }
@@ -926,6 +926,9 @@
     S.approvals = new Map();
     S.plan = [];
     S.recentResults = [];
+    // One id per run, stamped on every call it makes. Without it the log is a list of events and a support
+    // question is a puzzle; with it, "show me everything that run did" is a URL.
+    S.runId = MDH.util.uuid().replace(/-/g, '').slice(0, 10);
     S.startedAt = Date.now();
     S.phase = 'starting';
     S.tools = [];
@@ -965,6 +968,7 @@
       outcome,
       reason: reason ? String(reason).slice(0, 120) : null,
       phoenix: S.phoenix,
+      runId: S.runId,
     };
     try {
       await MDH.state.pushCapped('runs', entry, 20);
@@ -984,6 +988,7 @@
     pauseReason: S.pauseReason,
     prose: S.prose,
     phoenix: S.phoenix,
+    runId: S.runId,
   });
 
   MDH.agent = {

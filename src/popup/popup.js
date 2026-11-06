@@ -351,7 +351,7 @@
     const runs = stored['mdh:runs'] ?? [];
     const last = runs[runs.length - 1];
     $('last-run').textContent = last
-      ? `${last.turns} turn${last.turns === 1 ? '' : 's'} · ${MDH.util.clock(last.ms)} · ${last.outcome}${last.reason ? ` (${last.reason})` : ''}`
+      ? `${last.turns} turn${last.turns === 1 ? '' : 's'} · ${MDH.util.clock(last.ms)} · ${last.outcome}${last.reason ? ` (${last.reason})` : ''}${last.runId ? ` · run ${last.runId}` : ''}`
       : 'no runs yet';
 
     $('calls').textContent = `${history.length} calls`;

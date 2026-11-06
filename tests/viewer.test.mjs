@@ -206,3 +206,34 @@ test('the filter form is multi-select, counted, and honest about "everything"', 
   assert.match(two, /Filtering by status error · status denied · level warn/, 'the page says which are active');
   assert.match(two, /clear all/);
 });
+
+test('calls are grouped into runs, and a run is a link', () => {
+  const now = Date.now();
+  const rows = [
+    { at: new Date(now - 4000).toISOString(), tool: 'run-command', status: 'ok', run: 'run-1' },
+    { at: new Date(now - 3000).toISOString(), tool: 'read-file', status: 'error', run: 'run-1' },
+    { at: new Date(now - 1000).toISOString(), tool: 'read-file', status: 'ok', run: 'run-2' },
+    { at: new Date(now - 90000).toISOString(), tool: 'read-file', status: 'ok' },
+  ];
+  const html = renderPage({ entries: rows, allEntries: rows, meta: { tokenValue: 'tok' }, query: {} });
+  assert.match(html, /class="runs"/);
+  assert.match(html, /<b>run-1<\/b> <span class="muted">2 calls · <span class="bad">1 failed/);
+  assert.match(html, /earlier calls/, 'entries from before the id are grouped honestly, not guessed');
+  const link = html.match(/href="\?([^"]*run=run-1[^"]*)"/)?.[1] ?? '';
+  assert.ok(link.includes('token=tok'), 'the link keeps the token');
+  assert.equal(filterEntries(rows, { run: 'run-1' }).length, 2);
+  assert.equal(filterEntries(rows, { run: 'nope' }).length, 0);
+  assert.equal(filterEntries(rows, { run: '' }).length, 4, 'no run filter means all of them');
+
+  const filtered = renderPage({ entries: rows.slice(0, 2), allEntries: rows, meta: { tokenValue: 'tok' }, query: { run: 'run-1' } });
+  assert.match(filtered, /class="run active"/);
+  assert.match(filtered, /run run-1/, 'the filter sentence names the run');
+  assert.match(filtered, /all runs/);
+});
+
+test('the run filter is part of the URL the rest of the page builds', () => {
+  const rows = [{ at: new Date().toISOString(), tool: 'x', status: 'ok', run: 'run-9' }];
+  const html = renderPage({ entries: rows, allEntries: rows, meta: { tokenValue: 'tok' }, query: { run: 'run-9' } });
+  const hide = html.match(/href="\?([^"]*view=stats[^"]*)"/)?.[1] ?? '';
+  assert.match(hide, /run=run-9/, 'hiding the log keeps the run too');
+});

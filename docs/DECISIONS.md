@@ -276,6 +276,13 @@ reminder, in the `finish` tool description, and in the popup's Advanced panel �
 nobody can debug. A wrong or missing code gets **one** correction, then a pause with *Mark as finished*, because
 at that point the model has failed the rule and the human should decide.
 
+**D46 · A run id, because a log is not a story until something groups it.**
+Every call carries `run` — ten hex characters minted when the run starts — into the host frame, into the audit
+entry, and therefore into the hash. The log page groups by it, so "show me everything that run did" is a URL
+(`?run=…`) instead of an exercise in reading timestamps. Entries written before the field existed are grouped
+under *earlier calls* rather than back-filled by guesswork: a log that invents its own history is worse than one
+with a gap in it.
+
 **D45 · Three scopes, because "always" is three different promises.**
 A single *Always* button forces the user to mean the longest-lived thing every time. The approval card now offers
 one safe answer (**Allow once**) and a caret with the rest: **for this run** (memory, dies with the task),
