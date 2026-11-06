@@ -73,3 +73,25 @@ test('the author credit is present in the manifest', () => {
   assert.equal(base.author, 'MDHojayfa');
   assert.match(base.homepage_url, /mdhojayfa\.github\.io/);
 });
+
+test('every script the popup loads exists, in the order the code needs', () => {
+  const html = readFileSync(join(ROOT, 'src/popup/popup.html'), 'utf8');
+  const sources = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
+  assert.ok(sources.length >= 4, 'the popup should load compat, log, fun, report, popup');
+  for (const src of sources) {
+    assert.ok(!src.startsWith('http'), `${src} is remote; the extension loads nothing from the network`);
+    const path = join(ROOT, 'src/popup', src);
+    assert.ok(existsSync(path), `${src} does not exist — a typo here is a blank popup`);
+  }
+  // report.js must load before popup.js, and fun.js before report.js: the pools are read at init.
+  const order = sources.map((s) => s.split('/').pop());
+  assert.ok(order.indexOf('report.js') < order.indexOf('popup.js'));
+  assert.ok(order.indexOf('fun.js') < order.indexOf('report.js'));
+});
+
+test('the help desk ships in the content-script list too, not just the popup', () => {
+  const files = base.content_scripts.flatMap((entry) => entry.js);
+  assert.ok(files.includes('core/report.js'), 'the in-page failure card needs the report module');
+  assert.ok(files.indexOf('core/report.js') < files.indexOf('core/ui.js'), 'ui.js reads MDH.report');
+  assert.ok(files.indexOf('core/fun.js') < files.indexOf('core/report.js'));
+});

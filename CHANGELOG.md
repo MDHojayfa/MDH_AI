@@ -60,7 +60,7 @@ First release. One script, one extension, eight platforms, no API key.
   platforms and a prompt in the middle. No stock art, no borrowed logo, nothing fetched.
 - **`docs/MEDIA.md`** — the six screenshots worth taking, their alt text, store copy for Chrome/Brave and
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
-- **107 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **109 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

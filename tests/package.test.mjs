@@ -70,6 +70,9 @@ test('the release artifacts exist, and contain a manifest at the root', { skip: 
     assert.ok(entries.includes('manifest.json'), `${file} has no root manifest`);
     assert.ok(!entries.some((e) => e.startsWith('dist/')), `${file} carries the build directory`);
     assert.ok(entries.includes('background/background.js'));
+    assert.ok(entries.includes('core/report.js'), `${file} is missing the help-desk module`);
+    assert.ok(entries.includes('popup/popup.html'));
+    assert.ok(entries.includes('popup/popup.css'));
     assert.ok(entries.some((e) => e.startsWith('icons/')));
   }
 });
