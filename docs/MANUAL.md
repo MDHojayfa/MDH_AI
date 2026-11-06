@@ -291,6 +291,11 @@ The page has four controls, all of them honest about being URLs:
 | **Hide log / Show log** | collapses the call table when you are screen-sharing; the totals stay |
 | **Archive & clear…** | renames `audit.jsonl` with a timestamp and starts a new chain — a POST, with a confirm card, and it **never deletes** |
 
+Click a run and the page opens it end to end: when it started, when it stopped, which tools it used, what
+failed, and the sequence in order (`list_dir ok → run_command ok → write_file denied → finish ok`). Every row has
+a **details** arrow that reveals the summarised arguments, the full hash and the run id — the audit entry itself,
+not a summary of it. No script is involved: `<details>` is HTML.
+
 Above the filters, **Runs** groups the calls by the run that made them: id, call count, failures. Click one to see
 only that run (`?run=…`) — the fastest way to answer "what did it actually do in that session?", and the id is
 also shown in the popup's *Last run* line if you need to quote it.

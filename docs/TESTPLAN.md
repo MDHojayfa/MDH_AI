@@ -198,7 +198,16 @@ The docs are part of the product, so the late-v1 features have to exist in them:
 | KNOWN-LIMITS | a 1.0.0 table saying what was tested and what was not |
 | README | links to WHY, PLUG, V2-NOTES, RELEASE, TESTPLAN and `npm run weigh` |
 
-## 3e3. Runs in the log — `tests/audit.test.mjs`, `tests/viewer.test.mjs`
+## 3e3. Runs and replay — `tests/viewer.test.mjs`
+
+| Case | Expected |
+|---|---|
+| row details | arguments, the full hash and the run id are all in the page, behind `<details>` |
+| no script | the interactive part is HTML, so the CSP stays `default-src 'none'` |
+| run view | selecting a run shows calls, failures, tools, start→end and the ordered sequence |
+| empty | no run selected, no header |
+
+## 3e4. Runs in the log — `tests/audit.test.mjs`, `tests/viewer.test.mjs`
 
 | Case | Expected |
 |---|---|
