@@ -179,3 +179,17 @@ timestamp chip per result.
 **Rejected:** Firebase-remote selector config (Superpower's approach). It fixes breakage instantly, and it
 also means a remote party can redirect our extension's typing. Revisit as **v1.1, data-only, opt-in,
 signed**, never as code.
+
+## D20 · MAIN-world injection via the manifest, never a `<script>` tag
+**Chosen:** a static `content_scripts` entry with `world: "MAIN"` and `run_at: "document_start"` (Chrome
+111+, Firefox 128+ — both below our minimums), so the browser injects the wrapper outside the page's CSP.
+**Rejected:** `createElement('script')` injection (blocked by `script-src`, racy ordering) and runtime
+`executeScript` (too late for the first request).
+**Trade accepted:** the wrapper is a page-realm object the site *can* see and re-wrap; it therefore holds no
+secrets and no extension APIs — only text forwarding. Verified in `research/10` against BCD 8.1.8.
+
+## D21 · The worker blind spot is documented, not built around
+**Chosen:** if a reply streams from a worker (invisible to our wrapper), detect the pattern — composer busy,
+no stream for 15 s, DOM producing text — and switch to DOM mode for that conversation.
+**Rejected:** patching `Worker` constructors and rewriting worker sources in v1 (fragile, and a second
+injection surface for a case no surveyed platform exhibits today).

@@ -17,7 +17,8 @@ documentation. Numbers and paths below come from code, not from README claims.
 | `06-TRANSPORT-AND-INSTALL.md` | native messaging, ID pinning, Firefox limits, rejected transports |
 | `07-UI-INTEL.md` | popup/overlay/banner patterns, the clock, stalls |
 | `08-LESSONS.md` | the 34 lessons and exactly which document each one changed |
-| `09-WEB-CLIENT-ENDPOINTS.md` | Claude / Gemini / Kimi endpoints, buried in a client we do not use |
+| `09-WEB-CLIENT-ENDPOINTS.md` | Claude / Gemini / Kimi / Grok endpoints, from clients we do not use |
+| `10-MAIN-WORLD-AND-CSP.md` | how the page realm is entered, and the worker blind spot |
 
 ## The prior-art answer, unchanged
 

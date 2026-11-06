@@ -129,6 +129,7 @@ These are answered by the M8 checklist, not by more reading.
 | `ROADMAP.md` | something is out of scope and you want to know when it is not |
 | `CHECKPOINTS.md` | you are resuming a session |
 | `specs/01…09` | one module, in detail |
+| `M8-PLAYBOOK.md` | you are capturing a platform's real behaviour in DevTools |
 | `prompt/SYSTEM.md`, `prompt/FRAMING.md` | any change to what the model sees |
 | `research/` | **internal only — deleted before v1 ships**; 8 files, 18 repos, the evidence behind every number |
 
