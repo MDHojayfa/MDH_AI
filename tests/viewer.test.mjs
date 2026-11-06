@@ -237,3 +237,41 @@ test('the run filter is part of the URL the rest of the page builds', () => {
   const hide = html.match(/href="\?([^"]*view=stats[^"]*)"/)?.[1] ?? '';
   assert.match(hide, /run=run-9/, 'hiding the log keeps the run too');
 });
+
+test('every row opens to the record underneath it', () => {
+  const rows = [
+    {
+      at: new Date().toISOString(),
+      tool: 'run_command',
+      status: 'ok',
+      run: 'run-7',
+      args: { cmd: 'npm test' },
+      detail: '208 passing',
+      hash: 'abcdef1234567890',
+      ms: 900,
+    },
+  ];
+  const html = renderPage({ entries: rows, allEntries: rows, meta: { tokenValue: 'tok' }, query: {} });
+  assert.match(html, /<details class="args">/);
+  assert.match(html, /npm test/, 'the arguments are visible once opened');
+  assert.match(html, /abcdef1234567890/, 'and the full hash, not just the prefix');
+  assert.match(html, /run run-7/);
+  assert.ok(!html.includes('<script'), 'still no script: <details> is HTML');
+});
+
+test('selecting a run opens it end to end', () => {
+  const now = Date.now();
+  const rows = [
+    { at: new Date(now - 5000).toISOString(), tool: 'list_dir', status: 'ok', run: 'run-9' },
+    { at: new Date(now - 4000).toISOString(), tool: 'run_command', status: 'ok', run: 'run-9' },
+    { at: new Date(now - 3000).toISOString(), tool: 'write_file', status: 'denied', run: 'run-9' },
+    { at: new Date(now - 2000).toISOString(), tool: 'finish', status: 'ok', run: 'run-9' },
+  ];
+  const html = renderPage({ entries: rows, allEntries: rows, meta: { tokenValue: 'tok' }, query: { run: 'run-9' } });
+  assert.match(html, /class="card runview"/);
+  assert.match(html, /4 calls · 1 failed/);
+  assert.match(html, /list_dir ok → run_command ok → write_file denied → finish ok/, 'the order is the point');
+  assert.match(html, /A call that is not here did not happen/);
+  const plain = renderPage({ entries: rows, allEntries: rows, meta: { tokenValue: 'tok' }, query: {} });
+  assert.doesNotMatch(plain, /card runview/, 'no run selected, no header');
+});

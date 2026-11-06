@@ -177,6 +177,12 @@ nav.bar { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justif
 .runs .run b { font-family: var(--mono, monospace); font-weight: 600; }
 .runs .run.active { border-color: #6d5efc; background: #1b1836; }
 .runs .bad { color: #fca5a5; }
+details.args summary { cursor: pointer; color: #9aa1b8; }
+details.args[open] summary { color: #e5e7eb; }
+details.args pre { margin: 6px 0 0; padding: 8px 10px; background: #0b0f13; border: 1px solid #1e2830;
+                   border-radius: 7px; white-space: pre-wrap; word-break: break-word; font-size: 11px; }
+.runview { margin-bottom: 12px; }
+.runview h3 { margin: 0 0 6px; font-size: 13.5px; }
 .filters .fl { text-transform: uppercase; letter-spacing: .06em; font-size: 10.5px; color: #6b7280; }
 .filters input[type=search] { padding: 4px 7px; border-radius: 6px; border: 1px solid #2a2547; background: #12111c; color: #e5e7eb; font: inherit; }
 .filters button, .btn { border-radius: 7px; border: 1px solid #2a2547; background: #171627; color: #e5e7eb;
@@ -243,10 +249,20 @@ export function renderPage({
     .map((entry) => {
       const tone = entry.status === 'ok' ? 'ok' : entry.status === 'denied' ? 'warn' : 'bad';
       const detail = entry.detail ?? entry.args?.path ?? entry.args?.cmd ?? '';
+      /*
+       * Every row can be opened. The audit entry already holds the summarised arguments, the run id and the full
+       * hash — showing them only makes the page as honest as the record underneath it. No script: this is a
+       * `<details>`, which is the one interactive element HTML gives you for free and cannot break.
+       */
+      const args = entry.args && Object.keys(entry.args).length ? JSON.stringify(entry.args, null, 2) : '';
+      const open = `<details class="args"><summary>${esc(String(detail).slice(0, 160) || 'no detail')}</summary>
+          <pre>${esc(args || '(no arguments recorded)')}</pre>
+          <p class="sub mono">run ${esc(entry.run ?? '— (before run ids)')} · hash ${esc(entry.hash ?? '—')}</p>
+        </details>`;
       return `<tr><td class="mono">${esc(when(entry.at))}</td><td class="mono">${esc(entry.tool)}</td>
         <td><span class="badge ${tone}">${esc(entry.status ?? '?')}</span></td>
         <td class="mono">${esc(short(entry.hash))}</td><td class="mono">${esc(ms(entry.ms))}</td>
-        <td class="mono">${esc(String(detail).slice(0, 220))}</td></tr>`;
+        <td class="mono">${open}</td></tr>`;
     })
     .join('');
 
@@ -338,6 +354,29 @@ export function renderPage({
        </div>`
     : '';
 
+  /*
+   * A run, opened end to end: when it started, when it stopped, which tools it used, what failed. This is the
+   * "session replay" without pretending to have a video — the audit is the record, and this is it, read in order.
+   */
+  const selected = query.run ? runs.get(query.run) : null;
+  const runEntries = selected ? every.filter((entry) => entry.run === query.run) : [];
+  const runHeader = selected
+    ? `<div class="card runview">
+         <h3>Run <code>${esc(query.run)}</code>
+           <span class="badge ${selected.errors ? 'bad' : 'ok'}">${selected.calls} calls${selected.errors ? ` · ${selected.errors} failed` : ''}</span></h3>
+         <p class="sub">${esc(when(selected.first))} → ${esc(when(selected.last))} · tools:
+           <code>${esc([...selected.tools].join(', '))}</code></p>
+         <p class="sub">Every row below is in order. A call that is not here did not happen — the hash chain is
+           verified at the top of this page.</p>
+         <p class="sub mono">${esc(
+           runEntries
+             .slice(0, 40)
+             .map((entry) => `${entry.tool} ${entry.status}`)
+             .join(' → '),
+         )}${runEntries.length > 40 ? ' …' : ''}</p>
+       </div>`
+    : '';
+
   const title = `MDH_AI · ${stat.calls} calls`;
 
   return `<!doctype html>
@@ -357,6 +396,7 @@ ${live ? '<meta http-equiv="refresh" content="5">' : ''}
 
 <div class="tiles">${tiles}</div>
 ${runsBlock}
+${runHeader}
 <p class="sub">${esc(filteredCount(entries.length, total))}</p>
 
 <nav class="bar" aria-label="Log controls">
