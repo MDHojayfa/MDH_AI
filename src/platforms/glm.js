@@ -3,6 +3,9 @@
  *
  * Two products, two streams (`/api/chat/completion` on z.ai, `/backend-api/assistant/stream` on
  * chatglm.cn) and one selector vocabulary — the closest pair in the set (`docs/PLATFORMS.md` §GLM).
+ *
+ * If you are adding a ninth platform and it looks like two products in one trench coat: this file is the
+ * pattern for that, and it is four lines longer than its sibling.
  */
 (() => {
   'use strict';

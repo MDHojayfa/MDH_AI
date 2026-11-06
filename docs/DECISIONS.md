@@ -124,6 +124,13 @@ No third-party notice, no upstream credit line, no borrowed header comment. Ever
 was written for this repository. If that ever changes, the licence and `CREDITS.md` change in the same
 commit — and until then, there is nothing else to attribute.
 
+**D26 · The landing page is one file, and the release needs no dependencies.**
+`site/index.html` is a single static file with inline CSS and three JSON-LD blocks; its social card is
+drawn by `tools/make-og.mjs` with the same PNG writer as the icons. `tools/package.mjs` writes both store
+ZIPs with `node:zlib` alone. The reason is the same in both cases: a product whose pitch is "two commands
+and no accounts" cannot have a release process that requires a package manager, a design tool or a cloud
+service. Everything the project ships can be rebuilt offline by anyone with Node.
+
 **D25 · Humour is labelled, and never carries a status.**
 A tool that waits a lot needs to look alive, and a 90-second silence reads as a crash. So the waiting
 state shows one real sentence plus one rotating joke, and the popup's BARBOS MODE log tags every real

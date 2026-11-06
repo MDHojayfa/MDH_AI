@@ -1,0 +1,69 @@
+# CI — three jobs, because they fail in three different ways and a red X should say which.
+#
+#   test  → the 72-unit layer, no browser, seconds
+#   build → both manifests, the invariants, the lint, the zips
+#   host  → a real spawn of the native host and a real pong
+#
+# There is no `npm install` anywhere: the project has no dependencies, so CI installs nothing and cannot
+# be taken down by a registry. It is also why the whole matrix finishes in under a minute.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: tests (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: run the suite
+        run: npm test
+        # No `npm install`: the project has no dependencies, which is the point of it.
+
+  build:
+    name: build + package + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tools/make-icons.mjs
+      - run: node tools/build.mjs
+      - run: node tools/package.mjs
+      - name: web-ext lint (must be 0 errors)
+        run: npx --yes web-ext@latest lint --source-dir dist/firefox
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mdh-ai-release
+          path: release/*.zip
+          if-no-files-found: error
+
+  host:
+    name: native host self-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: the installer's last step, on its own
+        run: node tools/selfcheck.mjs --quiet
+      - name: shell syntax and a dry run that touches nothing
+        run: |
+          bash -n install.sh
+          ./install.sh --dry-run --no-fun

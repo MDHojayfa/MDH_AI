@@ -1,5 +1,6 @@
 # build output
 dist/
+release/
 node_modules/
 
 # local runtime state

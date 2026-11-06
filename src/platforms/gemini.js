@@ -4,6 +4,9 @@
  * There is no SSE here: the page calls `BardChatUi/…/StreamGenerate` and receives a JSON-array body.
  * So the read mode is `body` — "the fetch resolved" *is* completion (`docs/PLATFORMS.md` §Gemini) — and the DOM is a
  * cross-check rather than a fallback, because the RPC's array positions are fragile.
+ *
+ * Reading a whole body means no terminal frame and no streaming cursor: patience is a fixed wait, not a
+ * heuristic. It is the least elegant adapter and the least likely to break.
  */
 (() => {
   'use strict';

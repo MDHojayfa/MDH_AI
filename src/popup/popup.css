@@ -1,4 +1,5 @@
 /* popup.css — 360 px wide, one accent colour, no images, no fonts we do not own. */
+/* If it does not fit in 360 pixels, it does not ship. The popup is a dashboard, not a website. */
 :root {
   --bg: #0f1418;
   --panel: #131a20;

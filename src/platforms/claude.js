@@ -3,6 +3,10 @@
  *
  * Stream: POST /api/organizations/{org}/chat_conversations/{id}/completion — SSE whose terminal frame is
  * `stop_reason: "stop_sequence"`, not `[DONE]` (`docs/PLATFORMS.md` §Claude). Editor is ProseMirror.
+ *
+ * The editor is the hard part, not the stream: ProseMirror ignores a plain `value = …` and a synthetic
+ * `input` event, so the composer is written with `execCommand('insertText')` — deprecated by everyone,
+ * supported by everyone, and the only thing that works across all eight sites.
  */
 (() => {
   'use strict';

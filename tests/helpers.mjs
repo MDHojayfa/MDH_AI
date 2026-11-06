@@ -4,6 +4,9 @@
  * The product ships plain scripts and a `globalThis.MDH` namespace (no bundler, D9/D22), so the tests use
  * the *same files the browser runs* inside a `vm` context with a fake storage and a fake page. That is
  * the point: there is no second copy of the logic to drift.
+ *
+ * A fake page, a fake storage and a real `vm`: the tests can call the exact functions the browser calls
+ * without pretending to be a browser. It is the cheapest kind of honesty and it has caught three bugs.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

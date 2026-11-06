@@ -5,7 +5,7 @@ runs before a release.
 
 ## 1. Units — `npm test`
 
-72 tests against the shipped files, loaded into a `vm` sandbox with a fake storage and a fake page. No
+88 tests against the shipped files, loaded into a `vm` sandbox with a fake storage and a fake page. No
 copies of the logic, so a green run means something about the extension itself.
 
 | Area | File | What it pins |
@@ -16,6 +16,8 @@ copies of the logic, so a green run means something about the extension itself.
 | guard | `tests/guard.test.mjs` | realpath check, symlink escape, missing-path creation, empty input |
 | audit | `tests/audit.test.mjs` | chain verifies, silent edit detected, no file contents stored, only the first command line kept |
 | fun | `tests/fun.test.mjs` | pools are long enough, lines are short, no joke claims success, mentions data or credentials, rotation is deterministic |
+| site | `tests/site.test.mjs` | one h1, ordered headings, JSON-LD parses (SoftwareApplication/HowTo/FAQPage), no external resources, credit spelled once |
+| package | `tests/package.test.mjs` | the ZIP writer is structurally valid, stores tiny files, deflates big ones, artifacts carry a root manifest |
 | installer | `tests/installer.test.mjs` | `--help`, `--dry-run` writes nothing, `--no-fun` removes every ☾ line, `--barbos` echoes commands, unknown flags fail |
 | host | `tests/host.test.mjs` | real `run_command` output, batched shell, timeout kill, atomic write, ambiguous edit, binary refusal, truncation |
 | manifests | `tests/manifest.test.mjs` | eight platforms, MAIN/ISOLATED split, module order, Firefox event page, Chrome key → stable ID, no `http://` |
@@ -30,6 +32,10 @@ artifact, an insecure origin, a key that does not derive the documented extensio
 Android is expected and irrelevant: this product is desktop only.
 
 ## 3. Host — `node tools/selfcheck.mjs`
+
+The same three-checks-in-one-minute sequence runs in CI (`.github/workflows/ci.yml`): tests on Node 20 and
+22, then build + package + `web-ext lint`, then a real spawn of the host. No `npm install` anywhere, so a
+registry outage cannot stop a release.
 
 Spawns the host exactly as a browser does — length-prefixed frames on stdin — and waits for a real pong.
 `install.sh` ends here, because "the manifest is written" is not the same claim as "the host answers".

@@ -125,3 +125,9 @@ missing `nativeMessaging`, an `http://` origin, a Firefox service worker, a miss
 
 `npm test` loads the same classic scripts the browser loads into a `vm` sandbox, so the tests exercise
 shipped code rather than a copy of it.
+
+`node tools/package.mjs` writes both store ZIPs using only `node:zlib` — no `zip`, no `7z`, no Python. The
+release step is therefore the same command on every machine that can run the product at all.
+
+`site/index.html` is the landing page: one file, inline CSS, three JSON-LD blocks, no network resources.
+`tools/make-og.mjs` draws its social card from arithmetic, which is why the artwork is reviewable in a diff.

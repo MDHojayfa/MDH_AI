@@ -5,6 +5,9 @@
  *   · kimi.com         → POST /api/chat/{id}/completion/stream, SSE, `{event:"cmpl", text}` → `all_done`
  *   · kimi.moonshot.cn → framed (binary) Connect-RPC, decoded by the brace-depth scanner
  * The mode is therefore a *function of the URL*, not of the account (`docs/PLATFORMS.md` §Kimi).
+ *
+ * Two backends, one brand, no warning in advance. The URL is the only honest signal available, so the
+ * adapter reads it before anything else and never asks the account what it is.
  */
 (() => {
   'use strict';

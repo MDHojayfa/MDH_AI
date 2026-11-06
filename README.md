@@ -11,7 +11,7 @@ already signed into, running in your browser, with your session.
 
 ```bash
 git clone https://github.com/MDHojayfa/MDH_AI && cd MDH_AI
-./install.sh
+./install.sh                 # flags: --dry-run --uninstall --no-fun --barbos
 ```
 
 Then load the extension once (Chrome/Brave: `dist/chrome`; Firefox: `dist/firefox`). Full walkthrough:
@@ -72,9 +72,12 @@ directly; nothing needs to be bridged or rewritten.
 - **One-driver-tab lease**, so two open tabs cannot race the same chat.
 - **A mission log that is honest about being a joke.** While a reply is pending you get one real sentence
   ("waiting for the reply") and one rotating space-programme line, tagged `fun` — *contacting the aliens on
-  the Moon*, *taking data from Mars*, *setting up the laser weapon on Pluto*. In the popup there is
+  the Moon*, *taking data from Mars*, *setting up the laser weapon on Pluto*. The pool is **1,365 lines**
+  (`src/core/fun-corpus.js`), so a long session never hears the same one twice. In the popup there is
   **BARBOS MODE**, a boot-log panel where real events are tagged `sys`/`host` and everything else is tagged
   with a planet. Turn it all off with `./install.sh --no-fun`; it is decoration, not diagnostics.
+- **A single-file landing page** in `site/` (with a generated social card) whose claims are the same claims
+  as this README — no tracking, no fonts from a CDN, no cookie banner because there are no cookies.
 
 ## How it works
 
@@ -131,7 +134,8 @@ it over a pipe, which is why a web page cannot reach it. Details: [`docs/ARCHITE
 | [`docs/TESTPLAN.md`](docs/TESTPLAN.md) | what is tested and how to reproduce it |
 | [`docs/SEO-AND-LAUNCH.md`](docs/SEO-AND-LAUNCH.md) | positioning, search and launch plan |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | why it is built this way (including why the jokes are labelled) |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | build, test, add an adapter |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | build, test, package, add an adapter |
+| [`site/index.html`](site/index.html) | the landing page — one file, no dependencies |
 
 ## Found a bug? Read this first (it is short, like the developer's budget)
 

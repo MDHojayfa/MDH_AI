@@ -11,7 +11,7 @@ src/
   shared/compat.js              MDH namespace, storage/ports/timers, hashing, small helpers
   core/
     log.js  state.js  policy.js  parser.js  prompt.js
-    fun.js  ui.js  transport.js  interceptor.js  agent.js
+    fun-corpus.js  fun.js  ui.js  transport.js  interceptor.js  agent.js
   platforms/
     base.js                     registry: pick(), pickString(), deepStrings()
     chatgpt.js claude.js gemini.js deepseek.js kimi.js
@@ -27,7 +27,10 @@ host/
   tools/linux.mjs               the thirteen builtins and the canonical path guard
   config.mjs  audit.mjs  servers.example.json
 tools/
-  build.mjs  make-icons.mjs  selfcheck.mjs
+  build.mjs  make-icons.mjs  make-og.mjs  package.mjs  selfcheck.mjs
+site/
+  index.html  og.png            one file, no dependencies, no tracking
+.github/workflows/ci.yml        tests · build+lint+package · host self-check
 install.sh  tests/  docs/
 ```
 

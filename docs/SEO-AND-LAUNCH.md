@@ -76,6 +76,12 @@ a brochure:
 Serve at `https://mdhojayfa.github.io/mdh-ai/`. No framework, no build, no tracker beyond one lightweight
 analytics script (or none).
 
+### Status: shipped
+
+`site/index.html` implements this section: one file, inline CSS, a canonical URL, Open Graph and Twitter
+cards pointing at `site/og.png`, and the three JSON-LD blocks below. Serve the folder from GitHub Pages and
+the plan is a deployed page rather than a document about one.
+
 ### Head
 
 ```html

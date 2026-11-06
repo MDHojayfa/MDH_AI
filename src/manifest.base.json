@@ -103,6 +103,7 @@
         "core/policy.js",
         "core/parser.js",
         "core/prompt.js",
+        "core/fun-corpus.js",
         "core/fun.js",
         "core/ui.js",
         "core/transport.js",

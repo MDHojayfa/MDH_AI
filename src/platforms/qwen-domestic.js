@@ -1,5 +1,8 @@
 /**
- * platforms/qwen-domestic.js — 通义千问 / Qwen, domestic build (tongyi.aliyun.com, qianwen.com).
+ * platforms/qwen-domestic.js
+ * The domestic host is a separate file because its URL signature and its permission entries are separate.
+ * A shared file would have needed a runtime branch on the hostname, which is how adapters start leaking
+ * logic into each other. — 通义千问 / Qwen, domestic build (tongyi.aliyun.com, qianwen.com).
  *
  * Same stream, different chrome: an Angular-ish DOM with `.message-input-container-area`. Two files
  * sharing one parser beats one file full of host checks (docs/PLATFORMS.md §per-platform notes).

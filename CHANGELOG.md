@@ -36,6 +36,14 @@ First release. One script, one extension, eight platforms, no API key.
 - **First run** opens the author's GitHub profile once (`background/welcomeOnce`), with the profile and
   site linked in the popup footer. No auto-follow: GitHub has no URL for it and faking one would be a
   dark pattern.
+- **A 1,365-line mission corpus** (`src/core/fun-corpus.js`): Moon aliens, Mars latency, a polite missile to
+  Jupiter, a laser on Pluto nobody authorised, and the machines that left and never wrote back. Merged
+  round-robin so consecutive lines come from different places, with a test that stops a joke from claiming a
+  success or hinting at a credential.
+- **`tools/package.mjs`** — both store-ready ZIPs written with `node:zlib` alone, so the release step needs
+  no `zip`, no `7z` and no Python. **`site/`** — a one-file landing page plus a generated 1200×640 social
+  card drawn in arithmetic. **CI** — tests on Node 20 and 22, build + lint + package, and a real host
+  self-check, with nothing to `npm install`.
 - **`install.sh`** that finds every installed browser, writes the host manifests with the pinned extension
   ID, builds both artifacts, and finishes with a live ping/pong self-check. `--dry-run` and `--uninstall`
   included.

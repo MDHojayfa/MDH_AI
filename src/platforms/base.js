@@ -1,5 +1,8 @@
 /**
- * platforms/base.js — the registry and the only helpers an adapter is allowed to use.
+ * platforms/base.js
+ * The registry is deliberately tiny: `pick`, `pickString`, `deepStrings`. Selector lists change shape on
+ * every redesign, so every lookup returns the first entry that resolves instead of assuming one.
+ * — the registry and the only helpers an adapter is allowed to use.
  *
  * An adapter is **data**: a host pattern, a stream signature, four selector lists, pacing and timings.
  * If a platform ever needs logic beyond `extract()`, that is a signal the core is missing something —

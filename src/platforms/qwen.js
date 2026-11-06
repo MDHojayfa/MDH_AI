@@ -1,5 +1,7 @@
 /**
- * platforms/qwen.js — Qwen, international build (chat.qwen.ai).
+ * platforms/qwen.js
+ * Two hosts, one product: `chat.qwen.ai` speaks the international shape, the domestic hosts speak a
+ * slightly different one. Same selectors, different endpoint — which is the cheapest kind of divergence. — Qwen, international build (chat.qwen.ai).
  *
  * Stream: POST /api/v2/chat/completions (SSE). The domestic product has a different DOM but the same
  * stream shape, so it lives in qwen-domestic.js and shares this parser's expectations.

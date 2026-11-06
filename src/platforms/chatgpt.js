@@ -3,6 +3,10 @@
  *
  * Stream: POST /backend-api/conversation, SSE. Each event carries the message **so far**, not a delta,
  * so the mode is `replace` (the first prose is not the answer — `docs/PLATFORMS.md` §ChatGPT).
+ *
+ * Fun fact with a point: this is the adapter that made the parser take the *last* closed fence. A reply
+ * that narrates first and calls last is normal here, and reading the first block executed a plan instead
+ * of a command exactly once, which was enough.
  */
 (() => {
   'use strict';

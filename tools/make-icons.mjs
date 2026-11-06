@@ -5,6 +5,9 @@
  * No fonts, no third-party images (CREDITS.md §Fonts/images), no design tool: a rounded dark square
  * with a green terminal prompt (›_) — the product in nine pixels of idea.
  *
+ * Every pixel is computed, so the icons are reproducible and reviewable: a diff in this file is a diff in
+ * the artwork. Also, the developer genuinely cannot draw, and arithmetic does not judge.
+ *
  *   node tools/make-icons.mjs   → src/icons/icon-{16,32,48,128}.png
  */
 import { deflateSync } from 'node:zlib';
