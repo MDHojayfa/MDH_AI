@@ -282,6 +282,15 @@ read-only list, in the agent, before the host is called — and the refusal mess
 instead (`propose_plan`). An allowlist rather than a denylist because the dangerous tool is usually the one nobody
 thought about yet: an MCP server someone added last week should be assumed to write until proven otherwise.
 
+**D51 · The pill announces itself, and cards give focus back.**
+The pill is a control that changes without moving focus, which is exactly the case a live region exists for: a
+polite `role="status"` node, in the shadow root from the first paint, filled with the pill's own label and only
+when the phase changes. Not `assertive` — a phase change is status, not an emergency — and not the turn counter,
+because "turn 12" is noise that trains people to ignore the one that matters. Cards take focus on open (their
+primary action, or themselves when there is none) and return it on close, because a card that appears silently is
+a card a keyboard user will not find, and one that vanishes silently drops them at the top of the page. Both are
+small; both were missing.
+
 **D50 · A checkpoint beside the chain, because a hash chain cannot see its own tail.**
 Every link can be perfect and the last ten entries still be gone — deleting from the end never breaks a link
 (Bellare & Yee 1997; Ma & Tsudik 2008 call it the truncation attack). `verifyAudit()` used to call that `ok`,

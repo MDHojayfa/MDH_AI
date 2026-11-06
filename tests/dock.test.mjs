@@ -136,3 +136,14 @@ test('the title is refreshed when the reason changes, not only when the phase do
   assert.match(source, /if \(pill\.title !== title\)/);
   assert.match(source, /pill\.setAttribute\('aria-label', title\)/, 'and screen readers get the same sentence');
 });
+
+test('a phase change is announced, not only drawn (WCAG 4.1.3 / ARIA22)', () => {
+  // The pill changes without moving focus. Without a live region a screen reader user never learns that the task
+  // started, paused or died, which makes the control useless to them however good it looks.
+  assert.match(source, /role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true'/);
+  assert.match(source, /live\.textContent = `\$\{state\.label\}\./, 'announced with the same word the pill shows');
+  assert.match(source, /\.sr \{ position: absolute; width: 1px; height: 1px;/, 'hidden visually, not from AT');
+  assert.doesNotMatch(source, /\.sr \{[^}]*display: none/, 'display:none would take it out of the accessibility tree');
+  assert.match(source, /shadow\.append\(pill, panel, live\)/, 'the region exists before any change');
+  assert.match(source, /if \(state\.phase !== lastPhase\)/, 'updated on a phase change, not on every poll');
+});

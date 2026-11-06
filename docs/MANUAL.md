@@ -311,6 +311,11 @@ failed, and the sequence in order (`list_dir ok → run_command ok → write_fil
 a **details** arrow that reveals the summarised arguments, **who allowed the call**, the full hash and the run id
 — the audit entry itself, not a summary of it. No script is involved: `<details>` is HTML.
 
+**Screen readers.** The pill changes phase without stealing focus, so it also says what it is doing out loud: a
+polite live region announces the same word the pill shows — *Working*, *Paused*, *Done* — once per change, not
+once per poll. Cards move focus to their primary button when they open and hand it back when they close, so
+keyboard use does not start over at the top of the page.
+
 If the chain is intact the header says **chain verified**. If entries were removed from the end it says
 **N entries missing from the end** and prints the sentence underneath — a hash chain cannot see its own tail, so
 a checkpoint file beside the log remembers how long the log was and what it ended with. Archiving resets that

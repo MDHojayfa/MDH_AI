@@ -136,16 +136,31 @@
 
   const layer = () => root?.getElementById('layer');
 
+  /*
+   * Focus, twice, because a card that appears without moving focus is a card a keyboard user will not find, and a
+   * card that disappears without giving focus back drops them at the top of the page (WCAG 2.4.3, focus order).
+   * The primary action gets focus when there is one — the decision is the point of the card — otherwise the card
+   * itself, which is focusable and carries the aria-label.
+   */
+  let returnFocusTo = null;
+
   function addCard(card) {
     mount();
+    const active = document.activeElement;
+    if (active && active !== document.body) returnFocusTo = active;
     layer().append(card);
     stack.push(card);
+    const target = card.querySelector?.('.primary') ?? card;
+    target?.focus?.({ preventScroll: true });
     return card;
   }
 
   function removeCard(card) {
     stack = stack.filter((c) => c !== card);
     card?.remove();
+    const back = returnFocusTo;
+    returnFocusTo = null;
+    if (back && document.contains(back)) back.focus?.({ preventScroll: true });
   }
 
   /**
