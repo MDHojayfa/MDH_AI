@@ -1,0 +1,11 @@
+{
+  "_comment": "Copy to ~/.config/mdh/servers.json. Each entry is a stdio MCP server. The 13 builtin tools already work without this file; these are the servers you already run.",
+  "servers": [
+    {
+      "name": "desktop",
+      "command": ["npx", "-y", "@wonderwhy-er/desktop-commander"],
+      "env": {},
+      "startTimeoutMs": 40000
+    }
+  ]
+}

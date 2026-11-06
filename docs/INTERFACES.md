@@ -1,168 +1,104 @@
-# Interfaces — the contract the code must satisfy
+# Interfaces
 
-Written so that implementing v1 is transcription, not design. Every name here is binding: if the code
-disagrees with this file, one of them is a bug.
-
----
+If the code disagrees with this file, one of them is a bug.
 
 ## 1. Repository layout
 
 ```
 src/
-  manifest.base.json          shared manifest fields
-  overlays/{chrome,firefox}.json
+  manifest.base.json            shared manifest; overlays/{chrome,firefox}.json merge onto it
+  extension-id.json             the pinned identity, generated from the key
+  shared/compat.js              MDH namespace, storage/ports/timers, hashing, small helpers
   core/
-    interceptor.js   parser.js   prompt.js   agent.js   policy.js   state.js
-    transport.js     ui.js       log.js
-  content/
-    main.js                    entry: world=ISOLATED, wires the above
-    injected.js                world=MAIN, the fetch/XHR/WS wrapper (no imports)
+    log.js  state.js  policy.js  parser.js  prompt.js
+    ui.js  transport.js  interceptor.js  agent.js
   platforms/
-    index.js  chatgpt.js  claude.js  gemini.js  deepseek.js
-    kimi.js   qwen.js     qwen-domestic.js  glm.js  grok.js
-  popup/  popup.html popup.js popup.css
-  shared/ compat.js
+    base.js                     registry: pick(), pickString(), deepStrings()
+    chatgpt.js claude.js gemini.js deepseek.js kimi.js
+    qwen.js qwen-domestic.js glm.js grok.js
+  content/
+    injected.js                 MAIN world: fetch/XHR/WebSocket tap
+    main.js                     ISOLATED world: entry point, messages, lease
+  background/background.js      non-module worker (Chromium) / event page (Firefox)
+  popup/                        popup.html, popup.css, popup.js
 host/
-  mdh-host.mjs   mcp_client.mjs   tools/linux.mjs   audit.mjs   config.mjs
-  servers.example.json
-tools/build.mjs   install.sh   tests/
+  mdh-host.mjs                  framing, dispatch, MCP lifecycle
+  mcp_client.mjs                stdio MCP client
+  tools/linux.mjs               the thirteen builtins and the canonical path guard
+  config.mjs  audit.mjs  servers.example.json
+tools/
+  build.mjs  make-icons.mjs  selfcheck.mjs
+install.sh  tests/  docs/
 ```
 
-`content/injected.js` is the only file that may not import anything — it is serialised into the page.
+## 2. Namespace
 
-## 2. `core/interceptor.js`
+Every module is an IIFE that attaches exactly one object:
 
-```js
-attach(tabId) -> void          // idempotent; symbol guard on window
-detach() -> void
-on(event, handler)             // event: 'stream:begin' | 'stream:chunk' | 'stream:end'
-status() -> 'idle' | 'attached' | 'degraded'
-```
-Emits `{url, requestId, text}` on chunk. `degraded` = the page re-wrapped our wrapper; we chain and mark
-it, because that means the site changed.
+| Module | Surface |
+|---|---|
+| `MDH.log` | `debug/info/warn/error`, `buffer()`, `export()` |
+| `MDH.state` | `get/set/patch`, `session`, `reset` |
+| `MDH.policy` | `normalize`, `isInside`, `pathsIn`, `check(call, policy)`, `describe(call, policy)` |
+| `MDH.parser` | `parse(text, ctx)`, `explain(reason)`, `repair(text)`, `coerceArguments()` |
+| `MDH.prompt` | `renderPrompt({tools})`, `wrapFirstMessage(prompt, text)`, `reminder(mode)`, `BUDGET_CHARS` |
+| `MDH.platforms` | `register(adapter)`, `current(location)`, `get(id)` |
+| `MDH.transport` | `connect()`, `ping()`, `listTools()`, `callTool(name, args, opts)`, `close()` |
+| `MDH.interceptor` | `begin/end/finalize`, event emitter |
+| `MDH.agent` | `start/stop/resume/status`, `_internals` for tests |
+| `MDH.ui` | `mount()`, `status()`, `card()`, `history()` |
 
-## 3. `core/parser.js`
+## 3. Runtime messages
 
-```js
-parse(replyText, {tools, schemas}) -> {call|null, reason, detail, foreign?}
-explain(reason, detail) -> string            // model-facing English, see FRAMING.md §4
-```
-`call = {tool, arguments}` with arguments already coerced (string→number where the schema says number,
-`"true"`→`true` where it says boolean). Returns `call: null` for every failure; `reason` ∈
-`none|unclosed|not_json|wrong_key|missing_name|multi|truncated|foreign_markup`.
-
-`multi` **always** yields `call: null`. Two calls are never partially executed.
-
-## 4. `core/prompt.js`
-
-```js
-renderPrompt({tools, servers}) -> string     // SYSTEM.md §1, placeholders filled
-signature(tools) -> string                   // 8-char hash of sorted tool ids
-reminder(mode) -> string                     // mode: 'user' | 'result'
-```
-Budget assertions live here: throws in dev if `renderPrompt` exceeds 1,600 tokens (≈6,400 chars).
-
-## 5. `core/agent.js`
-
-```js
-start(task) -> void
-step() -> void                       // one turn
-state() -> {phase, outcome, turn, pendingCall, counter}
-pause() / resume() / stop() -> void
-on('need-approval'|'turn-end'|'notice', handler)
-```
-`phase` ∈ `idle|injecting|waiting-reply|parsing|awaiting-approval|executing|delivering|paused|done|failed`.
-`outcome` ∈ `completed|failed|stopped|interrupted|stalled|unknown`; **only `completed` advances**
-(`specs/04 §3`). Illegal transitions throw in dev, log-and-ignore in prod (a thrown error inside the loop
-kills the tab).
-
-Hard rules enforced *in this module*, not in the prompt: one call per message · never re-send after
-refusal (the ladder is the only way back, and each rung waits) · dedup hash 15-min window, cap 4 ·
-answer each turn at most once · hidden tab switches to the slow timing profile, it does **not** pause ·
-always deliver something.
-
-## 6. `core/policy.js`
-
-```js
-check(call) -> {decision:'allow'|'ask'|'deny', rule}     // pure, no I/O
-realpath(p) -> string                                    // resolves symlinks before check
-```
-Reads `policy.json` from `storage.local`; defaults in `specs/07-guard-policy.md §3`. Pure so the unit
-tests can hammer it without a browser.
-
-## 7. `core/transport.js`
-
-```js
-connect() -> Promise<void>
-send(frame) -> Promise<reply>        // frame: {t:'call'|'list'|'ping', id, …}
-close() -> void
-on('closed'|'error', handler)
-```
-Frame shapes are canonical in `specs/05-transport.md`. `send` rejects with `{code:'NO_HOST'|'TIMEOUT'|'PROTO'}`.
-Timeout 120 s default; long tools stream `{t:'progress'}` frames that reset the timer but never resolve.
-
-## 8. `core/state.js`
-
-All keys under `mdh:` in `storage.local`:
-
-| key | type | survives reload |
+| Direction | Message | Meaning |
 |---|---|---|
-| `mdh:session` | `{tabId, platform, startedAt, phase}` | yes |
-| `mdh:turn` | `{call, result, ts}` | yes |
-| `mdh:pending` | `{call, queuedAt, attempts}` | yes |
-| `mdh:policy` | rules object | yes |
-| `mdh:history` | ring buffer, 50 turns | yes |
-| `mdh:answered` | `Set<turnId>` — a turn is answered at most once, ever | yes |
-| `mdh:pace` | `{mult, lastSendAt, sentInWindow}` — the send governor | yes |
-| `mdh:rate` | `{hits, lastHitAt, phase, resumeAt}` — the ladder's memory | yes |
-| `mdh:leases` | platform → tabId | yes |
+| popup → content | `mdh:start`, `mdh:stop`, `mdh:resume`, `mdh:status` | session control |
+| popup → content | `mdh:ping-host` | is the native host alive |
+| popup → content | `mdh:set-policy`, `mdh:save-settings` | user changed settings |
+| content → background | `mdh:badge`, `mdh:hello`, `mdh:open-home` | badge, install handshake, website link |
+| content → page | `mdh:injected` `{kind, payload}` | interceptor events from the MAIN world |
+| page → content | `mdh:injected-ready`, `mdh:injected-send` | tap handshake |
 
-`storage.session` is deliberately unused: Firefox clears it on extension restart and we need the pending
-call to survive exactly that.
+Storage keys: `mdh:settings`, `mdh:policy`, `mdh:pace`, `mdh:rate`, `mdh:pending`, `mdh:answered`,
+`mdh:history`, `mdh:session`, `mdh:lease`.
 
-## 9. `core/ui.js`
+## 4. Host protocol
 
-```js
-mount() -> void
-showApproval(call, meta) -> Promise<'deny'|'once'|'always'>   // never rejects
-showNotice(kind, text, opts) -> void
-clear() -> void
+Four-byte little-endian length, then UTF-8 JSON. One frame in, one frame out.
+
 ```
-Shadow DOM, `z-index: 2147483000`, no framework. Approval resolves `deny` on 120 s timeout.
-See `specs/09-ui.md`.
-
-## 10. Platform adapter
-
-Data only (shape in `PLATFORMS.md`). No functions except `extract(chunk)`. `index.js` exports
-`match(hostname) -> adapter|null`.
-
-## 11. Host
-
-```js
-// mdh-host.mjs
-main()                          // reads length-prefixed frames from stdin, writes to stdout
-// mcp_client.mjs
-start(serverCfg) -> {listTools(), callTool(name, args)}   // one child process per server
-// tools/linux.mjs
-registry -> Map<name, {schema, run(args, ctx)}>           // the 13 builtins (specs/06)
-// audit.mjs
-append(entry) -> void   verify() -> {ok, brokenAt}        // hash chain
+{t:'ping'}                          → {t:'pong', host, version, pid, audit}
+{t:'list'}                          → {t:'tools', tools:[{server,name,description,inputSchema,local}]}
+{t:'call', name, arguments}         → {t:'reply', status, body, ms} | {t:'error', code, message}
+{t:'progress', id, message}         → resets the pending timeout
+{t:'audit'}                         → {t:'audit', ok, lines, brokenAt?}
+{t:'config'}                        → {t:'config', config, paths}
 ```
-Frames in `specs/05-transport.md §3`. stdout is protocol-only; **all logging goes to stderr** — this is
-the single most common native-messaging bug in the wild.
 
-## 12. Error codes (single namespace, used by every layer)
+Error codes: `TOOL_MISSING`, `TOOL_FAILED`, `NOT_FOUND`, `PATH_DENIED`, `AMBIGUOUS_MATCH`, `PROTO`,
+`TIMEOUT`. The extension adds `NO_HOST`, `NO_TAB`, `SEND_FAILED`, `TIMEOUT` for its own failures.
 
-`NO_HOST` `TIMEOUT` `PROTO` `PATH_DENIED` `NOT_FOUND` `PERM` `TOOL_MISSING` `TOOL_FAILED`
-`PARSE` `REFUSED` `RATE_LIMIT` `RELOADED` `NO_TAB` `CANCELLED` `SEND_FAILED` `STALLED` `AMBIGUOUS_MATCH`
+## 5. Result envelope
 
-Anything else is a bug and must be wrapped before it reaches the model.
+Everything the model sees from a tool arrives as one bounded block:
 
-## 13. Build
-
-```js
-// tools/build.mjs
-build('chrome'|'firefox', {out='dist', minify=false}) -> void
 ```
-Merges `manifest.base.json` + overlay, copies `src/` minus overlays and `*.test.mjs`, emits
-`dist/<browser>/`. No bundler, no transpile, no source maps (see D9).
+[MDH_RESULT tool="read_file" status="ok"]
+1│ # notes
+2│ …
+[/MDH_RESULT]
+```
+
+`status` is `ok`, `error` or `denied`. The prompt declares this block as data, never as instructions, and
+the host truncates to 128 KB per result so a large file cannot eat the context window.
+
+## 6. Tool call shape
+
+The only accepted envelope, inside a json fence:
+
+```json
+{"mdh_call":{"tool":"run_command","arguments":{"cmd":"git status","cwd":"~/projects/app"}}}
+```
+
+Two of them in one reply execute nothing. A bare object in prose is accepted only when it is call-shaped,
+so an example quoted in an answer is never executed.

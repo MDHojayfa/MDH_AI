@@ -22,6 +22,11 @@ Firefox forgets a temporary add-on when it restarts; re-load it, or sign it once
 
 ## 2 · First run (1 minute)
 
+On install, one background tab opens the author's GitHub profile
+(<https://github.com/MDHojayfa>) — once, and it closes like any other tab. The popup footer links the
+profile and the site permanently. Nothing about you is sent anywhere; there is no telemetry to send it
+with.
+
 1. Open one of the eight platforms and start any chat.
 2. Click the **MDH** icon. The status should be **ready** with `host connected`.
 3. Type a task in the popup, or just type it in the chat itself, and send.
@@ -60,7 +65,7 @@ Read commands before approving. This is the only place a human is in the loop.
 |---|---|---|
 | allowed folders | popup → **Policy** | `~/projects`, `~/mdh`, `/tmp/mdh` |
 | auto-approve a tool | the card's **Always** | off for everything dangerous |
-| tool timeouts | `~/.config/mdh/tools.json` | 60 s commands, 120 s MCP |
+| tool timeouts | `~/.config/mdh/config.json` | 60 s commands, 120 s MCP |
 | MCP servers | `~/.config/mdh/servers.json` | your existing ones |
 | audit log | `~/.local/state/mdh/audit.jsonl` | on, hash-chained |
 

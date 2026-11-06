@@ -1,0 +1,217 @@
+#!/usr/bin/env node
+/**
+ * host/mdh-host.mjs — the native-messaging host.
+ *
+ * The browser starts this process; it lives as long as the port does. Everything it prints on **stdout**
+ * is protocol. Logs go to stderr. That single rule is the difference between working and the most common
+ * bug in this corner of the ecosystem (`docs/INTERFACES.md` §4).
+ *
+ * Protocol: one JSON object per message, each prefixed with its 4-byte little-endian length, exactly as
+ * Chromium and Firefox frame native messaging.
+ */
+import { McpClient } from './mcp_client.mjs';
+import { builtinTools, runBuiltin, ToolError } from './tools/linux.mjs';
+import { appendAudit, verifyAudit } from './audit.mjs';
+import { ensureConfigFiles, loadConfig, loadServers, paths } from './config.mjs';
+
+const VERSION = '1.0.0';
+const HOST_NAME = 'dev.mdhojayfa.mdh';
+
+const log = (...args) => process.stderr.write(`mdh-host ${new Date().toISOString()} ${args.join(' ')}\n`);
+
+let cfg = null;
+const clients = new Map(); // server name -> McpClient
+/** Tools the browser executes itself; the host only declares them. */
+const BUILTIN_LOCAL = new Set(builtinTools.filter((t) => t.local).map((t) => t.name));
+
+/* ─────────────────────────────────────────────────────── native messaging */
+
+function writeFrame(obj) {
+  const json = Buffer.from(JSON.stringify(obj), 'utf8');
+  const header = Buffer.alloc(4);
+  header.writeUInt32LE(json.length, 0);
+  process.stdout.write(Buffer.concat([header, json]));
+}
+
+function reply(id, payload) {
+  writeFrame({ id, ...payload });
+}
+
+function fail(id, code, message) {
+  writeFrame({ id, t: 'error', code, message: String(message ?? code) });
+}
+
+/* ───────────────────────────────────────────────────────── tool catalogue */
+
+function catalogue() {
+  const list = builtinTools.map((t) => ({ ...t, server: 'builtin' }));
+  for (const [name, client] of clients) {
+    for (const tool of client.tools) {
+      list.push({
+        server: name,
+        name: `${name}.${tool.name}`,
+        description: tool.description ?? '',
+        inputSchema: tool.inputSchema ?? {},
+        local: false,
+      });
+    }
+  }
+  return list;
+}
+
+async function startServers() {
+  const servers = loadServers();
+  await Promise.all(
+    servers.map(async (server) => {
+      const client = new makeClient(server);
+      if (!client) return;
+      clients.set(server.name, client);
+      try {
+        await client.start(server.startTimeoutMs ?? 25000);
+      } catch (e) {
+        log(`server ${server.name} failed to start: ${e.message}`);
+      }
+    }),
+  );
+  log(`servers ready: ${clients.size} of ${servers.length}`);
+}
+
+function makeClient(server) {
+  try {
+    const command = Array.isArray(server.command) ? server.command[0] : server.command;
+    const args = Array.isArray(server.command) ? server.command.slice(1) : [];
+    if (!command) throw new Error('no command');
+    return new McpClient({ name: server.name, command, args, env: server.env, cwd: server.cwd });
+  } catch (e) {
+    log(`bad server config ${server?.name}: ${e.message}`);
+    return null;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────── calls */
+
+async function callTool(name, args, meta = {}) {
+  const started = Date.now();
+  let result;
+
+  if (name in BUILTIN_LOCAL) {
+    return { status: 'ok', body: `${name} is handled in the browser` };
+  }
+
+  try {
+    if (name.startsWith('builtin.')) name = name.slice('builtin.'.length);
+
+    if (builtinTools.some((t) => t.server === 'builtin' && t.name === name)) {
+      result = await runBuiltin(name, args, cfg);
+    } else {
+      const [serverName, toolName] = name.includes('.') ? name.split(/\.(.+)/) : [null, name];
+      let client = serverName ? clients.get(serverName) : null;
+      if (!client) {
+        // Accept a bare tool name when it is unambiguous across servers.
+        const owners = [...clients.values()].filter((c) => c.tools.some((t) => t.name === toolName));
+        if (owners.length === 1) client = owners[0];
+      }
+      if (!client) throw new ToolError('TOOL_MISSING', `no tool named ${name}`);
+      const res = await client.callTool(toolName, args ?? {}, 120000);
+      result = { ...res, ms: Date.now() - started };
+    }
+  } catch (e) {
+    result = {
+      status: 'error',
+      body: `${e.code ? `[${e.code}] ` : ''}${e.message}`,
+      ms: Date.now() - started,
+    };
+  }
+
+  appendAudit({ tool: name, args: meta.args ?? args, status: result.status, ms: result.ms, detail: result.body?.slice(0, 160) });
+  return result;
+}
+
+/* ───────────────────────────────────────────────────────────── protocol */
+
+async function handle(frame) {
+  const id = frame.id ?? null;
+
+  switch (frame.t) {
+    case 'ping':
+      reply(id, { t: 'pong', host: HOST_NAME, version: VERSION, pid: process.pid, audit: verifyAudit().ok });
+      return;
+
+    case 'list':
+      reply(id, { t: 'tools', tools: catalogue() });
+      return;
+
+    case 'call': {
+      const result = await callTool(frame.name, frame.arguments ?? {}, { args: frame.arguments });
+      reply(id, { t: 'reply', ...result });
+      return;
+    }
+
+    case 'audit':
+      reply(id, { t: 'audit', ...verifyAudit() });
+      return;
+
+    case 'config':
+      reply(id, { t: 'config', config: { ...cfg, servers: [...clients.keys()] }, paths });
+      return;
+
+    default:
+      fail(id, 'PROTO', `unknown frame type ${frame.t}`);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────── boot */
+
+function readLoop() {
+  let buffer = Buffer.alloc(0);
+  process.stdin.on('data', (chunk) => {
+    buffer = Buffer.concat([buffer, chunk]);
+    for (;;) {
+      if (buffer.length < 4) return;
+      const length = buffer.readUInt32LE(0);
+      if (length === 0 || length > 64 * 1024 * 1024) {
+        log('framing error: bad length', length);
+        buffer = Buffer.alloc(0);
+        return;
+      }
+      if (buffer.length < 4 + length) return;
+      const body = buffer.subarray(4, 4 + length).toString('utf8');
+      buffer = buffer.subarray(4 + length);
+      let frame;
+      try {
+        frame = JSON.parse(body);
+      } catch {
+        log('framing error: not JSON');
+        continue;
+      }
+      handle(frame).catch((e) => {
+        log('handler failed:', e.stack ?? e.message);
+        fail(frame.id ?? null, e.code ?? 'PROTO', e.message);
+      });
+    }
+  });
+  process.stdin.on('end', () => {
+    log('stdin closed; shutting down');
+    for (const client of clients.values()) client.stop();
+    process.exit(0);
+  });
+}
+
+async function main() {
+  ensureConfigFiles();
+  cfg = loadConfig();
+  log(`start pid=${process.pid} allow=${cfg.allowPaths.join(',')}`);
+
+  writeFrame({ t: 'ready', host: HOST_NAME, version: VERSION });
+  readLoop();
+  await startServers();
+  writeFrame({ t: 'ready', host: HOST_NAME, version: VERSION, tools: catalogue().length });
+}
+
+process.on('uncaughtException', (e) => log('uncaught:', e.stack ?? e.message));
+process.on('unhandledRejection', (e) => log('unhandled:', e?.stack ?? String(e)));
+
+main().catch((e) => {
+  log('fatal:', e.stack ?? e.message);
+  process.exit(1);
+});

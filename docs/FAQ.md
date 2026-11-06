@@ -77,8 +77,19 @@ rarely takes a platform out completely.
 are left in place deliberately; delete `~/.local/state/mdh` if you want them gone.
 
 **Can I add a ninth platform?**
-Yes — one data file, about 30 minutes with `M8-PLAYBOOK.md`. If adding a platform ever requires touching
-the core, that is a bug in the design.
+Yes — one data file, following the shape in `docs/PLATFORMS.md`. If adding a platform ever requires
+touching the core, that is a bug in the design.
+
+**Found a bug. Is the developer going to fix it?**
+He will try, because the alternative is watching a stranger be sad in an issue tracker. Be warned: he
+does not own a NASA PC, so the bug was not caught by a fleet of test machines — it was caught by you, on
+one laptop, at the worst possible moment. Give him the popup's **Copy log**, the platform and the stage,
+and the odds get very good. Vague reports still get read; they just get read twice.
+
+**Why does it not just follow you on GitHub when it opens the profile?**
+Because GitHub has no URL for that. The old endpoint died years ago and required a logged-in POST with a
+CSRF token; arranging one silently would be a dark pattern wearing a marketing hat. The profile opens
+once, the button is one click away, and both are free.
 
 **Why is the prompt in English only?**
 One canonical language keeps prompt behaviour testable. Bangla arrives in v1.1 as a translation file, not

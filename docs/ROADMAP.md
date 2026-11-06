@@ -1,7 +1,7 @@
 # Roadmap
 
 This file is the shipped roadmap: what v1 is, what comes after, and why in that order.
-The build sequence and gates live in `PLAN.md §4` (milestones M0–M10).
+Each item below is a promise with a condition attached — nothing is listed that is not planned to ship.
 
 ---
 

@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: "Read the manual first (it is 10 minutes, not 100)"
+    url: https://github.com/MDHojayfa/MDH_AI/blob/main/docs/MANUAL.md
+    about: "Install, first run, approvals, recovery and the troubleshooting table. Most issues close themselves here."
+  - name: "The FAQ — including the question you are about to ask"
+    url: https://github.com/MDHojayfa/MDH_AI/blob/main/docs/FAQ.md
+    about: "Why it is slow, why a site broke, whether your account is safe, and why Firefox is not an afterthought."
+  - name: "Say hello on GitHub (the follow button is free, unlike a NASA PC)"
+    url: https://github.com/MDHojayfa
+    about: "MDHojayfa's profile. Stars, follows and rude-but-fair bug reports all keep the project alive."

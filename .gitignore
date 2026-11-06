@@ -1,15 +1,13 @@
 # build output
-app/dist/
+dist/
 node_modules/
-app/node_modules/
 
 # local runtime state
-app/server/servers.json
-app/server/*.log
-app/server/.paused
 *.log
+state.json
+servers.json
 
-# python
+# python (some MCP servers are python)
 __pycache__/
 *.pyc
 .venv/

@@ -1,195 +1,129 @@
-# Decision log
+# Decisions
 
-Every entry: the decision, the alternatives I rejected, and why. This is the self-questioning record —
-if a choice looks wrong later, the reasoning (and what it traded away) is here.
-
----
-
-## D1 — How we read the model's reply
-
-**Chosen: stream interception first, DOM fallback second, never automation.**
-
-| Option | Why rejected |
-|---|---|
-| DOM scraping only | the entire reason `chatgpt.js` is 371 lines of `repairBackslashes()` / `stripCodeChrome()` / detached-code-viewer handling. Markdown mutates the JSON. |
-| Playwright automation | needs a separate browser profile; loses your real session; slow; heavy. It solves a different problem. |
-| **SSE/XHR interception + DOM fallback** | raw stream, nothing mangled; DOM fallback keeps one platform from being a blocker |
-
-**Trade accepted:** we must hook `window.fetch` and `XMLHttpRequest` in the MAIN world, which means
-site code could notice. Mitigation: wrap without changing behaviour, `tee()` the response, never
-mutate the page's objects.
-
-## D2 — Transport
-
-**Chosen: native messaging primary, WebSocket for development only.**
-
-| Option | Why rejected / kept |
-|---|---|
-| Localhost WebSocket only | every repo does this. It is an unauthenticated port that any page on the machine can reach. |
-| HTTP + token | same exposure, plus CORS |
-| **Native messaging** | no listening port at all; the browser spawns the host; the OS enforces the allowlist |
-| ws dev fallback | needed because native messaging needs a registration step per browser |
-
-**Trade accepted:** changing `tools.json` requires restarting the host instead of hot-reload.
-Mitigation: the host reloads its own config on each call, and the extension has a Restart button.
-
-## D3 — Tool boundary
-
-**Chosen: MCP stdio servers + a small builtin Linux toolset.**
-
-| Option | Why rejected |
-|---|---|
-| Fixed builtin tools only (ZeroCode) | dead end: every new capability is a code change |
-| MCP only | an empty install does nothing; first-run UX dies |
-| **MCP + builtin** | works out of the box, grows forever |
-
-**Trade accepted:** an extra process. Mitigation: the host *is* the MCP client; nothing extra to install.
-
-## D4 — Where the loop lives
-
-**Chosen: content script owns the conversation; background owns transport and state.**
-
-Rejected: background-owns-everything — impossible, the DOM and the stream are in the page.
-Rejected: background-owns-state only — MV3 workers die in 30 s; Firefox event pages suspend too.
-**Consequence:** state that must survive suspension (`pendingCall`, `lease`, `auditBuffer`) lives in
-`storage.local`, never only in a module variable.
-
-## D5 — Tool-call format
-
-**Chosen: one JSON envelope per message, in a ```json fence, single call enforced.**
-
-Considered: `###MCP_TOOL###` markers (ZeroScript), XML-ish tags, native function-call emulation.
-
-| Why the fence+JSON wins | Why the others lose |
-|---|---|
-| survives copy/markdown better than bespoke markers | custom markers get eaten by markdown (`###LUA###` → `### LUA ###`) |
-| every model writes JSON well | tag dialects vary per model (DeepSeek emits its own DSML) |
-| one call per message = deterministic state machine | multi-call replies make approval ambiguous |
-
-**Trade accepted:** one round-trip per tool call. Mitigation: batch-friendly tools (`run_script`) and
-a compact prompt so context does not explode.
-
-## D6 — Approval model
-
-**Chosen: three-state per tool (`allow` / `ask` / `deny`) + a confirmation card attached to the exact call.**
-
-Rejected: per-server only (too coarse — `run_command` and `list_dir` in the same server).
-Rejected: modal dialog (blocks the page, no context).
-**Borrowed idea:** `browser2terminal`'s Run button attached to the code block — consent shown *at* the thing.
-
-## D7 — Build system
-
-**Chosen: no bundler. Vanilla ES modules + a `build.mjs` that copies and rewrites manifests.**
-
-Rejected: webpack/vite/esbuild — 40+ transitive deps for a 3 k-line extension, and a supply chain
-nobody audits. Rejected: WXT/Plasmo frameworks — magic, and they own your manifest.
-**Trade accepted:** no TypeScript. Mitigation: JSDoc types + `node --check` in CI.
-
-## D8 — Sandbox level
-
-**Chosen: refuse-by-default path allowlist + optional container mode, not mandatory containerisation.**
-
-Rejected: mandatory Docker — first-run friction, and MCP servers inside a container cannot see the
-user's project. Rejected: none at all (ZeroCode) — unacceptable.
-**Trade accepted:** a determined injection inside the allowlist is still dangerous. Documented in `SECURITY.md`.
-
-## D9 — Firefox support approach
-
-**Chosen: one source, two manifests, one API shim. Minimum Firefox 140.**
-
-Rejected: minimum 121 + runtime permission prompts — 40 extra lines and a worse first run for a
-shrinking set of users. Rejected: separate fork — two codebases, guaranteed drift.
-**Trade accepted:** users below Firefox 140 are excluded. Revisit in v2 if real users ask.
-
-## D10 — Brave handling
-
-**Chosen: same artifact as Chrome, only the native-host registration path differs.**
-
-`~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/` vs `~/.config/google-chrome/NativeMessagingHosts/` vs
-`~/.config/chromium/NativeMessagingHosts/`. `install.sh` writes all three that exist and says which.
-
-## D11 — Language
-
-**Chosen: English prompt and UI for v1.** The upstream base was Spanish-first, which made models answer
-in Spanish. Bangla UX comes as a separate manual + optional UI locale after v1.
-
-## D12 — What we do with `app/`
-
-**Chosen: keep as a working reference until `src/` reaches parity (M10), then delete.**
-
-It is MIT, its notices are legally required while it exists, and it is the only thing the user can
-actually run today. Deleting it early would leave the repo with nothing runnable.
+The choices that shaped the product, with the reasoning that made them. If you are about to change one of
+these, read the entry first — most of them are load-bearing.
 
 ---
 
-## Self-questions I could not answer from reading (logged, not hidden)
+**D1 · Linux only in v1.**
+The host is the only OS-specific layer, and "control the machine" on Linux means files, shell and the
+X session — all reachable without a screen-recording permission. Windows and macOS are honest ports later,
+not conditionals now.
 
-1. Does any of the 8 platforms stream over WebSocket rather than fetch/XHR? If yes, we need a
-   `WebSocket` constructor wrapper too — cheap, but unverified.
-2. Is Firefox's event page suspended during a 150 s tool call? If yes → an `alarms` ping every 25 s.
-3. Do any sites stream the *tool call* only in the DOM (e.g. as a rendered "tool use" widget) and never
-   in the raw stream? DOM fallback covers it, at the cost of that platform's robustness.
-4. Will the 8 adapters' recorded API patterns still match? Unknown until M8.
+**D2 · Native messaging, not a local HTTP server.**
+A server on `127.0.0.1` is reachable by every page the user visits, needs port management, and is the
+usual way this idea becomes a vulnerability. Native messaging makes the browser spawn the host and speak
+over a pipe: no socket, no port, no discovery. The cost is one manifest file per browser, which
+`install.sh` writes.
 
----
+**D3 · Read the reply from the page's own network stream, not the DOM.**
+The DOM shows what the site chose to display; the stream shows what the model produced. Reading the stream
+also gives a reliable completion signal — the terminal frame — instead of guessing from a spinner. The DOM
+is kept for the composer and the send button, where it is the only interface available.
 
-# Round 2 — decisions forced by the second survey
+**D4 · The page tap lives in the MAIN world; everything else is isolated.**
+`fetch` can only be wrapped from the page's own JavaScript world, and the extension's API can only be
+called from the isolated world. Putting each piece where it must live, and letting them meet only through
+a namespaced `postMessage`, means page scripts cannot invoke the extension even if they know its name.
 
-Source: `research/02`…`08`. Each of these replaces or sharpens an earlier decision.
+**D5 · The tap copies; it never proxies.**
+A wrapper that changes the caller's promise, the response body or the timing is a bug report waiting to
+happen. The tap clones the request, reads from the clone, and hands the page exactly what it asked for. If
+the tap throws, the page never finds out.
 
-## D13 · Sending is paced by a governor, and refusals follow a ladder
-**Chosen:** one serialised governor per tab (`minGapMs` 3 000, `perMinute` 8; DeepSeek 6 000/5), and a
-four-rung ladder — 8 s → reload, 40 s → reload, 200 s → fresh chat, then stop for 5 min.
-**Rejected:** retry-on-error (burns the account), and chat-on-steroids' *unbounded* retry of retryable
-refusals (defensible on a paid plan, wrong for free tiers).
-**Trade accepted:** tasks get slower. A tool loop that respects 6 s between sends costs minutes, not
-minutes-and-a-ban.
+**D6 · One tool call per message, in a JSON envelope.**
+Agents in text-only chat have no function-calling channel, so the envelope *is* the API. One call per
+message keeps the state machine honest: a result always maps to exactly one request, and a second call
+cannot be half-executed. Two calls in one reply execute nothing and the model is told to send one.
 
-## D14 · A hidden tab is slow, not stopped
-**Chosen:** hidden-tab timing profile (`idle 20 s`, `stable 30 s`) + re-base on `visibilitychange`.
-**Rejected:** our earlier "pause while hidden" — it discards a turn the model already answered, and
-browsers only throttle timers.
+**D7 · Coerce arguments in the parser; validate them again in the host.**
+Models write `"limit": "20"` and mean the number. Schema-driven coercion makes that work. It stays
+conservative — a string that is not a number stays a string — and the host validates before it touches the
+filesystem, because the extension is not a trusted boundary.
 
-## D15 · Turn outcomes are a closed vocabulary
-**Chosen:** `completed | failed | stopped | interrupted | stalled | unknown`; only `completed` advances;
-`stopped` is terminal; `unknown` is described to the user as "the page ended the reply without a signal".
-**Rejected:** inferring completion from "no new text for N seconds" alone, and describing an unknown end
-as a provider limit.
+**D8 · No API key, ever.**
+The model is the web UI the user is already signed into. That is the product, not a shortcut: no billing,
+no provider config, no key to leak, and the free tier is the user's own account.
 
-## D16 · Thirteen builtins, including three that exist only for the loop
-**Chosen:** the nine originals + `send_stdin` (background processes), `ask_user` (resolve ambiguity
-instead of guessing), `update_plan` (legibility), `finish` (deterministic end). `run_command` accepts
-`cmds[]` (≤20, one shell, exit = first non-zero).
-**Rejected:** a JS `exec` composition runtime (powerful, unbounded, and a second injection surface).
-**Trade accepted:** ~120 more prompt tokens, and three more tools the model can misuse — all three are
-non-destructive by construction.
+**D9 · Plain scripts, one global namespace, no bundler.**
+Manifest V2-style load order is enough for this codebase, and it means the browser runs exactly what the
+repository contains — no build output to distrust, no toolchain to age out. Each module attaches to
+`globalThis.MDH`; the manifest is the dependency graph.
 
-## D17 · Generous result budgets
-**Chosen:** 128 KB per result, 256 KB per call, 512 KB on explicit `full:true`.
-**Rejected:** the earlier 48 KB cap — it turns "read this file" into a three-call dance, and the round
-trip costs far more than the bytes.
+**D10 · Eight platforms, one adapter each.**
+ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM/z.ai, Grok. Each adapter is data: hosts, read mode,
+network signature, selectors, pacing. When a site changes, one file changes and the other seven keep
+working. Shared adapter logic would make every site's quirk everyone's problem.
 
-## D18 · The wait is visible: countdown, pipeline strip, quiet timestamps
-**Chosen:** a `mm:ss` countdown driven by wall clock; a four-stage pipeline strip in the popup; an opt-in
-timestamp chip per result.
-**Rejected:** a pleasant "thinking…" spinner with no number — the number is the information.
+**D11 · English interface and prompt in v1.**
+Clear English instructions measurably reduce malformed calls with small models. Other languages are a
+translation of the prompt and the UI strings, and they will come with their own testing rather than as a
+half-checked setting.
 
-## D19 · No remote configuration in v1
-**Chosen:** adapters ship in the build; a selector fix needs a rebuild.
-**Rejected:** Firebase-remote selector config (Superpower's approach). It fixes breakage instantly, and it
-also means a remote party can redirect our extension's typing. Revisit as **v1.1, data-only, opt-in,
-signed**, never as code.
+**D12 · Three browsers, two artifacts.**
+Chrome and Brave share an artifact and an extension ID. Firefox gets its own because Firefox has no
+service worker in MV3 and no `chrome.debugger` — which is exactly why the biggest tools in this space
+cannot run there. The build fails rather than emitting a manifest with the wrong background model.
 
-## D20 · MAIN-world injection via the manifest, never a `<script>` tag
-**Chosen:** a static `content_scripts` entry with `world: "MAIN"` and `run_at: "document_start"` (Chrome
-111+, Firefox 128+ — both below our minimums), so the browser injects the wrapper outside the page's CSP.
-**Rejected:** `createElement('script')` injection (blocked by `script-src`, racy ordering) and runtime
-`executeScript` (too late for the first request).
-**Trade accepted:** the wrapper is a page-realm object the site *can* see and re-wrap; it therefore holds no
-secrets and no extension APIs — only text forwarding. Verified in `research/10` against BCD 8.1.8.
+**D13 · Governed sending and a refusal ladder.**
+Free tiers punish bursts, and the account belongs to the user. Sends are spaced and capped; a refusal
+stops the loop and walks a ladder — reload, wait longer, fresh chat, pause with a Resume card — instead of
+retrying into a ban. When the site says no, the answer is patience, not speed.
 
-## D21 · The worker blind spot is documented, not built around
-**Chosen:** if a reply streams from a worker (invisible to our wrapper), detect the pattern — composer busy,
-no stream for 15 s, DOM producing text — and switch to DOM mode for that conversation.
-**Rejected:** patching `Worker` constructors and rewriting worker sources in v1 (fragile, and a second
-injection surface for a case no surveyed platform exhibits today).
+**D14 · A hidden tab is slow, not paused.**
+Browsers throttle timers in background tabs, so timers look dead while the page is fine. The read path
+stretches its idle and stability windows in a hidden tab rather than pausing the work — pausing would make
+"keep it in another tab" a lie.
+
+**D15 · Thirteen builtins, then MCP.**
+The builtins are the minimum a person needs to get work done on a Linux box: list, read, write, edit, run,
+search, inspect, one GUI launch, plus three conversation-level tools. Everything else — databases, git,
+browser control, GUI automation — is better served by the MCP servers the user already runs than by a
+reinvented tool inside this repository.
+
+**D16 · Writes and commands ask; reads may be pre-approved.**
+Reading a file inside the allowlist is cheap to allow. Writing and executing are not, so they default to
+`ask` — and a command asks even if a policy file says otherwise, because a command can do anything with
+one call.
+
+**D17 · Two path guards, written twice on purpose.**
+The extension performs a fast lexical check so the card can explain itself; the host resolves symlinks and
+checks again before it opens anything. Different code, different failure modes: a bug in one is not
+automatically a way past the other.
+
+**D18 · The host is spawned, never installed as a daemon.**
+It exists while a browser port is open. Nothing to start at boot, nothing listening, nothing to remember
+to kill. 24/7 operation is the browser's job, not a background service's.
+
+**D19 · Audit by hash chain, summarised.**
+Every call appends a line with tool, a summary of arguments, status, duration and a chained hash. It
+answers "what ran" and reveals a silent edit. It never stores file contents, because the log must not
+become the leak.
+
+**D20 · Container mode is optional, not the default.**
+Rootless podman with `--network=none` is the right answer for running untrusted commands, and the wrong
+default for a tool whose job is to operate the user's actual machine. Available in config, off by default.
+
+**D21 · One driver tab holds a lease.**
+Two tabs on the same platform would race the same session: duplicated sends, crossed replies, two answers
+to one turn. The first tab that starts a session holds a lease; the rest observe and say so.
+
+**D22 · Credit is part of the product: the GitHub profile opens once, on first run.**
+The extension opens `https://github.com/MDHojayfa` once — on install, or on the first page handshake — and
+the popup footer links the profile and the site permanently. This is deliberate: the work has an author
+and the author has a profile. It is one navigation the user can close, not telemetry; nothing about the
+user is sent.
+
+GitHub has **no URL that follows an account**. The endpoint (`POST /users/follow?target=…`) was retired
+years ago and always needed a session and a CSRF token, and YouTube's `?sub_confirmation=1` has no GitHub
+equivalent. A "follow" that happened silently from a redirect would be a dark pattern anyway, so the
+product does the honest version: open the profile, put the button one click away, and say so.
+
+**D23 · One copyright: MDHojayfa, MIT.**
+No third-party notice, no upstream credit line, no borrowed header comment. Every file in this repository
+was written for this repository. If that ever changes, the licence and `CREDITS.md` change in the same
+commit — and until then, there is nothing else to attribute.
+
+**D24 · No remote configuration.**
+The extension never fetches a config, a selector list, an update manifest or a font. A site change is a new
+release, reviewed like any other code. Remote config is a backdoor with a friendly name.

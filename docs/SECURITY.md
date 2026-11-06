@@ -30,7 +30,7 @@ This software hands a language model a shell on a Linux machine. That sentence i
 | C2 | **Path allowlist + hard deny list**, symlinks resolved | reads of `~/.ssh`, keys, browser profiles |
 | C3 | **Per-tool approval, default `ask`**, 120 s timeout = deny | arbitrary one-shot damage |
 | C4 | **Container mode** (rootless podman, `--network=none`) | network egress, host writes |
-| C5 | **Result framing** `[MCP_RESULT …]` declared as data, not instructions | naive injection via tool output |
+| C5 | **Result framing** `[MDH_RESULT …]` declared as data, not instructions | naive injection via tool output |
 | C6 | **No remote code** — no `eval`, no fetched scripts | extension hijack via update channel |
 | C7 | **Hash-chained audit log** | silent misuse; gives forensics |
 | C8 | **Refusal rule** (never re-send after a rate-limit rejection) | account bans |
@@ -39,8 +39,8 @@ This software hands a language model a shell on a Linux machine. That sentence i
 ## 4. Residual risk — stated plainly, not hidden
 
 1. **Prompt injection is not solved.** Approvals reduce blast radius; they do not eliminate it. A user
-   who approves `curl … | sh` has authorised it. Anthropic's own browser-agent numbers were ~17 %
-   attack success unmitigated in 2026; assume the worst case applies to us too.
+   who approves `curl … | sh` has authorised it, and a model that has been talked into a bad command will
+   present it confidently. Read the card, not the chat.
 2. **The allowlist is only as good as its default.** Users will add `~`.
 3. **Container mode is optional.** Default is the host.
 4. **Free-tier ToS.** Automating a web UI may violate a provider's terms. We do not hide this: rate
@@ -61,7 +61,7 @@ Please do not file a public issue. Acknowledgement target: 72 h.
 
 ## 7. If you think you are compromised
 
-1. `systemctl --user stop mdh.service` (or kill the host process)
-2. `mdh-host audit --verify` — check the chain; `~/.local/state/mdh/audit.jsonl`
-3. Rotate anything in the deny list that was ever moved into the allowlist
-4. `. ./install.sh --uninstall`
+1. Close the tab that was driving, or press **Stop** in the popup — the host exits when the port closes.
+2. Check the chain: `node -e "import('./host/audit.mjs').then(m=>console.log(m.verifyAudit()))"`.
+3. Rotate anything that was ever moved out of the deny list into the allowlist.
+4. `./install.sh --uninstall`.

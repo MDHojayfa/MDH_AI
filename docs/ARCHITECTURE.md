@@ -1,121 +1,126 @@
-# Architecture (v1 — our implementation)
+# Architecture
 
-> The imported MIT base lives in `app/` and is **temporary**; it is kept only until this implementation
-> reaches parity (milestone M10). Everything described here is written by us.
+One extension, one host process, no server. The interesting part is not the plumbing — it is that the
+model is a web page we do not control, so everything here is about reading that page honestly and acting
+on your machine safely.
 
 ## 1. Process model
 
 ```
-browser                          native host (python)                children
-──────────────────────────────   ─────────────────────────────────   ──────────────────────
-page  ── content script           stdin/stdout (4-byte framing)       MCP servers (stdio)
-        └─ background  ─────────▶  dispatcher ── policy ── audit        · builtin linux tools
-                                                                    · DesktopCommander, etc.
+browser tab                                    native host (node)                children
+───────────                                    ──────────────────                ────────
+page  ── MAIN-world tap (injected.js)
+     ── isolated content script (main.js)  ──▶  stdin/stdout, 4-byte framing  ──▶  builtin tools
+        └─ background (service worker /             policy · audit                   MCP servers
+           event page) ── nativeMessaging                                             (stdio)
 ```
 
-- **No listening port.** Native messaging means the browser *spawns* the host and talks over pipes.
-  Nothing on `127.0.0.1` to attack.
-- **One host process per browser**, lazily started on the first tool call, kept alive by the extension.
-- **Host restarts the child, never the browser.**
+- **No listening port.** The browser spawns the host as a child process and speaks length-prefixed JSON
+  over its stdin/stdout. A web page cannot reach a pipe, which removes an entire class of attack.
+- **One host per browser**, started on the first tool call, kept alive while the port is open, exits when
+  the browser closes the port.
+- **The extension is the driver; the host is the hands.** The host never decides what to do next and never
+  talks to a model.
 
 ## 2. Layers
 
 | Layer | File(s) | Responsibility | Must never |
 |---|---|---|---|
-| Page adapter | ~~`src/platforms/<site>.js`~~ | host pattern, stream signature, extractor, composer I/O | touch the filesystem or the transport |
-| Interceptor | `src/core/interceptor.js` | wrap `fetch`/XHR/WebSocket, tee responses, reassemble chunks | alter what the page receives |
-| Parser | `src/core/parser.js` | find + repair the call envelope, coerce args, explain failures | throw into page code |
-| Prompt | `src/core/prompt.js` | build the tool catalogue, reminders, re-injection | assume a fixed tool list |
-| Agent loop | `src/core/agent.js` | state machine, dedup, refusal rule, delivery | retry after a refusal |
-| UI | `src/ui/panel.js` | status chip, approval card, history | render remote HTML |
-| Transport | `src/transport/native.js` | port lifecycle, framing, reconnect | hold conversation state |
-| Host | `host/mdh_host.py` | MCP client, policy, audit, builtin tools | trust the extension |
-| Guard | `host/policy.py` | allowlist, path resolution, approvals | trust model-supplied paths |
-| Build | `tools/build.mjs` | two manifests, one source | diverge code between browsers |
+| Page tap | `src/content/injected.js` (MAIN world) | wrap `fetch`, `XHR` and `WebSocket`, copy replies, reassemble chunks | change what the page receives |
+| Interceptor | `src/core/interceptor.js` | turn copies into one stream shape: SSE, byte-framed, whole-body | parse tool calls |
+| Platform adapter | `src/platforms/<site>.js` | host pattern, read mode, composer and send selectors, timings | touch the filesystem or the transport |
+| Parser | `src/core/parser.js` | find the call envelope, repair almost-JSON, coerce arguments, explain failure | execute anything |
+| Prompt | `src/core/prompt.js` | tool catalogue, first-message wrapper, per-turn reminder | assume a fixed tool list |
+| Agent loop | `src/core/agent.js` | state machine, send governor, reply wait, refusal ladder, delivery, dedup | re-send after a refusal |
+| Policy | `src/core/policy.js` | lexical path check and approval verdict for the card | be the only guard |
+| Transport | `src/core/transport.js` | one native port, request/response by id, progress frames, disconnect → `NO_HOST` | log to stdout |
+| UI | `src/core/ui.js` + `src/popup/*` | status, approval card, history, popup | render remote HTML |
+| Host | `host/*.mjs` | framing, tool dispatch, real path guard, audit chain, MCP lifecycle | trust the extension's policy copy |
 
-## 3. The reply-reading ladder
+A layer may only call the layer below it. The tap and the adapter never meet: the tap knows nothing about
+tool calls, the adapter knows nothing about frames.
 
-For each new assistant turn we try, in order:
+## 3. Reading a reply without being the page
 
-1. **Text SSE** — chunk is JSON with a text delta → append to a buffer.
-2. **Binary frames** — Connect-RPC sites (Kimi): 5-byte header, brace-depth JSON extraction.
-3. **WebSocket** — wrapper on the `WebSocket` constructor, same extraction.
-4. **DOM** — the rendered message text. Last resort, most fragile.
+The page's own code has already asked for the reply; we only need a copy.
 
-A turn is complete when: the stream ends, **or** the stop button disappears, **or** the buffer has been
-stable for `STABLE_MS` while not streaming. The parser then looks for a complete envelope in the buffer.
+| Mode | Used by | How completion is known |
+|---|---|---|
+| `sse` | ChatGPT, Claude, DeepSeek, Kimi (web), Qwen, GLM, Grok | the terminal frame — `[DONE]`, `end_turn`, `stop_sequence` — or a quiet window |
+| `binary` | Kimi on `moonshot.cn` | byte-framed records with a JSON body, reassembled by brace depth |
+| `body` | Gemini | the whole response resolves; there is no stream to watch |
 
-## 4. Call lifecycle (the state machine)
+Three rules keep this honest:
+
+1. **The tap is a copy, never a proxy.** It clones the `Request` (or observes the XHR), reads from the
+   clone, and returns the original promise untouched. If the tap throws, the page never notices.
+2. **Isolation is structural.** Reading the stream is MAIN-world work (page `fetch`). Parsing, prompting
+   and acting are isolated-world work. The two meet only through a `postMessage` channel with a namespaced
+   envelope, so page scripts cannot call the extension's API even if they know its name.
+3. **Nothing is inferred from the DOM that the stream can answer.** The DOM is the fallback and the
+   composer/send interface, not the source of truth for text.
+
+## 4. The loop
 
 ```
-IDLE ──inject──▶ ARMED ──user sends──▶ OBSERVING ──envelope seen──▶ PARSING
-                                                                            │
-        ┌───────────────────────────────────────────────────────────────────┤
-        │ invalid                                                            │ valid
-        ▼                                                                    ▼
-   FEEDBACK (tell the model why, once)                              DECIDING
-                                                                           │
-                                          deny ────────────────────────────┤
-                                            │                              │ allow / approved
-                                            ▼                              ▼
-                                     DELIVERED (rejected)               EXECUTING
-                                                                           │
-                                              timeout / error ─────────────┤
-                                                    │                      │ ok
-                                                    ▼                      ▼
-                                              DELIVERED (error) ─────▶ DELIVERED (result)
-                                                                           │
-                                                                           ▼
-                                                                      OBSERVING
+idle ──task──▶ compose ──▶ send ──▶ wait ──▶ parse ──┬─ no call ─▶ deliver answer, idle
+  ▲                            │                     ├─ call ────▶ policy ─▶ approval ─▶ host ─▶ result
+  │                            │                     └─ unreadable ─▶ explain + one retry
+  └──────────── resume ◀── paused (refusal ladder) ◀── refused
 ```
 
-Terminal states that must **never** silently continue: `REFUSED` (rate limit), `STALE` (extension
-reloaded), `OFFLINE` (host not answering). Each tells the user in one line and stops.
+Invariants, each of which exists because breaking it produces a specific, observed failure:
 
-## 5. Invariants
+- **one call per message.** Two calls in one reply execute nothing; the model is told to send one.
+- **never re-send after a refusal.** Re-sending is how accounts get rate-limited into a ban. The ladder
+  reloads, waits longer, opens a fresh chat, then pauses and offers Resume.
+- **at most one answer per turn.** A reload or an SPA navigation must not turn one answer into two
+  executions; the answered-turn marker is written before delivery.
+- **dedup with a cap.** The same `tool + arguments` may run four times in fifteen minutes — enough for a
+  legitimate retry, not enough for a loop.
+- **bounded turns and errors.** Sixty turns, three consecutive tool errors, then it stops and says so.
 
-1. **Exactly one call per message** is executed. Extra calls are reported, not run.
-2. **One active driver tab per site.** A second tab goes read-only until it takes the lease.
-3. **Every call produces a reply** — result, rejection or structured error. Nothing hangs.
-4. **Nothing runs without passing policy** — even in `allow` mode the allowlist applies.
-5. **State that must survive suspension** lives in `storage.local`: `pendingCall`, `lease`, `turnsSinceInject`.
-6. **No remote code, ever.** No `eval`, no fetched scripts, no remote `innerHTML`.
-7. **The page is never mutated** beyond the composer text and our own panel.
+## 5. The host
 
-## 6. Browser differences, isolated in one shim
+Native messaging framing is four bytes of length, little-endian, then UTF-8 JSON. Getting that wrong is
+the classic bug in this ecosystem, and it fails silently — which is why `./install.sh` finishes by
+actually pinging the host.
 
-| Concern | Chromium | Firefox |
+Frames: `ping → pong`, `list → tools`, `call → reply|error`, plus `progress` which resets the 120 s
+timeout on a long call. The host writes protocol to stdout and logs to stderr, always.
+
+Tools are resolved in one order: builtins on this machine, then `server.tool` for a configured MCP server,
+then a bare tool name if exactly one server owns it. Everything is audited before the reply is written.
+
+## 6. Guards
+
+| Guard | Where | What it catches |
 |---|---|---|
-| Background | `service_worker` (module), dies after 30 s | `scripts` event page, also suspends |
-| API promises | `chrome.*` returns promises | `chrome.*` is a callback alias → **point it at `browser`** |
-| Native host allowlist | `allowed_origins: ["chrome-extension://<id>/"]` | `allowed_extensions: ["mdh@…"]` |
-| Host manifest path | `~/.config/{google-chrome,BraveSoftware/Brave-Browser,chromium}/NativeMessagingHosts/` | `~/.mozilla/native-messaging-hosts/` |
-| MAIN-world injection | `content_scripts[].world` (111+) | `world` (128+) |
-| Min version | 116 | 140 |
+| lexical path check | extension, `policy.js` | obvious mistakes and `~/.ssh`, instantly, so the card can explain |
+| canonical path check | host, `tools/linux.mjs` | symlinks, `..`, and a policy file the extension does not control |
+| approval | extension UI | anything the policy marks `ask`; write and execute always ask |
+| audit chain | host | after the fact: what ran, and whether the log was edited |
+| pacing + ladder | extension, `agent.js` | your account's survival on free tiers |
 
-`src/shared/compat.js` is the only file allowed to contain a browser conditional.
+The two path guards are deliberately not the same code. A bug in one is not automatically a way past the
+other, and the one that actually opens the file is the one that resolves symlinks.
 
-## 7. Failure handling
+## 7. Timing
 
-| Failure | Detection | Behaviour |
-|---|---|---|
-| Host not installed | `connectNative` throws | "run ./install.sh" + copyable command |
-| Host crashed | port `onDisconnect` + `lastError` | restart once, then surface the reason |
-| MCP server hung | per-call timeout (60 s default, 20 s Luau-style tools) | reply with timeout error, keep server alive |
-| MCP server died | child exit | restart it, retry the call **once**, then report |
-| Extension reloaded | runtime id gone / message fails | one-line notice, stop the loop |
-| Tab closed mid-call | lease lost | host finishes, result goes to the audit log |
-| Rate-limit refusal | platform text match | stop, ladder up, resume on next user action |
-| Model refuses ("I can't access…") | denial regex per language | re-inject once with a firmer preamble |
+A reply is "done" when the stream ends and the text stops changing. The default profile waits for 2.5 s
+of quiet, requires 3.5 s of stability, allows 45 s of warm-up and gives up at 300 s. Hidden tabs get a
+longer profile (20 s / 30 s) because browsers throttle timers there — a hidden tab is slow, not paused.
 
-## 8. Why this beats every existing repo
+Sends are governed: a minimum gap and a per-minute cap, multiplied by a pace factor that rises when the
+site pushes back (×1.6, capped at ×4). DeepSeek ships with a measured 6 s / 5-per-minute profile; the rest
+start at the default.
 
-| | ZeroScript | ai-tool-agent | web-mcp-bridge | **ours** |
-|---|---|---|---|---|
-| Read path | DOM | SSE | DOM | **SSE + binary + WS + DOM** |
-| Firefox | ✗ | ✗ | ✗ | **✓** |
-| Native messaging | ✗ | ✓ | ✗ | **✓** |
-| MCP tool boundary | ✓ | ✗ | ✓ | **✓** |
-| Approval per tool | ✗ | partial | ✓ | **✓ + attached card** |
-| Rate-limit rule | partial | ✗ | ✗ | **✓ never-resend** |
-| Tests shipped | ✗ | ✓ | ✓ | **✓** |
+## 8. Build
+
+No bundler. `node tools/build.mjs` merges `manifest.base.json` with a per-browser overlay, strips a
+`null` key as a deletion (so Firefox can drop Chromium-only fields), copies the tree, derives the Chrome
+extension ID from the pinned key, and refuses to emit a manifest that violates an invariant — wrong world,
+missing `nativeMessaging`, an `http://` origin, a Firefox service worker, a missing Gecko ID.
+
+`npm test` loads the same classic scripts the browser loads into a `vm` sandbox, so the tests exercise
+shipped code rather than a copy of it.

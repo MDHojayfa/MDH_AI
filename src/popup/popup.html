@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MDH_AI</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span id="dot" class="dot" aria-hidden="true"></span>
+      <strong>MDH_AI</strong>
+      <span id="state" class="state">checking…</span>
+    </div>
+    <button id="menu" class="ghost" title="What is this?" aria-label="About">?</button>
+  </header>
+
+  <section id="pipeline" class="pipeline" hidden>
+    <div class="stage" data-stage="page"><span class="tick">·</span><span class="name">page found</span><span class="meta"></span></div>
+    <div class="stage" data-stage="host"><span class="tick">·</span><span class="name">host connected</span><span class="meta"></span></div>
+    <div class="stage" data-stage="tools"><span class="tick">·</span><span class="name">tools loaded</span><span class="meta"></span></div>
+    <div class="stage" data-stage="run"><span class="tick">·</span><span class="name">idle</span><span class="meta"></span></div>
+  </section>
+
+  <section class="platform">
+    <span id="platform">not a supported page</span>
+  </section>
+
+  <section class="task">
+    <label for="task">Task <span class="opt">(optional)</span></label>
+    <textarea id="task" rows="3" placeholder="find every file over 100 MB in ~/projects and tell me what they are"></textarea>
+    <div class="row">
+      <button id="start" class="primary">Start on this tab</button>
+      <button id="stop" class="danger" disabled>Stop</button>
+    </div>
+    <p id="hint" class="hint" hidden></p>
+  </section>
+
+  <section class="session" id="session" hidden>
+    <div class="line">
+      <span id="turn">turn 0</span>
+      <span id="calls">0 calls</span>
+      <span id="denied">0 denied</span>
+      <span id="elapsed" class="num">00:00</span>
+    </div>
+    <ul id="history" class="history"></ul>
+  </section>
+
+  <details id="advanced">
+    <summary>Advanced</summary>
+    <div class="grid">
+      <label>Allow these folders</label>
+      <code id="allow">—</code>
+      <label>Approval</label>
+      <span id="approval">ask on change</span>
+      <label>Ladder</label>
+      <span id="ladder">idle</span>
+      <div class="row">
+        <button id="copy" class="ghost">Copy log</button>
+        <button id="retry" class="ghost" hidden>Try again</button>
+      </div>
+    </div>
+  </details>
+
+  <footer>
+    <a id="home" href="https://github.com/MDHojayfa" target="_blank" rel="noopener" title="Follow on GitHub">github.com/MDHojayfa</a>
+    <a id="site" href="https://mdhojayfa.github.io/" target="_blank" rel="noopener">site</a>
+    <span class="by">by <strong>MDHojayfa</strong> · MIT</span>
+  </footer>
+
+  <script src="../shared/compat.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

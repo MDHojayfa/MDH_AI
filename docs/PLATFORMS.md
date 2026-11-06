@@ -1,127 +1,76 @@
-# Platforms — adapter contract & reference data
+# Platform reference
 
-Every value below was **extracted from source**, not guessed. Source repos are named per row so we can
-re-derive them when a site changes. **All of it is unverified until the M8 live checklist** — these are
-reference patterns for writing our own adapters, not facts about today's sites.
-
-## Adapter contract (data only — no logic)
+Eight platforms, one adapter each. An adapter is data: a host pattern, a read mode, a network signature,
+a handful of selectors for the composer and the send button, pacing and timing. No logic, no imports, no
+timers — a platform file that needs more than this is a design bug.
 
 ```js
-export default {
+MDH.platforms.register({
   id: 'deepseek',
-  host: /chat\.deepseek\.com/,            // must match location.hostname exactly
-  sse: {                                  // primary read path
-    apiPattern: /chat\/completion/,        // network URL signature
-    mode: 'sse',                          // 'sse' | 'binary' (framed) | 'body' (whole response)
-    binary: false,                        // legacy alias of mode:'binary'
-    extract(chunk) {},                    // -> string | null
-    refusal: /too frequent|稍后重试/i,     // text that means "the message was REFUSED"
+  host: /chat\.deepseek\.com/,               // matched against location.hostname
+  sse: {
+    apiPattern: /chat\/completion/,
+    mode: 'sse',                             // 'sse' | 'binary' | 'body'
+    extract(chunk) {},                       // -> string | null
+    refusal: /too frequent|稍后重试/i,        // text that means the message was NOT accepted
   },
-  dom: {                                  // fallback read path + composer I/O
-    composer: [...], send: [...], messages: [...], streaming: [...],
-  },
-  pace: { minGapMs: 3000, perMinute: 8 }, // the send governor (specs/04 §4)
-  timings: { idleMs, stableMs, warmupMs, timeoutMs, hidden: {...} },
-  inject: { strategy: 'prepend' | 'send' },
-};
+  dom: { composer: [...], send: [...], messages: [...], streaming: [...] },
+  pace: { minGapMs: 6000, perMinute: 5 },
+  timings: { idleMs, stableMs, warmupMs, timeoutMs, hidden: { idleMs, stableMs } },
+});
 ```
 
-Rules: no imports, no side effects, no timers. A platform file that needs anything else is a design bug.
+## The eight
 
----
-
-## v1 platform matrix
-
-| # | Platform | Host(s) | Stream signature (reference) | Format | Reference source |
-|---|---|---|---|---|---|
-| 1 | ChatGPT | `chatgpt.com`, `chat.openai.com` | `/backend-api\/conversation/` | SSE | ai-tool-agent `chatgpt.js` |
-| 2 | Claude | `claude.ai` | `/chat_conversations/.*/completion` — terminal `stop_reason:"stop_sequence"` | SSE | ChatGPTBox (`research/09`) |
-| 3 | Gemini | `gemini.google.com` | `BardChatUi/…/StreamGenerate` — **body-complete** | RPC/JSON | ChatGPTBox (`research/09`) |
-| 4 | DeepSeek | `chat.deepseek.com` | `/chat\/completion/` | SSE | ai-tool-agent `deepseek.js` |
-| 5 | Kimi | `kimi.com`, `kimi.ai`, `moonshot.cn` | `/api/chat/{id}/completion/stream` (SSE, `all_done`) · `/ChatService\/Chat/` (binary) | SSE **and** binary | ChatGPTBox + ai-tool-agent |
-| 6 | Qwen | `chat.qwen.ai`, `tongyi.aliyun.com`, `qianwen.com` | `/\/api\/v2\/chat\/completions|chat\/completions/` | SSE | ai-tool-agent `qwen*.js` |
-| 7 | GLM / z.ai | `chat.z.ai`, `z.ai`, `chatglm.cn` | `/chat\/completions|\/api\/chat\/completion|\/backend-api\/assistant\/stream/` | SSE | ai-tool-agent `zai.js`, `chatglm.js` |
-| 8 | Grok | `grok.com`, `x.com/i/grok` | `/rest/app-chat/conversations/(new|{id}/responses)` — terminal `[DONE]` | SSE | AIClient2API (`research/05 §8`) |
-
-**All eight now have a named transport.** Six are SSE, Gemini is a whole-body RPC, Kimi has a second
-binary host, and every one of them still needs a live check at M8 — what is known today is *where to look*,
-not that it works. Confidence per platform, the full union of selectors and the exact refusal regexes live
-in `research/05-PLATFORM-INTEL.md`.
-
-## Pacing and timing profiles
-
-Measured where possible; conservative elsewhere. Only DeepSeek has been measured (LuauPilot, a 6 s/5-per-
-minute limit), so everything else starts at the default and adapts from the ladder's hits.
-
-| Platform | `minGapMs` / `perMinute` | `idleMs` / `stableMs` | `warmupMs` / `timeoutMs` | Confidence |
+| # | Platform | Hosts | Read mode | Network signature |
 |---|---|---|---|---|
-| DeepSeek | **6 000 / 5** (measured) | 6 000 / 9 000 | 45 000 / 420 000 | ● |
-| ChatGPT | 3 000 / 8 | 2 500 / 3 500 | 45 000 / 300 000 | ● |
-| GLM / z.ai | 3 000 / 8 | 2 500 / 3 500 | 45 000 / 300 000 | ● |
-| Kimi | 3 000 / 8 | 3 000 / 4 000 | 60 000 / 300 000 | ◐ |
-| Qwen | 3 000 / 8 | 2 500 / 3 500 | 45 000 / 300 000 | ◐ |
-| Claude | 3 000 / 8 | 2 500 / 3 500 | 60 000 / 300 000 | ◐ |
-| Gemini | 3 000 / 8 | 3 000 / 4 000 | 45 000 / 300 000 | ◐ |
-| Grok | 3 500 / 6 | 3 500 / 5 000 | 60 000 / 300 000 | ○ |
+| 1 | ChatGPT | `chatgpt.com`, `chat.openai.com` | SSE, replace | `/backend-api/conversation` |
+| 2 | Claude | `claude.ai` | SSE, append | `/chat_conversations/*/completion` — terminal `stop_sequence` |
+| 3 | Gemini | `gemini.google.com` | whole body | `BardChatUi/…/StreamGenerate` |
+| 4 | DeepSeek | `chat.deepseek.com` | SSE, append | `/chat/completion` |
+| 5 | Kimi | `kimi.com`, `www.kimi.com`, `kimi.moonshot.cn` | SSE on the web host, byte-framed on `moonshot.cn` | `/api/chat/*/completion/stream`, `/ChatService/Chat/` |
+| 6 | Qwen | `chat.qwen.ai`, `tongyi.aliyun.com`, `qianwen.com` | SSE, append | `/api/v2/chat/completions` |
+| 7 | GLM · z.ai | `chat.z.ai`, `z.ai`, `chatglm.cn` | SSE, append | `/chat/completions`, `/backend-api/assistant/stream` |
+| 8 | Grok | `grok.com`, `x.com/i/grok` | SSE, replace | `/rest/app-chat/conversations/…/responses` — terminal `[DONE]` |
 
-Hidden-tab profile for all: `idle 20 000 / stable 30 000` (`specs/04 §3` — a hidden tab is slow, not
-stopped).
+**replace vs append.** ChatGPT and Grok re-send the whole message on every frame, so the reader replaces
+the text rather than appending; appending there would duplicate the reply. Kimi's mode is a *function of
+the URL*, not of the account, because the same product runs on two backends.
 
----
+**Gemini has no stream to watch.** Its RPC resolves once with the finished answer, so completion is "the
+fetch resolved" — which is also why Gemini has no streaming cursor to wait for.
 
-## Reference selectors (DOM fallback / composer I/O)
+## Pacing and timing
 
-### Claude — `claude.ai` *(from web-mcp-bridge `adapters/claude.js`)*
-```
-composer : div[contenteditable="true"].ProseMirror · [data-testid="chat-input"]
-send     : button[aria-label="Send message"] · button[aria-label*="Send" i]
-messages : .font-claude-response · .font-claude-message · [data-testid="assistant-message"] · div[data-is-streaming]
-streaming: button[aria-label="Stop response"] · div[data-is-streaming="true"]
-```
-Editor is **ProseMirror** → typing must use `InputEvent`/`beforeinput`, not `value=`.
+Defaults are deliberately conservative: it is better to be slow than to be refused.
 
-### Gemini — `gemini.google.com` *(from web-mcp-bridge `adapters/gemini.js`)*
-```
-composer : rich-textarea .ql-editor[contenteditable="true"] · div.ql-editor · textarea
-send     : button.send-button:not(.stop)
-messages : model-response message-content · .model-response-text
-streaming: button.send-button.stop
-```
-Editor is **Quill** → `document.execCommand('insertText')` or a synthetic paste works better than
-assignment. Note ZeroScript's gemini provider also uses `.ql-editor[contenteditable='true']`, independently
-confirming the editor — one of the few cross-repo agreements.
+| Platform | min gap / per minute | idle / stable | warm-up / timeout |
+|---|---|---|---|
+| DeepSeek | **6 s / 5** | 6 s / 9 s | 45 s / 420 s |
+| everything else | 3 s / 8 | 2.5 s / 3.5 s | 45 s / 300 s |
+| hidden tab (all) | — | 20 s / 30 s | unchanged |
 
-### ChatGPT — `chatgpt.com` *(from web-mcp-bridge `adapters/chatgpt.js`, 371 lines)*
-Known-quirky: messages detach into a code viewer, markdown mangles backslashes, code blocks carry a
-"Copy" label that bleeds into extracted text. **Our interceptor path makes ~80 % of that file unnecessary.**
+The governor multiplies both gap and cap by a pace factor that rises when a site pushes back, and the
+refusal ladder is per-platform because the sites say no in different words.
 
-### DeepSeek — `chat.deepseek.com` *(from web-mcp-bridge `adapters/deepseek.js`)*
-Assistant messages are `.ds-markdown`; composer is a textarea with a React value setter.
+## When a site changes
 
----
+Symptoms are specific and worth recognising:
 
-## Per-platform notes (what will bite us)
-
-| Platform | Quirk | Mitigation |
+| Symptom | Likely cause | Fix in the adapter |
 |---|---|---|
-| **Kimi** | binary Connect-RPC frames, not SSE | `binary:true` + brace-depth scanner; DOM fallback mandatory |
-| **Gemini** | Batchexecute RPC — replies may not be a clean stream | treat as "DOM-first" platform until proven otherwise |
-| **Claude** | ProseMirror editor ignores `.value =` | dispatch `beforeinput` + `InputEvent` |
-| **ChatGPT** | reply may be rendered in a detached code viewer | interceptor reads the stream, so this stops mattering |
-| **Qwen** | two different backends (`chat.qwen.ai` international vs `tongyi.aliyun.com` domestic) | two adapter files sharing one stream parser |
-| **GLM** | `chat.z.ai` and `chatglm.cn` are separate products | two host patterns, one file |
-| **Grok** | unknown; may be WebSocket | we already wrap the `WebSocket` constructor |
-| **All** | free-tier refusal wording is per-site and in the site's language | capture exact strings during M8; store in the adapter |
+| prompt never appears in the composer | ProseMirror replaced its DOM | update `dom.composer` |
+| task is typed but nothing is sent | send button renamed or moved | update `dom.send` |
+| reply arrives but is empty | signature changed | update `sse.apiPattern` or `extract` |
+| reply is truncated at the first frame | append/replace mode wrong | flip `mode`, or the terminal check |
+| "message refused" instead of an answer | site-side limit | check `refusal`, fixtures |
 
----
+Only that one platform breaks. The other seven share no adapter code, which is the point of keeping the
+adapter to data.
 
-## Adding platform #9 later (the test of this design)
+## Adding a ninth
 
-1. Open the site, DevTools → Network → send a message.
-2. Copy the request URL into `sse.apiPattern`.
-3. Copy the JSON path to the text delta into `extract()` (usually `choices[0].delta.content`).
-4. Copy four selectors from the Elements panel into `dom`.
-5. Add the host regex. Rebuild. Test.
-
-Target: **30 minutes, one file, no core changes.** If adding a platform ever requires touching `src/core/`,
-the adapter contract has failed and must be fixed before adding #10.
+1. Copy the smallest adapter and change values — never fork `src/core/`.
+2. Add the host to `src/manifest.base.json` (`host_permissions` **and** both content-script `matches`).
+3. Record one real stream with tokens and conversation ids scrubbed, and add it under `tests/fixtures/`.
+4. Add the row above and a line in `docs/DECISIONS.md` if the read mode is new.

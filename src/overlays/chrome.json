@@ -1,0 +1,5 @@
+{
+  "_comment": "Chromium (Chrome + Brave). The `key` pins the extension ID so the native-host manifest written by install.sh is valid on every machine, for both an unpacked load and a store install.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq7aqCvIG30+Hyk2t82V4owwPiYzDWD1HG/K4hfRxMzMUd6YVC0GBhwHkwwa86cBTKh81cNmevMDImhcNgOeTshNkH13s8weaHkF2FthE8RizLK46Eew8iuL03Lox1ZBRFq1+8id1S7jXQDDKRA3WimBQeU0DXnSF09/P0YYaxIyBDVEKLMWdAlYnSWQeTJi6UuqZwQPRBxl4tQirX1v7fVnjlvISWdVAX5UtRfVjqop/z8tvbMoR1pfx8k0rPW1wBVwePYy+damcFjaH9Nb1MS/KWTjjzRBkUXaEQUXR2L/q19LJbm2nUJengsrZI0heu8QrY1MtHbukGTax1kCu6QIDAQAB",
+  "minimum_chrome_version": "116"
+}

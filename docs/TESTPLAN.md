@@ -1,65 +1,71 @@
-# Test plan
+# Testing
 
-Nothing here needs a GUI browser except the last layer, and that layer is a human checklist.
+Five layers. The first four run without a browser or a signed-in account; the fifth is a checklist a human
+runs before a release.
 
-## Layer 1 — unit (no browser, runs in CI)
+## 1. Units — `npm test`
 
-| Module | Tests | Gate |
+58 tests against the shipped files, loaded into a `vm` sandbox with a fake storage and a fake page. No
+copies of the logic, so a green run means something about the extension itself.
+
+| Area | File | What it pins |
 |---|---|---|
-| `parser` | envelope, 200-case malformed corpus, coercion, multi-call refusal | 100 % of repair ladder |
-| `prompt` | signature token budget < 1,200, reminder < 220 chars, no Spanish leakage | fails build |
-| `interceptor` | 8 synthetic SSE fixtures; chunk-split fuzz (10 k splits → identical output) | byte-identical |
-| `agent` | every state transition, illegal transitions, refusal → zero re-sends, dedup cap at 4 | no re-send after refusal |
-| `policy` | `..`, symlink, `~`, absolute, encoding tricks → all refused | zero bypasses |
-| `mcp_client` | id matching under interleaved responses, timeout, crash+retry-once | no hangs |
+| parser | `tests/parser.test.mjs` | last closed fence wins, two calls execute nothing, repairs, unclosed/truncated, foreign syntax is named not quoted, conservative coercion |
+| policy | `tests/policy.test.mjs` | allow/deny, traversal, deny-over-allow, unknown tools ask, commands always ask, card describes the *request* |
+| prompt | `tests/prompt.test.mjs` | signatures not JSON Schema, budget respected with dropped tools named, verbatim task, credit present exactly once |
+| guard | `tests/guard.test.mjs` | realpath check, symlink escape, missing-path creation, empty input |
+| audit | `tests/audit.test.mjs` | chain verifies, silent edit detected, no file contents stored, only the first command line kept |
+| host | `tests/host.test.mjs` | real `run_command` output, batched shell, timeout kill, atomic write, ambiguous edit, binary refusal, truncation |
+| manifests | `tests/manifest.test.mjs` | eight platforms, MAIN/ISOLATED split, module order, Firefox event page, Chrome key → stable ID, no `http://` |
 
-Tooling: `node --test`, `pytest`. No network. Runtime target < 60 s.
+## 2. Build invariants — `npm run build`
 
-## Layer 2 — harness (no browser, real processes)
+The build refuses to emit a manifest that would fail in the field: wrong world for the tap, missing
+`nativeMessaging`, a Firefox service worker, an absent Gecko ID, a Chromium-only field in the Firefox
+artifact, an insecure origin, a key that does not derive the documented extension ID.
 
-A fake "chat" driver feeds recorded model replies into the real `agent.js` + real host over a fake
-transport. This proves the loop and the host agree on the protocol before any browser is involved.
+`npx web-ext lint --source-dir dist/firefox` must stay at **0 errors**. One warning about Firefox for
+Android is expected and irrelevant: this product is desktop only.
 
-- [ ] end-to-end: inject → call → approve → execute → deliver, with a dummy MCP server
-- [ ] host kill mid-call → one retry → structured error
-- [ ] 1 MB result → chunked frames → reassembled exactly
+## 3. Host — `node tools/selfcheck.mjs`
 
-## Layer 3 — live checklist (human, ~10 min per browser)
+Spawns the host exactly as a browser does — length-prefixed frames on stdin — and waits for a real pong.
+`install.sh` ends here, because "the manifest is written" is not the same claim as "the host answers".
 
-| Step | Chrome | Brave | Firefox |
-|---|---|---|---|
-| Load unpacked / temporary add-on | ☐ | ☐ | ☐ |
-| No console errors on load | ☐ | ☐ | ☐ |
-| Native host connects (`sys_info` returns) | ☐ | ☐ | ☐ |
-| Approval card appears for `run_command` | ☐ | ☐ | ☐ |
-| Deny → nothing executes | ☐ | ☐ | ☐ |
-| Result delivered, loop continues | ☐ | ☐ | ☐ |
-| Reload extension mid-session → clean stop | ☐ | ☐ | ☐ |
-| Tab hidden during a 60 s tool call | ☐ | ☐ | ☐ |
-| Firefox: event page survived the call | — | — | ☐ |
+Beyond the ping, the host is exercised by hand for the risky paths:
 
-## Layer 4 — platform matrix (8 platforms × 3 browsers = 24 cells)
+| Case | Expected |
+|---|---|
+| `read_file ~/projects/x` | content, line-numbered |
+| `read_file ~/.ssh/id_rsa` | `PATH_DENIED`, nothing read |
+| `write_file` outside the allowlist | `PATH_DENIED` |
+| `edit_file` with text that appears twice | `AMBIGUOUS_MATCH` |
+| `run_command` with 20 commands, one failing | first non-zero exit, all output |
+| `run_command` past the timeout | killed, `exit_code: 124` |
+| an MCP server that never starts | `TOOL_MISSING` for its tools; host stays alive |
+| kill the host mid-call | extension reports `NO_HOST` and offers Retry |
 
-For each cell: `list the files in ~/mdh` → approve → correct result, twice in a row.
+## 4. Loop — deterministic parts
 
-| | ChatGPT | Claude | Gemini | DeepSeek | Kimi | Qwen | GLM | Grok |
-|---|---|---|---|---|---|---|---|---|
-| Chrome | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| Brave | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| Firefox | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
+The agent's `_internals` are exported for exactly this. The cases that decide whether the product is safe:
 
-Record per cell: stream format found, whether SSE or DOM won, refusal string (verbatim), notes.
+- one call in, one result out; the result is a single bounded block
+- the same call four times in fifteen minutes is refused on the fifth, and the model is told why
+- a refusal never re-sends: it walks the ladder and stops
+- a reload after a denial offers resume; it does not re-send the call
+- a second tab cannot take the lease while the first is driving
+- sixty turns, or three consecutive tool errors, ends the session with a stated reason
 
-## Layer 5 — adversarial
+## 5. Release checklist — a human, one platform at a time
 
-- [ ] Prompt injection corpus: 20 hostile file contents ("ignore previous instructions…") → assert the
-      approval gate still fires, no auto-execution.
-- [ ] Malicious page in another tab attempts to reach the host → assert no port to reach.
-- [ ] Symlink inside the allowlist pointing at `~/.ssh` → refused.
-- [ ] Model emits two calls → none executed.
-- [ ] Model loops the same call 6× → 5th refused.
-- [ ] Rate-limit fixture → exactly one notice, zero re-sends.
+For each of the eight, in the two browsers the maintainer has:
 
-## Definition of done mapping
+1. Fresh chat, ask for a small task ("list `~/projects` and tell me the newest folder").
+2. Accept the approval card; confirm the result appears in the chat and the popup counters move.
+3. Deny a write; confirm the model is told and does not retry it verbatim.
+4. Send two tasks back to back; confirm pacing held and no duplicate execution occurred.
+5. Switch tabs mid-reply; confirm the hidden-tab timing still completes.
+6. Reload the page mid-reply; confirm the turn is not executed twice.
+7. Copy the log and check the stage names read sensibly.
 
-Each checkbox in `PLAN.md §2` must have a line here that proves it. A DoD item without a test is not done.
+Anything that fails becomes a fixture plus a test, or an adapter change — in that order.

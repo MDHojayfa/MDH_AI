@@ -95,7 +95,7 @@ valid JSON: {"mdh_call":{"tool":"…","arguments":{}}}
 popup, because a third attempt is where free-tier limits start.
 
 Critically: `explain()` must **never quote the foreign marker** it found — quoting `antml:invoke` or
-`<tool_call>` back to the model makes it echo that syntax harder. See `specs/02-parser.md §4`.
+`<tool_call>` back to the model makes it echo that syntax harder. See `docs/INTERFACES.md` §6.
 
 ## 5. Approval (UI-side, not a message)
 
@@ -114,7 +114,7 @@ The card appears in the page, anchored above the composer:
 └──────────────────────────────────────────────┘
 ```
 
-Three states, exactly as `specs/07-guard-policy.md`: `deny` (default on timeout, 120 s), `once`,
+Three states, exactly as `docs/INTERFACES.md` §4: `deny` (default on timeout, 120 s), `once`,
 `always` (scoped to this tool signature for this tab session). Keyboard: `Esc` deny, `Enter` allow once.
 The card never covers the composer — the model must stay interruptible.
 
