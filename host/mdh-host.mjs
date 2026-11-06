@@ -140,6 +140,7 @@ async function callTool(name, args, meta = {}) {
     ms: result.ms,
     detail: result.body?.slice(0, 160),
     run: meta.run,
+    via: meta.via,
   });
   return result;
 }
@@ -159,7 +160,11 @@ async function handle(frame) {
       return;
 
     case 'call': {
-      const result = await callTool(frame.name, frame.arguments ?? {}, { args: frame.arguments, run: frame.run });
+      const result = await callTool(frame.name, frame.arguments ?? {}, {
+        args: frame.arguments,
+        run: frame.run,
+        via: frame.via,
+      });
       reply(id, { t: 'reply', ...result });
       return;
     }

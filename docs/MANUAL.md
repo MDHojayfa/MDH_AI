@@ -308,8 +308,15 @@ The page has four controls, all of them honest about being URLs:
 
 Click a run and the page opens it end to end: when it started, when it stopped, which tools it used, what
 failed, and the sequence in order (`list_dir ok → run_command ok → write_file denied → finish ok`). Every row has
-a **details** arrow that reveals the summarised arguments, the full hash and the run id — the audit entry itself,
-not a summary of it. No script is involved: `<details>` is HTML.
+a **details** arrow that reveals the summarised arguments, **who allowed the call**, the full hash and the run id
+— the audit entry itself, not a summary of it. No script is involved: `<details>` is HTML.
+
+*Who allowed it* is the column people ask for after the second week. `auto` means the policy allowed the call and
+nobody was asked; `approval` means a person clicked **Allow once**; `grant:run`, `grant:session` and
+`grant:site` mean a remembered approval answered, with the scope it was remembered at; `always-allow` means the
+tool is set to always. Entries written before the field existed say so rather than pretending. The same string is
+in the audit file, inside the chain hash — so "who said yes" is the one part of the record that cannot be tidied
+up afterwards.
 
 Above the filters, **Runs** groups the calls by the run that made them: id, call count, failures. Click one to see
 only that run (`?run=…`) — the fastest way to answer "what did it actually do in that session?", and the id is

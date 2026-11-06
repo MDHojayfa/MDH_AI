@@ -282,6 +282,16 @@ read-only list, in the agent, before the host is called — and the refusal mess
 instead (`propose_plan`). An allowlist rather than a denylist because the dangerous tool is usually the one nobody
 thought about yet: an MCP server someone added last week should be assumed to write until proven otherwise.
 
+**D49 · The audit records who allowed a call, because `ok` is not a decision.**
+`gate()` used to answer `'once'` both when the policy allowed a call without asking and when a person clicked
+*Allow once*. The host then wrote `status: ok`, which is true and useless: reading the log you could not tell a
+call the rules permitted from one a human authorised, and the approval card's value is exactly that difference.
+Now a policy allow returns `auto`, and every decision maps to a name that travels with the frame (`via`) into the
+audit entry, inside the hash. The host sanitises the value to lowercase words and colons, 24 characters, and
+records anything else as `other` rather than dropping it — an unrecognised fact is still a fact. This is the
+"who approved or denied it" line from the approval-gate talk and the complete-mediation point from OWASP LLM06,
+written down where it can be checked rather than asserted.
+
 **D48 · The terminal gets the same grouping as the page, by calling the same function.**
 `mdh-log --runs` and `--run <id>` are the page's run view without a browser, and they import `groupRuns()` from
 the viewer instead of re-deriving runs from timestamps in a second place. Two implementations of "what is a run"

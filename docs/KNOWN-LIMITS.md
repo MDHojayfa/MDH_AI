@@ -111,6 +111,8 @@ the reason the failure card carries the form, and the reason every line about bu
 | Layout watch | regression vs recovery logic; the probe itself | whether every platform renders its composer inside the four-second window (some are slower, hence the 15 s re-check) |
 | Runs in the log | grouping, `?run=` filtering, hash coverage | long histories (thousands of runs) on a slow disk |
 | Weigh | budgets, the stale-prose check | other machines, other Node versions, spinning disks |
+| Who said yes (`via`) | the vocabulary, the hash coverage, the page and `--run` output | a model or server that rewrites the field — the host sanitises it, but two writers to one file is still two writers |
+| **The end of the log can be deleted** | nothing — that is the point of listing it | `verifyAudit()` walks the chain, and a hash chain cannot see its own tail removed: delete the last ten lines and it still says ok. Planned fix: a checkpoint file with the last hash and the count (Bellare & Yee 1997; Ma & Tsudik 2008) |
 
 The pattern is the same as everywhere else in this file: the logic has tests, the *behaviour of eight chat
 products over a long session* does not. That is the part only real users can find.

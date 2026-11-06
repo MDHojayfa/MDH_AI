@@ -6,11 +6,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 First release. One script, one extension, eight platforms, no API key.
 
-**What ships:** 255 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
+**What ships:** 262 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
 `docs/RELEASE.md` is the checklist that was followed.
 
 ### Added
 
+- **Every audit entry says who allowed the call**: `auto` (the policy allowed it, nobody was asked), `approval`
+  (a person clicked *Allow once*), `grant:run` / `grant:session` / `grant:site` (a remembered approval answered,
+  scope named) or `always-allow`. Previously a policy allow and a click both came back as `once`, which meant a
+  log could say a call happened but not whether a human had ever seen it. The field is sanitised by the host,
+  recorded inside the chain hash, shown on every row of the log page and printed by `mdh-log --run <id>`.
+- **`docs/RESEARCH.md`**: a research log with the sources behind the v1 safety story — Saltzer & Schroeder (1975),
+  Bishop's *Computer Science* ch. 13, OWASP LLM06:2025, WAI-ARIA / WCAG 4.1.3, Bellare & Yee via Ma & Tsudik, two
+  conference talks, and Cline's auto-approve docs — each entry saying what it changed or why it did not.
 - **`mdh-log --runs` and `mdh-log --run <id>`** print the log page's run view to the terminal — one line per
   run (id, calls, failures, first→last, tools), or every call of one run in order. Same grouping as the page,
   because both call the same function; a run that is not in the audit exits 1 with a sentence.
@@ -159,7 +167,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **255 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **262 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

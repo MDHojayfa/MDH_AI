@@ -140,8 +140,8 @@
     return Array.isArray(reply?.tools) ? reply.tools : [];
   }
 
-  async function callTool(name, args, { timeout, run } = {}) {
-    const reply = await send({ t: 'call', name, arguments: args, run }, { timeout });
+  async function callTool(name, args, { timeout, run, via } = {}) {
+    const reply = await send({ t: 'call', name, arguments: args, run, via }, { timeout });
     if (reply?.t === 'error') throw Object.assign(new Error(reply.message), { code: reply.code });
     return reply;
   }

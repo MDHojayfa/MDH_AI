@@ -168,8 +168,9 @@ it over a pipe, which is why a web page cannot reach it. Details: [`docs/ARCHITE
 | [`docs/SECURITY.md`](docs/SECURITY.md) | threat model, controls, residual risk |
 | [`docs/FAQ.md`](docs/FAQ.md) | the questions people actually ask |
 | [`docs/DIAGNOSTICS.md`](docs/DIAGNOSTICS.md) | what a failure collects, what it refuses to, the signature table |
-| [`docs/SCENARIOS.md`](docs/SCENARIOS.md) | ten real failures, walked through from screen to fix |
+| [`docs/SCENARIOS.md`](docs/SCENARIOS.md) | fifteen real failures, walked through from screen to fix |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | why it is built this way |
+| [`docs/RESEARCH.md`](docs/RESEARCH.md) | the sources behind the safety story, and what each one changed |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | what comes after v1 |
 | [`docs/TESTPLAN.md`](docs/TESTPLAN.md) | what is tested and how to reproduce it |
 | [`docs/KNOWN-LIMITS.md`](docs/KNOWN-LIMITS.md) | what one laptop cannot test — the honest version |

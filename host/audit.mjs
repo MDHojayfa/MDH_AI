@@ -47,7 +47,18 @@ function lastHash() {
  * Append one line. If this ever throws, the call still happens — an audit log that can block work becomes
  * an outage with extra steps, so failures are logged to stderr and swallowed.
  */
-export function appendAudit({ tool, args, status, ms, detail, run }) {
+/**
+ * Who allowed the call. A closed vocabulary would be tidier, but versions drift, so the rule is a shape: lowercase
+ * words and colons, 24 characters. Anything else is recorded as `other` rather than silently dropped — a log that
+ * quietly loses a field is worse than one that admits it did not understand it.
+ */
+function cleanVia(via) {
+  if (via === undefined || via === null || via === '') return undefined;
+  const text = String(via).toLowerCase();
+  return /^[a-z][a-z0-9:-]{0,23}$/.test(text) ? text : 'other';
+}
+
+export function appendAudit({ tool, args, status, ms, detail, run, via }) {
   try {
     mkdirSync(dirname(paths.audit), { recursive: true });
     const prev = lastHash();
@@ -61,6 +72,9 @@ export function appendAudit({ tool, args, status, ms, detail, run }) {
       // Which run this call belonged to. Optional because older entries predate it, and a log that lies about
       // its own history is worse than one with a gap in it.
       run: run ? String(run).slice(0, 40) : undefined,
+      // Which gate let this through: policy, a remembered grant, or a person clicking Allow. Omitted when the
+      // caller is older than the field, so old entries still verify.
+      via: cleanVia(via),
       prev,
     };
     entry.hash = lineHash(prev, { ...entry, hash: undefined });
