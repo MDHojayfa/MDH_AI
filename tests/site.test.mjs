@@ -73,7 +73,9 @@ test('the social preview exists, is a real PNG and is not enormous', () => {
   assert.equal(buf[0], 0x89);
   assert.equal(buf.toString('ascii', 1, 4), 'PNG');
   assert.equal(buf.readUInt32BE(16), 1200);
-  assert.equal(buf.readUInt32BE(20), 640);
+  // 630, not the 640 this file used to be: og.png is now the card `npm run art` generates, and 1200x630 is the shape
+  // a link preview crops to. Anything else gets re-cropped by the scraper, from wherever it likes.
+  assert.equal(buf.readUInt32BE(20), 630);
   assert.ok(statSync(p).size < 200 * 1024, 'og.png should stay small');
 });
 

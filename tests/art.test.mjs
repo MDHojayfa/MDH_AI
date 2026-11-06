@@ -51,3 +51,34 @@ test('the scratch frames never end up in git', () => {
   const ignore = readFileSync(join(ROOT, '.gitignore'), 'utf8');
   assert.match(ignore, /assets\/\.frames\//);
 });
+
+/**
+ * The landing page keeps a copy of the art so it never requests anything from outside its own folder. A copy is
+ * exactly the kind of thing that drifts: someone regenerates `assets/` and the page shows last year's loop forever.
+ * These read the page and the files, not the generator, so they fail whichever end goes stale.
+ */
+const site = readFileSync(join(ROOT, 'site', 'index.html'), 'utf8');
+
+function pngSize(file) {
+  const buf = readFileSync(file);
+  assert.equal(buf.subarray(1, 4).toString('latin1'), 'PNG', `${file} is a PNG`);
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+}
+
+test('the landing page shows the same loop, from its own folder', () => {
+  const hero = join(ROOT, 'site', 'hero.gif');
+  assert.ok(existsSync(hero), 'site/hero.gif exists — npm run art puts it there');
+  assert.equal(readFileSync(hero).subarray(0, 6).toString('latin1'), 'GIF89a');
+  assert.ok(statSync(hero).size < 150 * 1024, 'a 760 px loop under 150 KB, same budget as the README');
+  assert.match(site, /<img src="hero\.gif"/, 'the page uses it');
+  assert.match(site, /alt="[^"]{40,}"/, 'and describes it instead of alt=""');
+  assert.match(site, /illustration of the flow, not a screen\s+recording/);
+  assert.doesNotMatch(site, /src="https?:\/\//, 'no image on the page comes from another host');
+});
+
+test('the link preview is the shape link previews crop to', () => {
+  assert.deepEqual(pngSize(join(ROOT, 'assets', 'social.png')), { width: 1200, height: 630 });
+  assert.match(site, /<meta property="og:image" content="og\.png">/);
+  assert.deepEqual(pngSize(join(ROOT, 'site', 'og.png')), { width: 1200, height: 630 });
+  assert.ok(statSync(join(ROOT, 'site', 'og.png')).size < 200 * 1024);
+});

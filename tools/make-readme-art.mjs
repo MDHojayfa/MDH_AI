@@ -11,8 +11,8 @@
  * Run `npm run art` (or `node tools/make-readme-art.mjs`) and the files in `assets/` are regenerated.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
+import { copyFileSync, mkdirSync, rmSync } from 'node:fs';
+import { basename, join } from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const OUT = join(ROOT, 'assets');
@@ -232,12 +232,27 @@ function approvalStill() {
 
 /* ─────────────────────────────────────────────────────────────────────── main */
 
-function gif(name, frames, { delay }) {
+function gif(name, frames, { delay, also }) {
   const out = join(OUT, name);
   const args = ['-dispose', 'background'];
   for (const [file, hold] of frames) args.push(`-delay`, String(hold), file);
   args.push('-loop', '0', '-layers', 'Optimize', '-colors', '96', out);
   execFileSync('convert', args, { stdio: 'pipe' });
+
+  // A second, smaller copy for the landing page. The frames are scaled *before* they are stacked: re-optimising a
+  // finished GIF coalesces it back into full frames, and asking for 760 px that way produced 362 KB, four times the
+  // 960 px original.
+  if (also) {
+    const small = frames.map(([file, hold]) => {
+      const resized = join(TMP, `small-${basename(file)}`);
+      execFileSync('convert', [file, '-resize', `${also.width}x`, resized], { stdio: 'pipe' });
+      return [resized, hold];
+    });
+    const smallArgs = ['-dispose', 'background'];
+    for (const [file, hold] of small) smallArgs.push('-delay', String(hold), file);
+    smallArgs.push('-loop', '0', '-layers', 'Optimize', '-colors', '96', also.file);
+    execFileSync('convert', smallArgs, { stdio: 'pipe' });
+  }
   return out;
 }
 
@@ -251,7 +266,7 @@ function main() {
     heroFrame(frame).to(file);
     heroFiles.push([file, frame.hold]);
   }
-  gif('hero.gif', heroFiles, { delay: 100 });
+  gif('hero.gif', heroFiles, { delay: 100, also: { file: join(ROOT, 'site', 'hero.gif'), width: 760 } });
 
   const termFiles = [];
   TERMINAL.forEach((_, index) => {
@@ -271,9 +286,11 @@ function main() {
     'convert',
     [
       join(OUT, 'hero.gif[0]'),
-      '-resize', '1200x',
+      // 1200x630^ covers the box, then trims the overflow. Plain `-resize 1200x` fitted the width and left the card
+      // 1200x605, which is not the shape link previews crop to — so they cropped it again, from wherever they liked.
+      '-resize', '1200x630^',
       '-gravity', 'center',
-      '-crop', '1200x630+0+0',
+      '-extent', '1200x630',
       '+repage',
       '-colors', '96',
       '-strip',
@@ -281,6 +298,11 @@ function main() {
     ],
     { stdio: 'pipe' },
   );
+
+  // The landing page keeps its own copies so it requests nothing from another host: the still the README shows, and
+  // the social card under the name the page's og:image already points at.
+  copyFileSync(join(OUT, 'approval-card.png'), join(ROOT, 'site', 'approval-card.png'));
+  copyFileSync(join(OUT, 'social.png'), join(ROOT, 'site', 'og.png'));
 
   if (!process.env.MDH_ART_KEEP) rmSync(TMP, { recursive: true, force: true });
   process.stdout.write('assets: hero.gif, terminal.gif, approval-card.png, social.png\n');

@@ -20,6 +20,7 @@ The README art is optional and needs ImageMagick, so it is not in `verify`:
 
 ```bash
 npm run art        # assets/hero.gif, terminal.gif, approval-card.png, social.png
+                   # + site/hero.gif, site/approval-card.png, site/og.png
 ```
 
 Regenerate it when the pill's labels or the install output change, so the illustrations keep matching the product
@@ -30,7 +31,7 @@ Expected shape of a good run:
 
 | Check | Where it comes from | Expected |
 |---|---|---|
-| tests | `node --test tests/*.test.mjs` | all passing, ~288 |
+| tests | `node --test tests/*.test.mjs` | all passing, ~290 |
 | tiers | `npm run build` | `dist/chrome`, `dist/firefox`, manifest rules |
 | bundles | `npm run package` | `release/mdh-ai-{chrome,firefox}-1.0.0.zip` |
 | lint | `npx web-ext lint` | 0 errors, 1 known warning |
@@ -72,6 +73,8 @@ source of truth for support questions, and the README links it.
 - [ ] a deliberate failure produces a report you would be willing to paste in public
 - [ ] the privacy page and `docs/SECURITY.md` still describe the same product
 - [ ] `CHANGELOG.md` top section matches the tag
+- [ ] the test count in the README badge, the numbers table and `CHANGELOG.md` matches what `npm test` printed —
+      nothing checks this one automatically, and it has drifted twice
 
 ## 4. If something is wrong after release
 

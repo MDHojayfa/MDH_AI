@@ -36,7 +36,7 @@
   "featureList": [
     "Eight AI platforms: ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM, Grok",
     "Chrome, Brave and Firefox",
-    "Thirteen builtin Linux tools and any MCP server",
+    "Fifteen builtin Linux tools and any MCP server",
     "Approval card on every write and every command",
     "Path allowlist with symlink resolution",
     "Hash-chained audit log"
@@ -130,6 +130,9 @@
   @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
+  .shot { margin: 26px 0 0; }
+  .shot img { width: 100%; height: auto; display: block; border: 1px solid #23233a; border-radius: 12px; }
+  .shot figcaption { margin-top: 10px; font-size: 12px; color: #6b7280; }
   .patch-wrap { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 28px; align-items: center; margin-top: 18px; }
   .patch { width: 100%; height: auto; max-width: 320px; display: block; }
   .patch text { font-variant-numeric: tabular-nums; }
@@ -150,6 +153,11 @@
     <a class="btn" href="https://github.com/MDHojayfa/MDH_AI/blob/main/docs/MANUAL.md">Read the manual</a>
   </div>
   <p class="meta">Linux · Chrome 116+ · Brave · Firefox 140+ · MIT</p>
+  <figure class="shot">
+    <img src="hero.gif" width="760" height="383" alt="Five frames of the chat page: the model asks for a shell command, the approval card appears on the chat page, you allow it once, the command runs, and the audit line is written.">
+    <figcaption>Drawn from the extension's own markup, frame by frame — an illustration of the flow, not a screen
+      recording.</figcaption>
+  </figure>
 </header>
 
 <main class="wrap">
@@ -171,7 +179,7 @@
 
   <section id="what">
     <h2>What it can actually do</h2>
-    <p class="sub">Thirteen builtin tools on this machine, plus every MCP server you already run.</p>
+    <p class="sub">Fifteen builtin tools on this machine, plus every MCP server you already run.</p>
     <div class="grid">
       <div class="card">
         <h3>Files</h3>
@@ -191,7 +199,8 @@
       <div class="card">
         <h3>Approval</h3>
         <p>Every write and every command stops at a card that shows the parsed request, not the model's prose.
-          Deny, allow once, or allow for the session.</p>
+          Deny, allow once, or allow for the rest of the run, the session, or the site — the longest of the three
+          is the one you have to pick on purpose.</p>
       </div>
       <div class="card">
         <h3>Guards</h3>

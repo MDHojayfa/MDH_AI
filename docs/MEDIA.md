@@ -44,6 +44,11 @@ states and buttons the extension renders.
 | `assets/approval-card.png` | the approval card at 960 px: command, folder, reason, three lifetimes | README features |
 | `assets/social.png` | 1200×630 link-preview card, cropped from frame 1 | Open Graph / link unfurls |
 
+`npm run art` also writes three copies for the landing page, so `site/` never asks another host for an image:
+`site/hero.gif` (760 px, 88 KB), `site/approval-card.png` (the still, unchanged) and `site/og.png` (the social card,
+under the name `site/index.html` already points its `og:image` at). `tests/art.test.mjs` checks that the page uses
+them, that the loop stays under 150 KB, and that the Open Graph image is exactly 1200×630.
+
 Two rules, and the first one is the one that gets broken elsewhere:
 
 1. **An illustration is labelled as one.** Every frame carries *"Illustration drawn from the real pill and card
