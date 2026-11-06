@@ -46,7 +46,8 @@
     turn: null,      // the in-flight turn
     boot: null,      // random id per browser session, so "until restart" is a fact
     grants: { boot: null, items: [] }, // remembered approvals: session and per-site
-    memory: '',      // free text the user wants in every prompt — the CLAUDE.md of a no-files product
+    memory: '',
+    probes: {},      // last layout check per chat host: { at, ok, missing }      // free text the user wants in every prompt — the CLAUDE.md of a no-files product
   };
 
   const memo = new Map();

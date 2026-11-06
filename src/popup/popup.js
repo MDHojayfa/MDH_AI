@@ -199,6 +199,19 @@
       }
     });
 
+  /** "2 min ago" — enough precision to tell a fresh check from one from last week. */
+  function age(at) {
+    if (!at) return 'unknown';
+    const ms = Date.now() - at;
+    if (!Number.isFinite(ms) || ms < 0) return 'just now';
+    const min = Math.round(ms / 60000);
+    if (min < 1) return 'just now';
+    if (min < 60) return `${min} min ago`;
+    const hours = Math.round(min / 60);
+    if (hours < 36) return `${hours} h ago`;
+    return `${Math.round(hours / 24)} days ago`;
+  }
+
   function stage(name, state, meta) {
     const node = document.querySelector(`.stage[data-stage="${name}"]`);
     if (!node) return;
@@ -324,6 +337,15 @@
     }
     renderGrants();
     loadMemory();
+
+    /*
+     * The layout check runs once per page load, in the content script. Showing the verdict here means a user can
+     * tell "the site changed" apart from "the model is being difficult" in one glance, without pressing anything.
+     */
+    const layout = status?.layout;
+    $('layout').textContent = layout
+      ? `${layout.ok ? '✔ matches' : '✘ ' + (layout.missing ?? []).join(', ')} · ${age(layout.at)}`
+      : 'not checked yet (reload the page)';
 
     // The last run, in one line: the first question in every "it stopped" report, answered before it is asked.
     const runs = stored['mdh:runs'] ?? [];

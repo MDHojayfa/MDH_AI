@@ -68,6 +68,11 @@ Symptoms are specific and worth recognising:
 Only that one platform breaks. The other seven share no adapter code, which is the point of keeping the
 adapter to data.
 
+The page also checks itself: four seconds after load (and again at fifteen, because sites paint late) the content
+script probes the adapter and stores the verdict per host. **Only a regression is announced** — worked last visit,
+does not work now — because a page that was already broken has been reported once, and warnings that repeat get
+muted. The popup shows the result as **Last page check**.
+
 **Check this page** (popup → Advanced) runs those same `dom` lists against the live DOM and prints which matched
 (`src/core/probe.js`). A `✘` next to composer or messages is the expected signature of a redesign, and it turns
 "it did nothing" into one line you can paste into an issue. Send and stop are drawn as `○` when absent, because

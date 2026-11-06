@@ -17,7 +17,7 @@
   const adapter = MDH.platforms.match(location.hostname, location.pathname);
   const booted = Date.now();
 
-  function status() {
+  async function status() {
     const agent = MDH.agent.status();
     return {
       ok: true,
@@ -31,13 +31,14 @@
       bootedAt: booted,
       log: log.tail(30),
       dock: { mounted: Boolean(MDH.dock?.mounted), hidden: Boolean(MDH.dock?.hidden) },
+      layout: (await MDH.state.get('probes').catch(() => ({})))?.[location.hostname] ?? null,
     };
   }
 
   async function handle(msg) {
     switch (msg?.type) {
       case 'mdh:status':
-        return status();
+        return await status();
 
       case 'mdh:ping-host': {
         try {
@@ -149,6 +150,41 @@
     return true; // async response
   });
 
+  /**
+   * Layout watch: check the adapter against this page shortly after it loads, and remember the result.
+   *
+   * Sites render late, so the first check waits and the second one exists because the first one may have been
+   * early. Only a *regression* — worked last time, does not work now — is worth interrupting a human for; that
+   * is precisely the moment a redesign lands, and it is much cheaper to find out from a quiet warning now than
+   * from "it did nothing" in the middle of a task.
+   */
+  async function checkLayout() {
+    if (!adapter || !MDH.probe) return null;
+    const current = MDH.probe.probe(adapter, document);
+    const probes = await MDH.state.get('probes').catch(() => ({}));
+    const previous = probes?.[location.hostname] ?? null;
+    const change = MDH.probe.regression(previous, current);
+    probes[location.hostname] = {
+      at: Date.now(),
+      ok: current.ok,
+      missing: current.missing,
+      platform: adapter.id,
+    };
+    await MDH.state.set('probes', probes).catch(() => {});
+
+    if (change.regressed) {
+      log.warn('layout regression on', adapter.id, 'missing:', current.missing.join(','));
+      MDH.ui.notice(
+        `${adapter.name} looks different since your last visit: ${current.missing.join(', ')} not found. ` +
+          'It may still work — press Check this page in the popup before you start a long task.',
+        { tone: 'warn', ms: 12000 },
+      );
+    } else if (change.recovered) {
+      log.info('layout recovered on', adapter.id);
+    }
+    return { current, change };
+  }
+
   /** First load: tell the background this platform is ready (it owns the one-time welcome tab). */
   async function hello() {
     try {
@@ -195,6 +231,9 @@
     MDH.interceptor.attach(adapter);
     watchNavigation();
     hello();
+    // Give the SPA time to paint, then look again once, because the first look is often a skeleton screen.
+    setTimeout(() => checkLayout().catch(() => {}), 4000);
+    setTimeout(() => checkLayout().catch(() => {}), 15000);
     maybeResume();
     log.info(`MDH ${MDH.VERSION} on ${adapter.name}`);
   }

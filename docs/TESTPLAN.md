@@ -164,6 +164,16 @@ codebase to leak something by accident.
 | honesty | `weigh.mjs` exits non-zero over budget; `docs/WHY.md` tells the reader to run it |
 | v2 notes | rotation and messaging are named, and marked as notes rather than promises |
 
+## 3e3. Layout watch — `tests/probe.test.mjs`
+
+| Case | Expected |
+|---|---|
+| first visit | no warning: there is nothing to compare against yet |
+| steady | fine → fine is not news; broken → broken is not news either |
+| regression | fine → broken announces the missing fields, once |
+| recovery | broken → fine is a log line, never a card |
+| timing | checked at 4 s and 15 s, because sites paint late |
+
 ## 3f1. Run grants — `tests/grant.test.mjs`
 
 | Case | Expected |

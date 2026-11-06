@@ -43,7 +43,11 @@ Avoid the urge to start with "clean up my downloads".
 
 ## 2c2 · "It did nothing when I pressed Start"
 
-Press **Check this page** in the popup's Advanced panel. It asks the page which of the platform adapter's
+The popup's **Advanced** panel shows **Last page check** — a verdict the page itself produces a few seconds after
+loading, with the time. If it says `✘ composer`, the site changed; if it says `✔ matches`, the page is fine and the
+problem is somewhere else.
+
+Press **Check this page** in the same panel. It asks the page which of the platform adapter's
 selectors still match and prints one line per part:
 
 ```

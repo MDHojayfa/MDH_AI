@@ -41,6 +41,9 @@ First release. One script, one extension, eight platforms, no API key.
   *Show all*.: approve the same exact command twice and the approval card stops bothering you for
   the rest of the run. Run-scoped, never saved, refused for anything with `&&`, pipes, redirects, `$(…)`,
   backticks, globs or `~` — approval fatigue is a safety bug, not a convenience target.
+- **Layout watch**: the page probes its own adapter after it loads and remembers the verdict per site. **Only a
+  regression is announced** (worked last visit, broken now), and the popup shows *Last page check* with the time —
+  so "the site changed" can be told apart from "the model is being difficult" at a glance.
 - **"Check this page"**: the popup runs the platform adapter's own selectors against the live DOM and says what
   matched, so a renamed composer stops looking like a mysterious silence. Missing send/stop buttons are drawn as
   hints, never failures — they only exist at certain moments.
@@ -135,7 +138,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **218 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **220 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

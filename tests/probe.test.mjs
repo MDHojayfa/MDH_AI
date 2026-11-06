@@ -85,3 +85,32 @@ test('the page can be asked for its probe result over the message bus', () => {
   assert.ok(files.includes('core/probe.js'));
   assert.ok(files.indexOf('core/probe.js') < files.indexOf('content/main.js'));
 });
+
+test('only a regression is worth interrupting someone for', () => {
+  const ok = probe(adapter, rootWith(['#composer', '[data-role']));
+  const broken = probe(adapter, rootWith(['[data-role']));
+
+  const first = MDH.probe.regression(null, ok);
+  assert.equal(first.regressed, false);
+  assert.equal(first.first, true);
+  assert.equal(first.lost.length, 0);
+  assert.equal(MDH.probe.regression(ok, ok).regressed, false, 'still fine is not news');
+  assert.equal(MDH.probe.regression(broken, broken).regressed, false, 'still broken was already reported');
+  const regressed = MDH.probe.regression(ok, broken);
+  assert.equal(regressed.regressed, true);
+  assert.deepEqual([...regressed.lost], ['composer'], 'and it names what was lost');
+  assert.equal(MDH.probe.regression(broken, ok).recovered, true, 'a fix is worth a quiet log line, not a card');
+});
+
+test('the page checks itself once it has painted, and only reports a change', () => {
+  const main = readFileSync(join(ROOT, 'src/content/main.js'), 'utf8');
+  assert.match(main, /checkLayout/);
+  assert.match(main, /setTimeout\(\(\) => checkLayout\(\).catch\(\(\) => \{\}\), 4000\)/, 'not before the SPA paints');
+  assert.match(main, /15000/, 'and again, because the first look is often a skeleton screen');
+  assert.match(main, /change\.regressed/, 'a notice only for a regression');
+  assert.match(main, /state\.set\('probes'/, 'the verdict is remembered per host');
+  const state = readFileSync(join(ROOT, 'src/core/state.js'), 'utf8');
+  assert.match(state, /probes: \{\}/);
+  const html = readFileSync(join(ROOT, 'src/popup/popup.html'), 'utf8');
+  assert.match(html, /id="layout"/, 'and visible without pressing anything');
+});

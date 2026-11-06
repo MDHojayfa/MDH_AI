@@ -80,6 +80,22 @@
     };
   }
 
+  /**
+   * Did this site get worse since we last looked? Only a *regression* is worth a notification: a page that was
+   * broken yesterday and is broken today has already been reported once, and nagging is how warnings get muted.
+   */
+  function regression(previous, current) {
+    const before = previous ?? null;
+    const now = current ?? null;
+    if (!now) return { regressed: false, lost: [], first: !before };
+    if (!before) return { regressed: false, lost: [], first: true };
+    if (!before.ok && now.ok) return { regressed: false, lost: [], recovered: true };
+    if (before.ok && !now.ok) {
+      return { regressed: true, lost: now.missing ?? [], first: false };
+    }
+    return { regressed: false, lost: [], first: false };
+  }
+
   /** The human-readable version, used by the popup and by `--diagnose`-style reports. */
   function report(result) {
     if (!result) return ['no probe result'];
@@ -93,5 +109,5 @@
     return lines;
   }
 
-  MDH.probe = { probe, report, checkOne, ESSENTIAL, OPTIONAL };
+  MDH.probe = { probe, report, regression, checkOne, ESSENTIAL, OPTIONAL };
 })();
