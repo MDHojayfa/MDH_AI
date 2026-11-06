@@ -188,5 +188,57 @@
     return `${text}\n\n${reminder(mode, ctx)}`;
   }
 
-  MDH.prompt = { renderPrompt, wrapFirstMessage, reminder, continuation, withReminder, toolSignature, signature, BUDGET_CHARS };
+  /**
+   * A handoff is what you paste into a *different* chat when this one has hit a wall (limit, context, a model that
+   * has lost the thread). It is not a transcript: results, not conversation — every token here costs context in
+   * the chat receiving it, and a summary of what was said is worth less than what actually ran.
+   *
+   * This is also the groundwork for rotation (docs/V2-NOTES.md §1): the same text, moved automatically.
+   */
+  function handoff({ task = '', plan = [], results = [], next = '', phoenix = null } = {}) {
+    const clip = (text, max) => {
+      const clean = String(text ?? '').trim();
+      return clean.length > max ? `${clean.slice(0, max)}…` : clean;
+    };
+
+    const lines = ['# Continuing a task from another chat', ''];
+    lines.push(`Task: ${clip(task, 600) || '(no task recorded)'}`);
+
+    const steps = Array.isArray(plan) ? plan.filter(Boolean) : [];
+    if (steps.length) {
+      lines.push('', 'Plan:');
+      for (const step of steps.slice(0, 20)) {
+        const title = typeof step === 'string' ? step : step.step ?? step.title ?? '';
+        const state = typeof step === 'string' ? '' : step.status ? ` — ${step.status}` : '';
+        if (title) lines.push(`- ${clip(title, 160)}${state}`);
+      }
+    }
+
+    const kept = (Array.isArray(results) ? results : []).slice(-3);
+    if (kept.length) {
+      lines.push('', 'Last results (most recent last):');
+      for (const item of kept) {
+        lines.push(`- ${item.tool} [${item.status}]: ${clip(item.body, 400)}`);
+      }
+    }
+
+    lines.push('', `Next step: ${clip(next, 400) || 'continue the task from where the results above stop'}`);
+    lines.push('', 'Do not redo work that already succeeded — the results above are real. Ask before anything destructive.');
+    if (phoenix) {
+      lines.push('', MDH.phoenix?.block?.(phoenix) ?? `Completion code: ${phoenix}`);
+    }
+    return lines.join('\n');
+  }
+
+  MDH.prompt = {
+    renderPrompt,
+    wrapFirstMessage,
+    reminder,
+    continuation,
+    withReminder,
+    toolSignature,
+    signature,
+    handoff,
+    BUDGET_CHARS,
+  };
 })();

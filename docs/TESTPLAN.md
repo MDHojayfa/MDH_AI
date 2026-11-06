@@ -133,6 +133,17 @@ codebase to leak something by accident.
 | paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
+## 3e1. Handoff — `tests/handoff.test.mjs`
+
+| Case | Expected |
+|---|---|
+| content | task, plan with statuses, up to three results, next step, the "do not redo" rule |
+| no transcript | no `User:` / `Assistant:` lines — results, not conversation |
+| clipping | a 1000-char result is trimmed; the oldest results fall off the list |
+| empty state | says "no task recorded" and invents no plan |
+| plug | a handoff can carry a fresh completion code for the receiving chat |
+| wiring | the pause card offers Copy handoff; `recentResults` is bounded to three |
+
 ## 3e2. Weight and claims — `tests/weigh.test.mjs`
 
 | Case | Expected |

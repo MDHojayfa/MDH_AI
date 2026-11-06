@@ -109,6 +109,31 @@ zipped · 51 ms to ready · 55 MB resident · 0 dependencies**. If any of those 
 non-zero, so the claim cannot quietly rot. The comparison this backs up is in
 [`WHY.md`](WHY.md) — including what other tools do better.
 
+## 3c · Moving a stuck task to another chat
+
+When the pause card appears, one of its buttons is **Copy handoff**. It puts this on the clipboard:
+
+```
+# Continuing a task from another chat
+
+Task: install the app and make the tests pass
+Plan:
+- clone the repo — done
+- run npm test — in progress
+Last results (most recent last):
+- run_command [ok]: npm test → 208 passing
+- read_file [ok]: package.json …
+Next step: fix the two failing parser tests
+Do not redo work that already succeeded — the results above are real.
+```
+
+Open any other chat, paste it, press Start there. It is a summary of what **ran**, not of what was said — which is
+why it stays short enough to be useful. The completion code travels with it, so the new chat can finish the task
+properly.
+
+This is the manual version of rotation; `docs/V2-NOTES.md` §1 is the automatic one, with the failure modes that
+have to be solved before it can ship.
+
 ## 4 · Where the knobs are
 
 | Knob | Where | Default |

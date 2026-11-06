@@ -41,6 +41,9 @@
     // The completion code for this session. Nothing else can end the task (see core/phoenix.js).
     phoenix: null,
     badFinish: 0,
+    // Enough state to write a handoff at any moment: the plan, and the last few results that actually ran.
+    plan: [],
+    recentResults: [],
     // Run-scoped grants: exact commands the user has approved enough times to stop being asked about,
     // and the count that earns one. Both are cleared when a new run starts (see start()).
     grants: new Set(),
@@ -412,7 +415,8 @@
 
     // Loop-local tools never reach the host: they are about the conversation, not the machine.
     if (tool === 'update_plan') {
-      MDH.ui.showPlan(call.arguments?.steps ?? []);
+      S.plan = Array.isArray(call.arguments?.steps) ? call.arguments.steps : [];
+      MDH.ui.showPlan(S.plan);
       return { status: 'ok', body: 'plan shown to the user' };
     }
     if (tool === 'ask_user') {
@@ -689,6 +693,10 @@
     if (result.finish) return;
 
     await MDH.state.set('pending', null);
+    // Keep the last three real results: a handoff that quotes what ran is worth more than one that describes it.
+    S.recentResults.push({ tool: call.tool, status: result.status, body: String(result.body ?? '').slice(0, 1200) });
+    if (S.recentResults.length > 3) S.recentResults.shift();
+
     S.pendingText = `${frame({ tool: call.tool, status: result.status, body: result.body })}\n\n${MDH.prompt.reminder('result', { phoenix: S.phoenix })}`;
 
     if (S.errors >= LIMITS.maxErrors) return stop('tool-errors');
@@ -811,6 +819,7 @@
       });
     }
     actions.push(
+      { label: 'Copy handoff', fn: (close) => { close(); copyHandoff(); } },
       { label: 'Stop', fn: (close) => { close(); stop(reason); } },
       { label: 'Report it', fn: (close) => { close(); reportCard(`${reason}\n\n${detail}`, { stage: 'paused' }); } },
     );
@@ -871,6 +880,31 @@
     });
   }
 
+  /** The prompt that moves this task to another chat by hand — the manual version of rotation. */
+  function handoffText(extra = '') {
+    return MDH.prompt.handoff({
+      task: S.task,
+      plan: S.plan,
+      results: S.recentResults,
+      next: extra || S.lastNext,
+      phoenix: S.phoenix,
+    });
+  }
+
+  async function copyHandoff() {
+    const text = handoffText();
+    try {
+      await navigator.clipboard.writeText(text);
+      MDH.ui.notice('Handoff copied — paste it into any chat to continue there.', { ms: 6000 });
+      log()?.info('handoff copied', text.length, 'chars');
+      return true;
+    } catch (e) {
+      log()?.warn('clipboard refused', e);
+      MDH.ui.notice('Could not reach the clipboard. Open the log page and copy the prompt from there.', { tone: 'warn', ms: 6000 });
+      return false;
+    }
+  }
+
   async function start(task, adapter) {
     if (S.running) return { ok: false, reason: 'already running' };
     S.adapter = adapter ?? MDH.platforms.match(location.hostname);
@@ -889,6 +923,8 @@
     S.phoenix = MDH.phoenix?.make?.() ?? null;
     S.grants = new Set();
     S.approvals = new Map();
+    S.plan = [];
+    S.recentResults = [];
     S.startedAt = Date.now();
     S.phase = 'starting';
     S.tools = [];
@@ -956,6 +992,17 @@
     pause,
     status,
     diagnostics,
-    _internals: { setComposerText, composerText, isStreaming, assistantText, governorWait, dedupCheck, finishAccepts },
+    handoffText,
+    copyHandoff,
+    _internals: {
+      setComposerText,
+      composerText,
+      isStreaming,
+      assistantText,
+      governorWait,
+      dedupCheck,
+      finishAccepts,
+      handoffText,
+    },
   };
 })();

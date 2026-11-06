@@ -114,8 +114,9 @@ skills hub, routing). Sorted by "would this actually help *this* product".
   view is a viewer change, not an architecture change.
 - **Per-site layout watch**: run the probe on a schedule per platform and warn *before* a redesign bites. Cheap:
   the probe exists, the schedule is a `setInterval` in the background script.
-- **Copy handoff**: a button on the pause card that puts the handoff prompt on the clipboard, so a stuck run can be
-  moved by hand today — the rotation feature without the automation.
+- **Copy handoff — shipped in v1.0.** The pause card writes a handoff (task, plan, last three results, next step,
+  a fresh plug) to the clipboard. Rotation is this text, moved automatically; having it in v1 means the format is
+  being tested by real users before any automation depends on it.
 - **A real cost clock**: elapsed time and turns are already tracked; adding "this run has used 24 minutes of your
   daily limit" needs per-platform knowledge we do not have, so it would be a guess. Only ship it if it can be
   measured.

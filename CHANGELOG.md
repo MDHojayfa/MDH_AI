@@ -17,6 +17,8 @@ First release. One script, one extension, eight platforms, no API key.
 - **A completion code ("phoenix")**: every session gets `PHX-XXXXXX`, and only a `finish` call carrying it ends
   a task. A wrong or missing code gets one correction, then a pause with *Mark as finished*. Printed in the
   prompt, every reminder, the tool schema and the popup's Advanced panel.
+- **Copy handoff**: a pause card button that copies a short, useful continuation prompt — task, plan, the last
+  three real results, next step, the completion code — so a stuck run can move to another chat by hand today.
 - **The numbers behind "lightweight"**: `npm run weigh` measures the extension, the host's startup and memory,
   and the dependency count — and fails the build when a budget is crossed. 131 KB zipped · 51 ms to ready ·
   55 MB resident · **0 npm dependencies**. `docs/WHY.md` is the honest comparison against API-key agents, CLI
@@ -130,7 +132,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **208 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **213 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 
