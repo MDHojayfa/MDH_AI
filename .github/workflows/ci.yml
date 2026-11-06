@@ -1,0 +1,79 @@
+# CI — three jobs, because they fail in three different ways and a red X should say which.
+#
+#   test  → the unit layer, no browser, seconds
+#   build → both manifests, the invariants, the lint, the zips
+#   host  → a real spawn of the native host and a real pong
+#
+# There is no `npm install` anywhere: the project has no dependencies, so CI installs nothing and cannot
+# be taken down by a registry. It is also why the whole matrix finishes in under a minute.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: tests (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: run the suite
+        run: npm test
+        # No `npm install`: the project has no dependencies, which is the point of it.
+
+  build:
+    name: build + package + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tools/make-icons.mjs
+      - run: node tools/build.mjs
+      - run: node tools/package.mjs
+      - name: web-ext lint (must be 0 errors)
+        run: npx --yes web-ext@latest lint --source-dir dist/firefox
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mdh-ai-release
+          path: release/*.zip
+          if-no-files-found: error
+
+  host:
+    name: native host self-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: the installer's last step, on its own
+        run: node tools/selfcheck.mjs --quiet
+      - name: the log tool writes a page and a summary
+        run: |
+          node host/mdh-log.mjs --json > /tmp/mdh-log.json
+          node host/mdh-log.mjs --out /tmp/mdh-log.html
+          node -e "const j=require('/tmp/mdh-log.json'); if (!j.summary) throw new Error('no summary'); console.log('log tool ok ·', j.summary.calls, 'calls')"
+          test -s /tmp/mdh-log.html
+
+      - name: the diagnostics report a machine
+        run: node -e "import('./host/diag.mjs').then(async (m) => { const r = await m.runDiag('system'); if (!r.ok || !r.facts.node) process.exit(1); console.log('diag ok ·', r.facts.platform, r.facts.node); })"
+
+      - name: shell syntax and a dry run that touches nothing
+        run: |
+          bash -n install.sh
+          ./install.sh --dry-run --no-fun

@@ -1,0 +1,108 @@
+name: Bug report
+description: Something did not work. Tell us which stage broke — you are already doing better than most.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Before you type: yes, the developer has heard about your problem.
+
+        He has not fixed it yet because — and this is the official technical explanation — **he does not
+        own a NASA PC.** There is one laptop, eight websites that change weekly, and a cat that walks on
+        the keyboard. So a precise report is not paperwork here; it is the fix.
+
+        Three things turn a complaint into a repair:
+
+        1. **Which stage** (page found / host connected / tools loaded / the model's reply).
+        2. **Which platform** (of the eight) and **which browser** (Firefox, Brave, Chrome).
+        3. **What you expected** versus **what happened**.
+
+        Fill those in and the odds of a fix go up dramatically. Leave them out and the issue becomes a
+        group therapy session, which is lovely but does not ship code.
+
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM/z.ai, or Grok.
+      placeholder: e.g. Claude
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: If it is not one of these three, it is not supported in v1 — but tell us anyway, curiosity is free.
+      options:
+        - Firefox
+        - Brave
+        - Chrome
+        - Chromium
+        - Something exotic (tell us below)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Which stage broke?
+      description: The popup shows these as four ticks. Pick the one that never turned green.
+      options:
+        - page found (the popup says "unsupported page")
+        - host connected (popup says "host offline")
+        - tools loaded (host is up, but the tool list is empty)
+        - the model's reply (a task runs, but nothing useful happens)
+        - approval card (it never appeared, or appeared wrong)
+        - don't know — I brought a log instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      placeholder: I asked it to list ~/projects and it should have shown me five folders.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+      description: If there is an error message, paste it exactly. Paraphrasing an error is how legends start.
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: The log
+      description: |
+        Popup → **Advanced** → **Copy log** → paste here. It contains the stage, platform, timings and the
+        last parse reason. It does not contain your files or your chats.
+      render: text
+    validations:
+      required: false
+
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Node version (`node -v`), OS, and the MDH_AI version from the popup footer.
+      placeholder: node v22.11.0 · Ubuntu 24.04 · MDH_AI 1.0.0
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: honesty
+    attributes:
+      label: One small honesty check
+      options:
+        - label: I read docs/TESTPLAN.md and tried the obvious "reload the page" step.
+          required: false
+        - label: I am not asking for a Windows version in this issue (there is a form for wishes).
+          required: false
+        - label: I understand that "it doesn't work" is a feeling, not a reproduction, and I gave the log anyway.
+          required: false

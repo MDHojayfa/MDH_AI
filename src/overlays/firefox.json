@@ -1,0 +1,22 @@
+{
+  "_comment": "Firefox 140+. No service workers in Firefox (bug 1573659), so the background becomes an event page. gecko.id is required for native messaging, and data_collection_permissions is mandatory from 140. `key` and `minimum_chrome_version` are deleted (null) because they are Chromium-only.",
+  "background": {
+    "scripts": [
+      "shared/compat.js",
+      "background/background.js"
+    ]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "mdh@mdhojayfa.dev",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  },
+  "key": null,
+  "minimum_chrome_version": null
+}

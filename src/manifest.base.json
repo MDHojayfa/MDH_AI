@@ -1,0 +1,139 @@
+{
+  "manifest_version": 3,
+  "name": "MDH_AI",
+  "version": "1.0.0",
+  "description": "Give the chatbot you are already signed into real control of your Linux machine. No API key, no account, no config.",
+  "author": "MDHojayfa",
+  "homepage_url": "https://mdhojayfa.github.io/",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "storage",
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://chat.deepseek.com/*",
+    "https://kimi.com/*",
+    "https://www.kimi.com/*",
+    "https://kimi.moonshot.cn/*",
+    "https://chat.qwen.ai/*",
+    "https://tongyi.aliyun.com/*",
+    "https://qianwen.aliyun.com/*",
+    "https://qianwen.com/*",
+    "https://chat.z.ai/*",
+    "https://z.ai/*",
+    "https://chatglm.cn/*",
+    "https://grok.com/*",
+    "https://x.com/i/grok*"
+  ],
+  "action": {
+    "default_title": "MDH_AI",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://kimi.com/*",
+        "https://www.kimi.com/*",
+        "https://kimi.moonshot.cn/*",
+        "https://chat.qwen.ai/*",
+        "https://tongyi.aliyun.com/*",
+        "https://qianwen.aliyun.com/*",
+        "https://qianwen.com/*",
+        "https://chat.z.ai/*",
+        "https://z.ai/*",
+        "https://chatglm.cn/*",
+        "https://grok.com/*",
+        "https://x.com/i/grok*"
+      ],
+      "js": [
+        "content/injected.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://kimi.com/*",
+        "https://www.kimi.com/*",
+        "https://kimi.moonshot.cn/*",
+        "https://chat.qwen.ai/*",
+        "https://tongyi.aliyun.com/*",
+        "https://qianwen.aliyun.com/*",
+        "https://qianwen.com/*",
+        "https://chat.z.ai/*",
+        "https://z.ai/*",
+        "https://chatglm.cn/*",
+        "https://grok.com/*",
+        "https://x.com/i/grok*"
+      ],
+      "js": [
+        "shared/compat.js",
+        "core/log.js",
+        "core/diag.js",
+        "core/grants.js",
+        "core/phoenix.js",
+        "core/probe.js",
+        "core/skills.js",
+        "core/state.js",
+        "core/policy.js",
+        "core/parser.js",
+        "core/prompt.js",
+        "core/fun-corpus.js",
+        "core/fun.js",
+        "core/report.js",
+        "core/ui.js",
+        "core/transport.js",
+        "core/interceptor.js",
+        "core/agent.js",
+        "platforms/base.js",
+        "platforms/chatgpt.js",
+        "platforms/claude.js",
+        "platforms/gemini.js",
+        "platforms/deepseek.js",
+        "platforms/kimi.js",
+        "platforms/qwen.js",
+        "platforms/qwen-domestic.js",
+        "platforms/glm.js",
+        "platforms/grok.js",
+        "core/dock.js",
+        "content/main.js"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED",
+      "all_frames": false
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

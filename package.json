@@ -1,0 +1,35 @@
+{
+  "name": "mdh-ai",
+  "version": "1.0.0",
+  "description": "Give the chatbot you are already signed into real control of your Linux machine. No API key.",
+  "author": "MDHojayfa",
+  "homepage": "https://mdhojayfa.github.io/",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "icons": "node tools/make-icons.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "lint": "npx --yes web-ext@latest lint --source-dir dist/firefox",
+    "start": "node host/mdh-host.mjs",
+    "package": "node tools/package.mjs",
+    "og": "node tools/make-og.mjs",
+    "site": "node tools/make-og.mjs && node -e \"console.log('site/index.html is a static file; serve the folder to preview')\"",
+    "verify": "node tools/weigh.mjs && npm test && npm run build && npm run package",
+    "logs": "node host/mdh-log.mjs",
+    "logs:serve": "node host/mdh-log.mjs --serve --open",
+    "weigh": "node tools/weigh.mjs"
+  },
+  "files": [
+    "src",
+    "host",
+    "tools",
+    "install.sh",
+    "README.md",
+    "LICENSE"
+  ]
+}

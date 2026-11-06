@@ -1,0 +1,55 @@
+name: Feature request
+description: An idea. Keep it specific; "make it better" is already on the roadmap under "everything".
+title: "[idea] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas are welcome. Vague ideas are welcome too — they just take longer to become code.
+
+        A useful rule of thumb: **if a feature needs a new API key, a server somewhere, or a subscription,
+        it is probably not going to happen here.** The entire point of this project is "no key, no billing,
+        no setup" — and the developer's budget for cloud infrastructure is a firm zero, which is also why
+        he tests on one laptop instead of a NASA PC.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you actually trying to solve?
+      description: Describe the situation, not your proposed solution. Engineers love solutions and forget problems; do not let them.
+      placeholder: I want to run the same task on two projects in a row without retyping the context every time.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you think should happen
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - a new platform (ninth adapter)
+        - a new builtin tool
+        - MCP integration
+        - approval / policy / audit
+        - UI and popup
+        - docs
+        - the other OS you are about to ask about
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This can work without an API key, a hosted service or a payment.
+          required: true
+        - label: I have read docs/ROADMAP.md and this is not already listed.
+          required: false

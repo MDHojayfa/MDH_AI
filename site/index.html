@@ -1,0 +1,359 @@
+<!doctype html>
+<!-- One file, two images, zero dependencies: no font CDN, no analytics, no cookie banner because there
+     are no cookies. The structured data at the top is the only thing a crawler needs. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDH_AI — give your chatbot a Linux terminal, no API key</title>
+<meta name="description" content="Install one browser extension and one script: your ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM or Grok chat gains real control of your Linux machine — files, shell and apps. No API key. Chrome, Brave and Firefox.">
+<link rel="canonical" href="https://mdhojayfa.github.io/mdh-ai/">
+<meta name="theme-color" content="#0b0f13">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MDH_AI — your chatbot gets a terminal">
+<meta property="og:description" content="No API key. Eight AI platforms. Real files, a real shell, a real Linux desktop — with approval on every step.">
+<meta property="og:image" content="og.png">
+<meta property="og:url" content="https://mdhojayfa.github.io/mdh-ai/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MDH_AI — your chatbot gets a terminal">
+<meta name="twitter:description" content="No API key. Eight platforms. Files, shell, GUI — with approval on every step.">
+<meta name="twitter:image" content="og.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "MDH_AI",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Linux",
+  "description": "A browser extension and a local host that give the AI chat you are already signed into real control of your Linux machine: files, shell commands and GUI applications, with approval on every step. No API key and no account.",
+  "url": "https://mdhojayfa.github.io/mdh-ai/",
+  "downloadUrl": "https://github.com/MDHojayfa/MDH_AI/releases/latest",
+  "codeRepository": "https://github.com/MDHojayfa/MDH_AI",
+  "softwareVersion": "1.0.0",
+  "license": "https://github.com/MDHojayfa/MDH_AI/blob/main/LICENSE",
+  "author": { "@type": "Person", "name": "MDHojayfa", "url": "https://github.com/MDHojayfa" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": [
+    "Eight AI platforms: ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM, Grok",
+    "Chrome, Brave and Firefox",
+    "Thirteen builtin Linux tools and any MCP server",
+    "Approval card on every write and every command",
+    "Path allowlist with symlink resolution",
+    "Hash-chained audit log"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Give your chatbot a Linux terminal with MDH_AI",
+  "totalTime": "PT2M",
+  "tool": [{ "@type": "HowToTool", "name": "Linux" }, { "@type": "HowToTool", "name": "Node 20 or newer" }, { "@type": "HowToTool", "name": "Chrome, Brave or Firefox" }],
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Install", "text": "Clone the repository and run ./install.sh. It registers the native host, builds both extension artifacts and finishes with a live ping." },
+    { "@type": "HowToStep", "position": 2, "name": "Load the extension", "text": "Chrome or Brave: chrome://extensions, Developer mode, Load unpacked, pick dist/chrome. Firefox: about:debugging, Load Temporary Add-on, pick dist/firefox/manifest.json." },
+    { "@type": "HowToStep", "position": 3, "name": "Give it a task", "text": "Open any of the eight supported chats, click the MDH icon, type a task and approve the first card. The answer comes back into the chat." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Do I need an API key?", "acceptedAnswer": { "@type": "Answer", "text": "No. There is no key, no provider setting and no model picker anywhere in the product. The model is the chat you are already signed into." } },
+    { "@type": "Question", "name": "Which AI platforms work?", "acceptedAnswer": { "@type": "Answer", "text": "Eight in v1: ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM and Grok. Each has its own small adapter, so one site changing does not break the others." } },
+    { "@type": "Question", "name": "Which browsers are supported?", "acceptedAnswer": { "@type": "Answer", "text": "Chrome 116+, Brave, and Firefox 140+. Firefox is a first-class target, not a port: the design avoids the one API Firefox lacks, which is why similar tools usually cannot run there." } },
+    { "@type": "Question", "name": "Does Windows or macOS work?", "acceptedAnswer": { "@type": "Answer", "text": "Not in v1. The host is the only OS-specific layer, so a port is real work rather than a flag." } },
+    { "@type": "Question", "name": "Is it safe to give an AI a shell?", "acceptedAnswer": { "@type": "Answer", "text": "It is safer than most, and it is not risk-free. Every write and every command needs your approval, the approval card shows the parsed request rather than the model's words, paths outside an allowlist are refused by two independent checks, and every call is written to a hash-chained audit log. Prompt injection is not a solved problem, so read the card." } },
+    { "@type": "Question", "name": "What happens when a free tier rate-limits me?", "acceptedAnswer": { "@type": "Answer", "text": "Sends are spaced and capped. A refusal stops the loop and walks a ladder: reload, wait longer, open a fresh chat, then pause and offer Resume. It never re-sends into a refusal, because the account belongs to you." } }
+  ]
+}
+</script>
+<style>
+  :root {
+    --bg: #0b0f13; --panel: #111820; --line: #1e2830; --fg: #e6edf3;
+    --muted: #93a3b1; --dim: #6b7a88; --ok: #4ade80; --fun: #a78bfa; --warn: #fbbf24;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--ok); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+  header.hero { padding: 64px 0 40px; text-align: center; }
+  .badge {
+    display: inline-block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--fun); border: 1px solid #2b2350; background: #140f26; border-radius: 999px; padding: 4px 12px;
+  }
+  h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.08; margin: 18px 0 12px; letter-spacing: -.02em; }
+  h1 em { font-style: normal; color: var(--ok); }
+  .lede { color: var(--muted); font-size: clamp(16px, 2.2vw, 20px); max-width: 640px; margin: 0 auto; }
+  .cta { margin: 26px auto 12px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 11px 18px; border-radius: 10px; font-weight: 600;
+    border: 1px solid var(--line); background: #16202a; color: var(--fg);
+  }
+  .btn.primary { background: #14532d; border-color: #166534; }
+  .btn:hover { text-decoration: none; filter: brightness(1.12); }
+  .meta { color: var(--dim); font-size: 13px; }
+  pre {
+    background: #070b0e; border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; overflow: auto; font: 13.5px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  pre .c { color: var(--dim); }
+  pre .g { color: var(--ok); }
+  section { padding: 48px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: clamp(22px, 3.4vw, 30px); margin: 0 0 10px; letter-spacing: -.01em; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .card h3 { margin: 0 0 6px; font-size: 15px; }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em; }
+  td code { color: var(--ok); }
+  .shot { width: 100%; border-radius: 14px; border: 1px solid var(--line); display: block; }
+  .two { display: grid; gap: 24px; grid-template-columns: 1.1fr .9fr; align-items: start; }
+  .fun { color: var(--fun); font-style: italic; }
+  details { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--panel); margin-bottom: 10px; }
+  summary { cursor: pointer; font-weight: 600; }
+  details p { color: var(--muted); margin: 10px 0 0; }
+  footer { padding: 40px 0 60px; color: var(--dim); font-size: 14px; text-align: center; border-top: 1px solid var(--line); }
+  footer a { color: var(--muted); }
+  @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  .patch-wrap { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 28px; align-items: center; margin-top: 18px; }
+  .patch { width: 100%; height: auto; max-width: 320px; display: block; }
+  .patch text { font-variant-numeric: tabular-nums; }
+  @media (max-width: 720px) { .patch-wrap { grid-template-columns: 1fr; } .patch { margin: 0 auto; } }
+</style>
+</head>
+<body>
+
+<header class="hero wrap">
+  <span class="badge">no api key · no account · no billing</span>
+  <h1>Your chatbot gets <em>a terminal</em>.</h1>
+  <p class="lede">
+    One script and one browser extension, and the AI chat you are already signed into can read and write
+    files, run shell commands and open applications on your Linux machine — with your approval on every step.
+  </p>
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/MDHojayfa/MDH_AI">Get it on GitHub</a>
+    <a class="btn" href="https://github.com/MDHojayfa/MDH_AI/blob/main/docs/MANUAL.md">Read the manual</a>
+  </div>
+  <p class="meta">Linux · Chrome 116+ · Brave · Firefox 140+ · MIT</p>
+</header>
+
+<main class="wrap">
+
+  <section id="install">
+    <h2>Two minutes, one script</h2>
+    <p class="sub">The installer registers the native host, builds both extension artifacts, and finishes by
+      actually talking to the host — a real ping, not an assumption.</p>
+<pre><span class="c">$</span> git clone https://github.com/MDHojayfa/MDH_AI &amp;&amp; cd MDH_AI
+<span class="c">$</span> ./install.sh
+  <span class="g">✔</span> node 22.22.3 — newer than Sputnik, which is the bar
+  <span class="g">✔</span> chromium id oegdcjbfbcjpogbplakppjddiojflepk
+  <span class="g">✔</span> both artifacts built
+  <span class="g">✔</span> host answered: dev.mdhojayfa.mdh v1.0.0 · audit ok
+
+<span class="c">then</span> chrome://extensions → Developer mode → Load unpacked → dist/chrome
+<span class="c">or</span>   about:debugging → Load Temporary Add-on → dist/firefox/manifest.json</pre>
+  </section>
+
+  <section id="what">
+    <h2>What it can actually do</h2>
+    <p class="sub">Thirteen builtin tools on this machine, plus every MCP server you already run.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Files</h3>
+        <p>List, read with line numbers, write atomically, edit one exact match, search with ripgrep, inspect
+          metadata. Outside the allowlist, nothing opens.</p>
+      </div>
+      <div class="card">
+        <h3>Shell</h3>
+        <p>One command or up to twenty in a single shell, with a working directory, a timeout and the exit
+          code of the first failure. Batched commands keep their <code>cd</code>.</p>
+      </div>
+      <div class="card">
+        <h3>Desktop</h3>
+        <p>Launch GUI applications in your session, and hand over to an MCP server when the job needs a real
+          browser, a database or a screen reader.</p>
+      </div>
+      <div class="card">
+        <h3>Approval</h3>
+        <p>Every write and every command stops at a card that shows the parsed request, not the model's prose.
+          Deny, allow once, or allow for the session.</p>
+      </div>
+      <div class="card">
+        <h3>Guards</h3>
+        <p>Two independent path checks — a lexical one in the extension, a canonical one in the host that
+          resolves symlinks. <code>~/.ssh</code> and keyrings are denied by name.</p>
+      </div>
+      <div class="card">
+        <h3>Recovery</h3>
+        <p>Sends are paced. A refusal walks a ladder instead of retrying into a ban: reload, wait, fresh chat,
+          then pause and offer Resume.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="platforms">
+    <h2>Eight platforms, three browsers</h2>
+    <p class="sub">Each platform is one small adapter, so a site redesign costs one file — not the product.</p>
+    <table>
+      <thead><tr><th>Platform</th><th>Read path</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>ChatGPT</td><td><code>SSE</code>, replace</td><td>re-sends the whole reply each frame</td></tr>
+        <tr><td>Claude</td><td><code>SSE</code>, terminal <code>stop_sequence</code></td><td>ProseMirror composer</td></tr>
+        <tr><td>Gemini</td><td><code>body</code></td><td>whole-response RPC, no stream</td></tr>
+        <tr><td>DeepSeek</td><td><code>SSE</code></td><td>measured 6 s / 5 per minute pacing</td></tr>
+        <tr><td>Kimi</td><td><code>SSE</code> or <code>binary</code></td><td>mode depends on the host</td></tr>
+        <tr><td>Qwen</td><td><code>SSE</code></td><td>international and domestic hosts</td></tr>
+        <tr><td>GLM · z.ai</td><td><code>SSE</code></td><td>two products, one adapter</td></tr>
+        <tr><td>Grok</td><td><code>SSE</code></td><td><code>grok.com</code> and <code>x.com/i/grok</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="safe">
+    <div class="two">
+      <div>
+        <h2>Handing a model a shell is a serious thing</h2>
+        <p class="sub">So the product is built like it: no listening port, two path guards, a card before
+          anything happens, and a log you can verify.</p>
+        <ul>
+          <li>Native messaging — the browser spawns the host, nothing is reachable from a web page.</li>
+          <li>The approval card renders the parsed request, never the model's description of it.</li>
+          <li>Commands ask even when a policy says allow, because a command can do anything.</li>
+          <li>Audit lines are hash-chained; editing one breaks the chain.</li>
+          <li>No telemetry, no remote config, no code fetched at runtime.</li>
+        </ul>
+        <p><a href="https://github.com/MDHojayfa/MDH_AI/blob/main/docs/SECURITY.md">Read the threat model</a> —
+          including what it does not protect you from.</p>
+      </div>
+      <div>
+        <h2>And it admits when it is joking</h2>
+        <p class="sub">Waiting is boring, so the interface tells a story while you wait — and labels it.</p>
+        <div class="card">
+          <p class="fun">☾ setting up the laser weapon on Pluto… 12 %</p>
+          <p class="meta" style="margin-top:8px">tagged <b>fun</b> · the laser is not real</p>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <p><span style="color:var(--ok)">sys</span> platform claude · phase waiting-reply · host up</p>
+          <p class="meta" style="margin-top:8px">that line is real, and stays real when the jokes stop</p>
+        </div>
+        <p class="meta" style="margin-top:12px">1,300 lines of nonsense, one rule: decoration may be silly,
+          diagnostics may not. <code>--no-fun</code> turns it off.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="patch">
+    <h2>One mission patch per release</h2>
+    <p class="sub">Drawn in SVG, in the repository, by hand. No design tool, no stock image, no logo we do not own.</p>
+    <div class="patch-wrap">
+      <svg class="patch" viewBox="0 0 320 320" role="img" aria-label="Mission patch for MDH_AI v1.0.0: an eight-pointed orbit around a terminal prompt">
+        <defs>
+          <radialGradient id="pg" cx="50%" cy="38%" r="70%">
+            <stop offset="0%" stop-color="#1f1b33"/><stop offset="100%" stop-color="#0b0b12"/>
+          </radialGradient>
+        </defs>
+        <circle cx="160" cy="160" r="150" fill="url(#pg)" stroke="#3b3663" stroke-width="2"/>
+        <circle cx="160" cy="160" r="118" fill="none" stroke="#2a2547" stroke-width="1" stroke-dasharray="3 7"/>
+        <ellipse cx="160" cy="160" rx="104" ry="52" fill="none" stroke="#5b4bd6" stroke-width="1.5" transform="rotate(-24 160 160)" opacity="0.75"/>
+        <ellipse cx="160" cy="160" rx="104" ry="52" fill="none" stroke="#22d3ee" stroke-width="1.5" transform="rotate(36 160 160)" opacity="0.45"/>
+        <circle cx="160" cy="160" r="34" fill="#0e0d18" stroke="#8b7bff" stroke-width="2"/>
+        <path d="M148 150 l12 10 -12 10" fill="none" stroke="#e5e7eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="166" y1="172" x2="176" y2="172" stroke="#e5e7eb" stroke-width="3" stroke-linecap="round"/>
+        <g fill="#a5b4fc">
+          <circle cx="160" cy="18" r="4"/><circle cx="261" cy="58" r="4"/><circle cx="302" cy="160" r="4"/>
+          <circle cx="261" cy="262" r="4"/><circle cx="160" cy="302" r="4"/><circle cx="59" cy="262" r="4"/>
+          <circle cx="18" cy="160" r="4"/><circle cx="59" cy="58" r="4"/>
+        </g>
+        <text x="160" y="228" text-anchor="middle" fill="#c7d2fe" font-family="ui-monospace,monospace" font-size="15" letter-spacing="3">MDH_AI</text>
+        <text x="160" y="248" text-anchor="middle" fill="#6b7280" font-family="ui-monospace,monospace" font-size="11" letter-spacing="2">V1.0.0 · EIGHT CHATS</text>
+      </svg>
+      <div>
+        <p>Eight points on the ring are the eight platforms. The prompt in the middle is the only interface that
+          matters. The patch is not a sticker for a store listing — it is the shape of the thing: one small
+          centre, a wide orbit, and nothing hidden behind a logo we do not own.</p>
+        <p class="meta">Source: <code>site/index.html</code> · <code>docs/MEDIA.md</code> lists the six screenshots
+          that go with it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2>Questions people actually ask</h2>
+    <p class="sub">The long answers are in the repository's FAQ.</p>
+
+    <details open><summary>Do I need an API key?</summary>
+      <p>No. There is no key, no provider setting and no model picker anywhere in the product. The model is
+        the chat you are already signed into.</p></details>
+
+    <details><summary>Which AI platforms work?</summary>
+      <p>Eight in v1: ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM and Grok. Each has its own adapter,
+        so a redesign on one site costs one file.</p></details>
+
+    <details><summary>Which browsers?</summary>
+      <p>Chrome 116+, Brave, and Firefox 140+. Firefox is first-class — the design avoids the debugger API
+        Firefox does not have, which is why most tools in this space cannot run there at all.</p></details>
+
+    <details><summary>Windows or macOS?</summary>
+      <p>Not in v1. The host is the only OS-specific layer, so a port is real work rather than a flag.</p></details>
+
+    <details><summary>Is it safe to give an AI a shell?</summary>
+      <p>Safer than most, and not risk-free. Approval on every write and command, a card that shows the real
+        request, two path guards, and an audit chain. Prompt injection is not solved, so read the card.</p></details>
+
+    <details><summary>What happens when I hit a rate limit?</summary>
+      <p>The loop stops instead of hammering. It reloads, waits longer, opens a fresh chat, then pauses and
+        offers Resume. Your account matters more than the task.</p></details>
+
+    <details><summary>Can I start a task without the popup?</summary>
+      <p>Yes. A small pill sits above the chat box on every supported site: click to start, click to pause,
+        click to continue, drag it if it is in the way. It remembers the last task, so restarting after a
+        refresh is one click.</p></details>
+
+    <details><summary>Where can I see what it actually did?</summary>
+      <p><code>mdh-log</code> writes one self-contained HTML file with every call, its time, its status and its
+        audit hash — no script in the page, nothing fetched. <code>mdh-log --serve</code> gives a live view on
+        <code>127.0.0.1</code> with a token that dies with the process.</p></details>
+
+    <details><summary>Something broke. Who fixes it?</summary>
+      <p>You report it, and the same person reads it. The popup opens with a line about exactly this and two
+        buttons that pre-fill the form with the stage, platform and browser — never with your paths. If the
+        loop dies, the card in the page carries the form next to the real error.</p></details>
+
+    <details><summary>It asked me to share it. Why?</summary>
+      <p>Once per profile, and then it stays a button. The link carries no tracking parameter, and the two
+        destinations that cannot accept a pre-filled post — Instagram and TikTok — copy the link and say so
+        instead of pretending.</p></details>
+
+    <details><summary>Why does it talk about Pluto?</summary>
+      <p>Because “waiting” for ninety seconds reads as broken, and “setting up the laser weapon on Pluto” reads
+        as alive. Everything funny is tagged, and <code>--no-fun</code> removes it.</p></details>
+  </section>
+</main>
+
+<footer>
+  <p>
+    Built by <a href="https://github.com/MDHojayfa">MDHojayfa</a> ·
+    <a href="https://mdhojayfa.github.io/">mdhojayfa.github.io</a> ·
+    <a href="https://github.com/MDHojayfa/MDH_AI">source</a> ·
+    <a href="https://github.com/MDHojayfa/MDH_AI/issues/new?template=bug_report.yml">report a bug</a> · MIT
+  </p>
+  <p class="meta">No tracking, no cookies, no fonts fetched from anywhere. This page is one file and two images.</p>
+</footer>
+
+</body>
+</html>

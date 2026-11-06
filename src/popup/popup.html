@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MDH_AI</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span id="dot" class="dot" aria-hidden="true"></span>
+      <strong>MDH_AI</strong>
+      <span id="state" class="state">checking…</span>
+    </div>
+    <button id="menu" class="ghost" title="What is this?" aria-label="About">?</button>
+  </header>
+
+  <section id="pipeline" class="pipeline" hidden>
+    <div class="stage" data-stage="page"><span class="tick">·</span><span class="name">page found</span><span class="meta"></span></div>
+    <div class="stage" data-stage="host"><span class="tick">·</span><span class="name">host connected</span><span class="meta"></span></div>
+    <div class="stage" data-stage="tools"><span class="tick">·</span><span class="name">tools loaded</span><span class="meta"></span></div>
+    <div class="stage" data-stage="run"><span class="tick">·</span><span class="name">idle</span><span class="meta"></span></div>
+  </section>
+
+  <section class="ticker" id="ticker-box">
+    <span class="fun-tag">fun</span>
+    <span id="ticker" aria-hidden="true">contacting the aliens on the Moon…</span>
+  </section>
+
+  <section class="report" id="report">
+    <p class="issue-line" id="issue-line">The developer does not have a NASA PC. If you found a bug, open an issue.</p>
+    <div class="row">
+      <button id="report-bug" class="ghost small">Report a bug</button>
+      <button id="report-idea" class="ghost small">Send an idea</button>
+      <button id="share-open" class="ghost small">Share</button>
+    </div>
+    <p class="credit-hint" id="credit-hint">Ideas get credit: if your suggestion ships, your GitHub handle goes in CREDITS.md.</p>
+    <p class="report-hint" id="report-hint">A bug report is worth more than a star, and the developer reads every one.</p>
+  </section>
+
+  <section class="platform">
+    <span id="platform">not a supported page</span>
+  </section>
+
+  <section class="task">
+    <label for="task">Task <span class="opt">(optional)</span></label>
+    <textarea id="task" rows="3" placeholder="find every file over 100 MB in ~/projects and tell me what they are"></textarea>
+    <div class="row">
+      <button id="start" class="primary">Start on this tab</button>
+      <button id="stop" class="danger" disabled>Stop</button>
+    </div>
+    <p id="hint" class="hint" hidden></p>
+  </section>
+
+  <section class="session" id="session" hidden>
+    <div class="line">
+      <span id="turn">turn 0</span>
+      <span id="calls">0 calls</span>
+      <span id="denied">0 denied</span>
+      <span id="elapsed" class="num">00:00</span>
+    </div>
+    <ul id="history" class="history"></ul>
+  </section>
+
+  <details id="advanced">
+    <summary>Advanced</summary>
+    <div class="grid">
+      <label>Allow these folders</label>
+      <code id="allow">—</code>
+      <label>Approval</label>
+      <span id="approval">ask on change</span>
+      <label>Ladder</label>
+      <span id="ladder">idle</span>
+      <button id="probe" class="wide">Check this page</button>
+      <pre id="probe-out" class="muted small" hidden></pre>
+      <label class="toggle"><input type="checkbox" id="plan-first"> Plan first — read-only until I approve</label>
+      <label for="memory">Notes for every run</label>
+      <textarea id="memory" rows="3" placeholder="e.g. I use pnpm, not npm. Python is python3. Never touch ~/work/legacy."></textarea>
+      <span id="memory-state" class="muted small">saved locally, sent with each new run</span>
+      <label for="skills">Skills (playbooks)</label>
+      <textarea id="skills" rows="4" placeholder="## build&#10;pnpm build && pnpm test&#10;&#10;## deploy&#10;only from main, after tests pass"></textarea>
+      <span id="skills-state" class="muted small">one `## name` per playbook · the model sees only the names until it opens one</span>
+      <label>Remembered approvals</label>
+      <div id="grants" class="rows"><span class="muted">—</span></div>
+      <label>Last page check</label>
+      <span id="layout">—</span>
+      <label>Last run</label>
+      <span id="last-run">—</span>
+      <label>Completion code</label>
+      <code id="phoenix">—</code>
+      <span id="plug" class="plug">—</span>
+      <label for="fun-off">Mission chatter</label>
+      <span><label class="toggle"><input type="checkbox" id="fun-off"> hide the jokes</label></span>
+      <div class="row">
+        <button id="copy" class="ghost">Copy log</button>
+        <button id="viewer" class="ghost">Log viewer</button>
+        <button id="dock-toggle" class="ghost">Pill: shown</button>
+        <button id="retry" class="ghost" hidden>Try again</button>
+      </div>
+    </div>
+  </details>
+
+  <details id="barbos" class="barbos">
+    <summary>
+      <span class="led" aria-hidden="true"></span>BARBOS MODE
+      <span class="count" id="barbos-count">0</span>
+    </summary>
+    <div class="barbos-note">Real events are tagged <b>sys</b>/<b>host</b>. Everything else is decoration — the lasers are not real, the shell is.</div>
+    <pre id="barbos-log" aria-live="off"></pre>
+  </details>
+
+  <div id="share-sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="share-title">
+    <div class="sheet-card">
+      <div class="sheet-hd">
+        <strong id="share-title">Share MDH_AI</strong>
+        <button id="share-close" class="ghost small" aria-label="Close">✕</button>
+      </div>
+      <p class="share-line" id="share-line">No ads, no tracking, no budget. If this saved you an hour, share it with someone.</p>
+      <div class="share-grid">
+        <button data-share="x">X</button>
+        <button data-share="facebook">Facebook</button>
+        <button data-share="whatsapp">WhatsApp</button>
+        <button data-share="telegram">Telegram</button>
+        <button data-share="reddit">Reddit</button>
+        <button data-share="linkedin">LinkedIn</button>
+        <button data-share="bluesky">Bluesky</button>
+        <button data-share="email">Email</button>
+        <button data-share="instagram">Instagram</button>
+        <button data-share="tiktok">TikTok</button>
+      </div>
+      <div class="row">
+        <button id="share-copy" class="primary small">Copy link</button>
+        <button id="share-native" class="ghost small" hidden>More…</button>
+      </div>
+      <p class="sheet-note">
+        Instagram and TikTok have no web link that can carry a post, so those two copy the link for you —
+        open the app and paste. Everything here is a normal link; nothing is posted on your behalf.
+      </p>
+    </div>
+  </div>
+
+  <footer>
+    <a id="home" href="https://github.com/MDHojayfa" target="_blank" rel="noopener" title="Follow on GitHub">github.com/MDHojayfa</a>
+    <a id="site" href="https://mdhojayfa.github.io/" target="_blank" rel="noopener">site</a>
+    <span class="by">by <strong>MDHojayfa</strong> · MIT</span>
+  </footer>
+
+  <script src="../shared/compat.js"></script>
+  <script src="../core/log.js"></script>
+  <script src="../core/fun.js"></script>
+  <script src="../core/report.js"></script>
+  <script src="../core/diag.js"></script>
+  <script src="../core/probe.js"></script>
+  <script src="../core/grants.js"></script>
+  <script src="../core/skills.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

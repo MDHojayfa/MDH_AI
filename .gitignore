@@ -1,0 +1,20 @@
+# build output
+dist/
+release/
+node_modules/
+
+# local runtime state
+*.log
+state.json
+servers.json
+
+# python (some MCP servers are python)
+__pycache__/
+*.pyc
+.venv/
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
