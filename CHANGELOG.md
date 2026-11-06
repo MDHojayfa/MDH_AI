@@ -8,6 +8,9 @@ First release. One script, one extension, eight platforms, no API key.
 
 ### Added
 
+- **Log page controls**: `ok`/`denied`/`error` and `debug`/`info`/`warn`/`error` filters, free-text filter,
+  *Hide log* / *Show log*, and **Archive & clear** — a confirm card over a token-bound POST that renames the
+  chain and starts a fresh one instead of deleting anything. No script; one CSP relaxation for the form.
 - **A deal, not an ask**: every report form asks for a GitHub handle and promises a line in `CREDITS.md`'s
   community section when the report leads to a fix or the idea ships (anonymous accepted). The failure card
   carries **Send an idea ↗**; the popup strip carries the promise on every normal run and a nudge after a

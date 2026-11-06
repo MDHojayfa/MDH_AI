@@ -27,7 +27,7 @@ Each item below is a promise with a condition attached — nothing is listed tha
 
 - **A triage script for reports**: turn a pasted report into a checklist (`node tools/triage.mjs report.md`)
 - **Signature table contributions from users** — a report that matched nothing becomes a row, with a test
-- **Viewer filters** without breaking the no-script rule (anchor prefixes per tool, one page per tool)
+- **Saved filter presets** as plain links (the query-string filters already make them shareable)
 - **`mdh-log --watch`** to re-render the snapshot file as calls land, for people who prefer a file to a port
 
 - **Bangla** prompt + UI (the item consciously deferred so v1 ships in English only)

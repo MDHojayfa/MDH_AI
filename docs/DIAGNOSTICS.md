@@ -90,7 +90,9 @@ The same page is reachable from the popup (**Advanced → Log viewer**) and from
   a `404`, not a `403`, so a probing page learns nothing.
 - **Script-free** — `default-src 'none'`, no `<script>`, no fonts, no icons, no CDN. It renders with the network
   unplugged, which is when a log is most useful.
-- **Read-only** — there is no endpoint that writes, starts or deletes anything.
+- **Read-only, with one honest exception** — the filters are query parameters, and *Archive & clear* is a
+  token-bound `POST` behind a confirm card that renames the chain with a timestamp and starts a new one from
+  genesis. It does not delete: a hash chain that can be truncated is a text file with commitments.
 
 ## 5. The one thing that leaves the machine, and only if you tick a box
 

@@ -18,7 +18,7 @@ import { appendAudit, verifyAudit } from './audit.mjs';
 import { ensureConfigFiles, loadConfig, loadServers, paths } from './config.mjs';
 import { runDiag } from './diag.mjs';
 import { renderPage, startViewer } from './viewer.mjs';
-import { DIAG_FILE, stateSnapshot } from './logs.mjs';
+import { DIAG_FILE, archiveAudit, stateSnapshot } from './logs.mjs';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
@@ -182,6 +182,7 @@ async function handle(frame) {
         if (!viewer) {
           viewer = await startViewer({
             getState: () => stateSnapshot({ hostVersion: VERSION }),
+            clear: () => archiveAudit(),
             port: Number(cfg.viewerPort ?? 0),
           });
           log(`viewer listening on ${viewer.base} (loopback, token-gated)`);

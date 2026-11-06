@@ -14,7 +14,7 @@
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { stateSnapshot } from './logs.mjs';
+import { archiveAudit, stateSnapshot } from './logs.mjs';
 import { renderPage, startViewer, summary } from './viewer.mjs';
 import { paths } from './config.mjs';
 
@@ -73,6 +73,7 @@ async function main() {
   if (args.serve) {
     const viewer = await startViewer({
       getState: () => stateSnapshot({ limit: args.lines, hostVersion: VERSION }),
+      clear: () => archiveAudit(),
       port: args.port,
     });
     process.stdout.write(`mdh-log ${VERSION} · live\n${viewer.url}\n`);

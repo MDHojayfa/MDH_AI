@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { renderPage, summary, esc, startViewer } from '../host/viewer.mjs';
+import { renderPage, summary, esc, startViewer, filterEntries } from '../host/viewer.mjs';
 
 const entries = [
   { at: Date.parse('2026-11-06T10:00:00Z'), tool: 'read_file', status: 'ok', ms: 12, hash: 'aaaaaaaaaaaa', detail: '/home/x/a.txt' },
@@ -97,4 +97,63 @@ test('the served page refreshes itself without any script', () => {
   assert.doesNotMatch(live, /<script/i, 'a refresh is not a reason to allow scripts');
   const snapshot = renderPage({ entries: [] });
   assert.doesNotMatch(snapshot, /http-equiv="refresh"/, 'a saved file must not reload itself');
+});
+
+test('filters are query parameters, so a filtered view is a link', () => {
+  const only = filterEntries(entries, { status: ['error'] });
+  assert.equal(only.length, 1);
+  assert.equal(only[0].tool, 'run_command');
+  assert.equal(filterEntries(entries, { status: ['ok', 'denied'] }).length, 3);
+  assert.equal(filterEntries(entries, { q: 'sudo' }).length, 1);
+  assert.equal(filterEntries(entries, { tool: 'read_file' }).length, 2);
+  assert.equal(filterEntries(entries, { status: ['nonsense'] }).length, 4, 'a bogus filter is ignored, not empty');
+  assert.equal(filterEntries(entries, { level: ['info'] }).length, 4, 'a record with no level counts as info');
+  assert.equal(filterEntries(entries, { level: ['warn'] }).length, 0);
+});
+
+test('the page says how much is filtered out, and can hide the log', () => {
+  const some = renderPage({ entries: [entries[0]], allEntries: entries, meta: { tokenValue: 't' } });
+  assert.match(some, /1 of 4 calls shown/);
+  const all = renderPage({ entries, allEntries: entries, meta: { tokenValue: 't' } });
+  assert.match(all, /4 calls/);
+  assert.doesNotMatch(all, /filtered out/);
+
+  const hidden = renderPage({ entries, allEntries: entries, meta: { tokenValue: 't' }, query: { view: 'stats' } });
+  assert.match(hidden, /Log hidden/);
+  assert.match(hidden, /show it/);
+  assert.match(hidden, /Show log/, 'the toolbar offers the way back');
+});
+
+test('archiving is a two-step, token-bound POST that never deletes', async () => {
+  let called = 0;
+  const viewer = await startViewer({
+    getState: () => ({ entries, meta: { hostVersion: '1.0.0' } }),
+    clear: async () => {
+      called += 1;
+      return { ok: true, file: '/home/x/.local/state/mdh/audit-2026-01-01.jsonl' };
+    },
+  });
+  const token = new URL(viewer.url).searchParams.get('token');
+
+  try {
+    const confirm = await fetch(`${viewer.base}?token=${token}&confirm=archive`);
+    const confirmHtml = await confirm.text();
+    assert.match(confirmHtml, /Archive the audit chain\?/);
+    assert.match(confirmHtml, /method="post"/, 'the destructive action must not be a GET link');
+
+    const blocked = await fetch(`${viewer.base}archive`, { method: 'POST' });
+    assert.equal(blocked.status, 404);
+    assert.equal(called, 0, 'a POST without the token must not archive anything');
+
+    const viaGet = await fetch(`${viewer.base}archive?token=${token}`);
+    assert.equal(viaGet.status, 405);
+
+    const ok = await fetch(`${viewer.base}archive?token=${token}`, { method: 'POST', redirect: 'manual' });
+    assert.equal(ok.status, 303);
+    assert.equal(called, 1);
+    assert.match(ok.headers.get('location'), /archived=/);
+    assert.doesNotMatch(ok.headers.get('location'), /delete|truncate/i, 'the flow archives, it does not delete');
+  } finally {
+    await viewer.close();
+  }
 });

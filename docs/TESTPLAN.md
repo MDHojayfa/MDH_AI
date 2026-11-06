@@ -116,6 +116,10 @@ codebase to leak something by accident.
 | binding | `127.0.0.1` only — asserted on the live server, not the source |
 | auth | 200 with the token, 404 without and 404 for a wrong token |
 | surface | `/health` and `/data.json`; `/../../etc/passwd` is a 404 |
+| filters | `status`, `level`, `q`, `tool` are query parameters; a bogus value is ignored rather than emptying the page |
+| counting | a filtered page says "n of m shown"; an unfiltered one does not |
+| hiding | `?view=stats` collapses the table, keeps the totals, offers the way back |
+| archiving | a confirm card, a POST-only endpoint, 404 without the token, 405 for GET, and a redirect that says *archived* — never *deleted* |
 
 ## 3f. The composer pill — `tests/dock.test.mjs`
 
@@ -126,6 +130,7 @@ codebase to leak something by accident.
 | anchoring | above-right of the composer, clamped inside the viewport |
 | saved position | a position from a 4K screen is clamped, never negative, never off-screen |
 | drag vs click | a 4 px threshold separates a drag from a click |
+| paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
 ## 4. Loop — deterministic parts

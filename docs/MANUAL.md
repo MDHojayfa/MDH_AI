@@ -148,7 +148,19 @@ mdh-log --json      # summary for a script or a paste
 
 From the UI: **popup → Advanced → Log viewer**, or **Log viewer** on the failure card. The served page
 refreshes itself every five seconds; the saved file does not, because a page that reloads on disk is a page
-that cannot be read. The page shows totals,
+that cannot be read.
+
+The page has four controls, all of them honest about being URLs:
+
+| Control | What it does |
+|---|---|
+| **Show** checkboxes (`ok`, `denied`, `error`) | filters the call table server-side; the header then says *"12 of 40 calls shown"* |
+| **Log levels** (`debug`, `info`, `warn`, `error`) | filters the extension-log section the same way |
+| **Hide log / Show log** | collapses the call table when you are screen-sharing; the totals stay |
+| **Archive & clear…** | renames `audit.jsonl` with a timestamp and starts a new chain — a POST, with a confirm card, and it **never deletes** |
+
+Filters live in the query string, so a narrowed view is a link you can bookmark or paste into a bug report. The
+page still contains no script: the only CSP relaxation is `form-action 'self'`, for the filter form. The page shows totals,
 p50/p95 per tool, every call newest-first with its chain hash, and the last failure with its hypotheses. It is
 one file with inline CSS and **no script at all** — it works with the network unplugged. The live mode binds
 loopback only and refuses every request without the token printed next to the URL.

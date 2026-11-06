@@ -71,6 +71,20 @@ costs one regex.
 
 **What the maintainer sees.** A report that can be fixed in one commit, with no back-and-forth.
 
+## 6b · "It stopped after one tool" — prose read as completion
+
+**What they did.** Started a 20-minute task. The model called `read_file` once, then replied "I will now check
+the tests" — as text, without a call.
+
+**What they saw before 1.0.0.** The loop treated that sentence as a finished task and stopped. No error, no
+message; the user had to press Start again and hope.
+
+**What they see now.** A warn line: *the model described the next step instead of taking it — asking again
+(1/2)*, then either the next tool call or a purple pill reading **Continue** with a card offering *Continue /
+Mark as finished / Stop / Report*.
+
+**Why it is a design rule, not a patch.** Text is never an action. A task ends when the model calls `finish`.
+
 ## 7 · "Two tabs, one task" — the lease
 
 **What they did.** Started a task in one tab, then opened the same platform in another to "check".
