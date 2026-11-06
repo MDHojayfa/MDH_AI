@@ -541,7 +541,8 @@
 
     if (first) {
       await ensureTools().catch((e) => log()?.warn('tool list failed', e));
-      const prompt = MDH.prompt.renderPrompt({ tools: S.tools, phoenix: S.phoenix });
+      const memory = await MDH.state.get('memory').catch(() => '');
+      const prompt = MDH.prompt.renderPrompt({ tools: S.tools, phoenix: S.phoenix, memory });
       message = MDH.prompt.wrapFirstMessage(prompt, S.task);
     } else {
       message = S.pendingText ?? '';

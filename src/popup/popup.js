@@ -323,6 +323,7 @@
       list.append(li);
     }
     renderGrants();
+    loadMemory();
 
     // The last run, in one line: the first question in every "it stopped" report, answered before it is asked.
     const runs = stored['mdh:runs'] ?? [];
@@ -334,6 +335,33 @@
     $('calls').textContent = `${history.length} calls`;
     $('denied').textContent = `${denied} denied`;
   }
+
+  /*
+   * Notes for every run. Same idea as a CLAUDE.md, minus the file: three lines the model gets before every task,
+   * typed once in the popup. Saved on blur so a closed popup never loses a sentence.
+   */
+  let memoryLoaded = false;
+  async function loadMemory() {
+    if (memoryLoaded) return;
+    const res = await send(tabId, { type: 'mdh:get-memory' }).catch(() => null);
+    if (res?.ok) {
+      $('memory').value = res.value ?? '';
+      memoryLoaded = true;
+    }
+  }
+
+  async function saveMemory() {
+    const value = $('memory').value;
+    const res = await send(tabId, { type: 'mdh:set-memory', value }).catch(() => null);
+    $('memory-state').textContent = res?.ok
+      ? `${res.length} characters saved — sent with each new run`
+      : 'could not save: this page has no MDH content script';
+    setTimeout(() => {
+      $('memory-state').textContent = 'saved locally, sent with each new run';
+    }, 2600);
+  }
+
+  $('memory').addEventListener('blur', saveMemory);
 
   /*
    * Remembered commands, with the only control that makes remembering defensible: a way to forget. Reads the

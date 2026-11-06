@@ -45,7 +45,8 @@
     lease: null,     // { tabId, platform, at }
     turn: null,      // the in-flight turn
     boot: null,      // random id per browser session, so "until restart" is a fact
-    grants: { boot: null, items: [] }, // remembered approvals: session + per-site
+    grants: { boot: null, items: [] }, // remembered approvals: session and per-site
+    memory: '',      // free text the user wants in every prompt — the CLAUDE.md of a no-files product
   };
 
   const memo = new Map();

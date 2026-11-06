@@ -133,6 +133,16 @@ codebase to leak something by accident.
 | paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
+## 3e0. Per-run notes — `tests/memory.test.mjs`
+
+| Case | Expected |
+|---|---|
+| injected | `# Notes from the user` appears in the first prompt, verbatim |
+| empty | no empty section when the field is blank or whitespace |
+| bounded | clipped at 1,200 characters, never padded |
+| persistence | saved on blur via the content script; read at the start of every run |
+| promise | the UI says "saved locally" because it is |
+
 ## 3e1. Handoff — `tests/handoff.test.mjs`
 
 | Case | Expected |

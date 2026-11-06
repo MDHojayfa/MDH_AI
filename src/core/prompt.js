@@ -59,7 +59,14 @@
    * @param {{tools: Array<{server:string,name:string,description?:string,inputSchema?:object}>}} ctx
    * @returns {string}
    */
-  function renderPrompt({ tools = [], phoenix = null } = {}) {
+  /**
+   * A memory that lives in extension storage, not in a file: this product has no repository to put a CLAUDE.md
+   * in, and the user should not have to remember which chat had the right instructions. Bounded hard, because an
+   * unbounded "notes" field is how a prompt becomes a diary and a context window becomes a memory test.
+   */
+  const MEMORY_LIMIT = 1200;
+
+  function renderPrompt({ tools = [], phoenix = null, memory = '' } = {}) {
     const grouped = groupByServer(tools);
     const lines = [];
 
@@ -97,6 +104,14 @@
     lines.push('9. Report what actually happened. Never describe a result you did not receive.');
     lines.push('10. When the task is finished, call `finish` with a summary **and the session completion code**. If you need a decision only the user can make, call `ask_user`. ' +
       'For long work, call `update_plan` first and keep it current.');
+
+    const notes = String(memory ?? '').trim();
+    if (notes) {
+      lines.push('');
+      lines.push('# Notes from the user (apply these every run)');
+      lines.push('');
+      lines.push(notes.slice(0, MEMORY_LIMIT));
+    }
 
     // The completion code is the only thing that can end a session, so it goes in the prompt itself rather
     // than in a reminder the model might skim past.
@@ -239,6 +254,7 @@
     toolSignature,
     signature,
     handoff,
+    MEMORY_LIMIT,
     BUDGET_CHARS,
   };
 })();

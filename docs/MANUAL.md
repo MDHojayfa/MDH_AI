@@ -81,6 +81,19 @@ MDH wants to run a command
 
 Read commands before approving. This is the only place a human is in the loop.
 
+## 3a · Notes the model gets every run
+
+**Advanced → Notes for every run** is the closest thing here to a `CLAUDE.md`: up to 1,200 characters, typed once,
+sent at the top of every new task.
+
+```
+I use pnpm, not npm. Python is python3, and there is no venv outside ~/work/api.
+Never touch ~/work/legacy. Answer in Bangla if I write in Bangla.
+```
+
+Saved when the field loses focus (no Save button to forget), stored locally, quoted verbatim. It is not sent to
+anyone but the chat you are already driving.
+
 ## 3b · The allow drop-down
 
 The approval card has one big safe answer — **Allow once** — and a caret with the longer promises:

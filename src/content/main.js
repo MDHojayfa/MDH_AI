@@ -105,6 +105,17 @@
         return { ok: true };
       }
 
+      // Notes the user wants in every prompt: stored locally, bounded, and quoted verbatim.
+      case 'mdh:get-memory':
+        return { ok: true, value: await MDH.state.get('memory').catch(() => '') };
+
+      case 'mdh:set-memory': {
+        const value = String(msg.value ?? '').slice(0, MDH.prompt?.MEMORY_LIMIT ?? 1200);
+        await MDH.state.set('memory', value);
+        log()?.info('memory updated', value.length, 'chars');
+        return { ok: true, length: value.length };
+      }
+
       case 'mdh:policy': {
         const policy = await MDH.state.get('policy');
         return { ok: true, policy };
