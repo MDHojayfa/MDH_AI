@@ -21,7 +21,7 @@ import { paths } from './config.mjs';
 const VERSION = '1.0.0';
 
 function parseArgs(argv) {
-  const args = { serve: false, open: false, json: false, watch: false, interval: 5, port: 0, lines: 500, out: null };
+  const args = { serve: false, open: false, json: false, watch: false, runs: false, run: null, interval: 5, port: 0, lines: 500, out: null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--serve') args.serve = true;
@@ -35,6 +35,8 @@ function parseArgs(argv) {
         i += 1;
       }
     }
+    else if (arg === '--runs') args.runs = true;
+    else if (arg === '--run') args.run = argv[++i] ?? '';
     else if (arg === '--help' || arg === '-h') args.help = true;
     else if (arg === '--port') args.port = Number(argv[++i] ?? 0) || 0;
     else if (arg === '--lines') args.lines = Math.max(1, Number(argv[++i] ?? 500) || 500);
@@ -54,6 +56,8 @@ const HELP = `mdh-log ${VERSION} — the log page behind the product
   --port <n>       port for --serve (default: random)
   --open           open the result in the default browser
   --json           print a summary as JSON instead of writing a page
+  --runs           list the runs in the audit, newest first (id, calls, failures, tools)
+  --run <id>       print one run in order: every call, its status, its detail
   --watch [sec]    re-render the snapshot file every N seconds (default 5); no server, no port
   --lines <n>      how many audit entries to include (default 500)
   --out <file>     where to write the snapshot
@@ -98,6 +102,42 @@ async function main() {
   }
 
   const state = stateSnapshot({ limit: args.lines, hostVersion: VERSION });
+
+  if (args.runs || args.run) {
+    const { groupRuns } = await import('./viewer.mjs');
+    const rows = state.entries ?? [];
+    if (args.run) {
+      const mine = rows.filter((entry) => entry.run === args.run);
+      if (!mine.length) {
+        process.stdout.write(`no calls recorded for run ${args.run}\n`);
+        process.exit(1);
+      }
+      const when = (iso) => new Date(iso).toISOString().replace('T', ' ').slice(0, 19);
+      process.stdout.write(`run ${args.run} — ${mine.length} calls\n\n`);
+      for (const entry of mine) {
+        process.stdout.write(
+          `${when(entry.at)}  ${String(entry.tool).padEnd(14)} ${String(entry.status ?? '?').padEnd(7)} ` +
+            `${String(entry.ms ?? '').padStart(5)} ms  ${String(entry.detail ?? '').slice(0, 90)}\n`,
+        );
+      }
+      process.exit(0);
+    }
+    const groups = groupRuns(rows);
+    if (!groups.length) {
+      process.stdout.write('no calls recorded yet\n');
+      process.exit(0);
+    }
+    const when = (ms) => (ms ? new Date(ms).toISOString().replace('T', ' ').slice(0, 16) : '—');
+    process.stdout.write('run          calls  failed  from              to                tools\n');
+    for (const group of groups) {
+      process.stdout.write(
+        `${(group.key || '(earlier)').padEnd(12)} ${String(group.calls).padStart(5)}  ` +
+          `${String(group.errors).padStart(6)}  ${when(group.first).padEnd(17)} ${when(group.last).padEnd(17)} ` +
+          `${group.tools.join(', ')}\n`,
+      );
+    }
+    process.exit(0);
+  }
 
   if (args.json) {
     process.stdout.write(

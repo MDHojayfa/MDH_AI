@@ -22,6 +22,29 @@ import { createServer } from 'node:http';
 
 /* ───────────────────────────────────────────────────────────────────── escaping */
 
+/**
+ * Group audit entries by the run that made them. Newest first, `key: ''` for entries that predate run ids —
+ * honest about the gap instead of guessing by timestamp. Exported because the CLI prints the same groups.
+ */
+export function groupRuns(entries = []) {
+  const rows = new Map();
+  for (const entry of Array.isArray(entries) ? entries : []) {
+    const key = entry.run ?? '';
+    const row = rows.get(key) ?? { key, calls: 0, errors: 0, first: null, last: null, tools: [] };
+    row.calls += 1;
+    if (entry.status && entry.status !== 'ok') row.errors += 1;
+    // audit lines carry ISO strings, stateSnapshot() hands back epoch ms — accept both
+    const at = typeof entry.at === 'number' ? entry.at : Date.parse(entry.at ?? '') || null;
+    if (at) {
+      row.first = row.first ? Math.min(row.first, at) : at;
+      row.last = row.last ? Math.max(row.last, at) : at;
+    }
+    if (entry.tool && !row.tools.includes(entry.tool)) row.tools.push(entry.tool);
+    rows.set(key, row);
+  }
+  return [...rows.values()].sort((a, b) => (b.last ?? 0) - (a.last ?? 0));
+}
+
 export function esc(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -318,24 +341,9 @@ export function renderPage({
    * id the extension stamps on every call turns it into a link. Entries from before the id existed are grouped
    * honestly under "earlier" rather than guessed at.
    */
-  const runKey = (entry) => entry.run ?? '';
-  const runs = new Map();
-  for (const entry of every) {
-    const key = runKey(entry);
-    const row = runs.get(key) ?? { key, calls: 0, errors: 0, first: null, last: null, tools: new Set() };
-    row.calls += 1;
-    if (entry.status && entry.status !== 'ok') row.errors += 1;
-    const at = Date.parse(entry.at ?? '') || null;
-    if (at) {
-      row.first = row.first ? Math.min(row.first, at) : at;
-      row.last = row.last ? Math.max(row.last, at) : at;
-    }
-    if (entry.tool) row.tools.add(entry.tool);
-    runs.set(key, row);
-  }
-  const recentRuns = [...runs.values()]
-    .sort((a, b) => (b.last ?? 0) - (a.last ?? 0))
-    .slice(0, 6);
+  const grouped = groupRuns(every);
+  const runs = new Map(grouped.map((row) => [row.key, row]));
+  const recentRuns = grouped.slice(0, 6);
   const runsBlock = recentRuns.length
     ? `<div class="runs">
          <span class="fl">Runs</span>
@@ -345,7 +353,7 @@ export function renderPage({
              const stamp = row.last ? esc(when(row.last)) : '—';
              const bad = row.errors ? ` · <span class="bad">${row.errors} failed</span>` : '';
              const active = query.run && query.run === row.key ? ' active' : '';
-             return `<a class="run${active}" href="${esc(link({ run: row.key || null }))}" title="${stamp} · ${row.tools.size} tools">
+             return `<a class="run${active}" href="${esc(link({ run: row.key || null }))}" title="${stamp} · ${row.tools.length} tools">
                        <b>${label}</b> <span class="muted">${row.calls} calls${bad}</span>
                      </a>`;
            })
@@ -365,7 +373,7 @@ export function renderPage({
          <h3>Run <code>${esc(query.run)}</code>
            <span class="badge ${selected.errors ? 'bad' : 'ok'}">${selected.calls} calls${selected.errors ? ` · ${selected.errors} failed` : ''}</span></h3>
          <p class="sub">${esc(when(selected.first))} → ${esc(when(selected.last))} · tools:
-           <code>${esc([...selected.tools].join(', '))}</code></p>
+           <code>${esc(selected.tools.join(', '))}</code></p>
          <p class="sub">Every row below is in order. A call that is not here did not happen — the hash chain is
            verified at the top of this page.</p>
          <p class="sub mono">${esc(

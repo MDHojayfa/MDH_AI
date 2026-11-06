@@ -236,7 +236,7 @@ The docs are part of the product, so the late-v1 features have to exist in them:
 | filter | `?run=` narrows the table; an unknown id shows nothing; empty means all |
 | links | the token and the run both survive Hide/Show and Archive |
 
-## 3e3. Layout watch — `tests/probe.test.mjs`
+## 3e5. Layout watch — `tests/probe.test.mjs`
 
 | Case | Expected |
 |---|---|
@@ -245,6 +245,17 @@ The docs are part of the product, so the late-v1 features have to exist in them:
 | regression | fine → broken announces the missing fields, once |
 | recovery | broken → fine is a log line, never a card |
 | timing | checked at 4 s and 15 s, because sites paint late |
+
+## 3e6. The log command line — `tests/logcli.test.mjs`
+
+| Case | Expected |
+|---|---|
+| grouping | runs stay apart, tools listed once, newest first, and entries from before run ids still get a row |
+| timestamps | ISO strings and epoch ms both work — the page reads one, the CLI is handed the other |
+| `--runs` | one line per run: id, calls, failures, first→last, tools; a readable header |
+| `--run <id>` | every call in order with status and duration; another run's calls are not in it |
+| unknown run | exit 1 and a sentence, not an empty table |
+| help | both flags are in `--help` |
 
 ## 3f1. Run grants — `tests/grant.test.mjs`
 

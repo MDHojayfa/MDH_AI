@@ -285,7 +285,13 @@ mdh-log             # writes ~/.local/state/mdh/log.html and prints the path
 mdh-log --open      # …and opens it in your browser
 mdh-log --serve     # live view on 127.0.0.1, random port, token in the URL
 mdh-log --json      # summary for a script or a paste
+mdh-log --runs      # one line per run: id, calls, failures, when, which tools
+mdh-log --run abc123def4   # one run, call by call, in order
 ```
+
+`--runs` and `--run` are the page's run view without the page: same grouping, same order, printed to your
+terminal for a paste into an issue. A run that is not in the audit prints a sentence and exits 1 — no empty
+table pretending the work never happened.
 
 From the UI: **popup → Advanced → Log viewer**, or **Log viewer** on the failure card. The served page
 refreshes itself every five seconds; the saved file does not, because a page that reloads on disk is a page

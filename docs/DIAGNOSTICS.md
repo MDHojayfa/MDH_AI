@@ -84,6 +84,8 @@ mdh-log --open       # …and opens it
 mdh-log --serve      # live view on 127.0.0.1 only
 mdh-log --json       # summary for a script or a paste
 mdh-log --watch 5    # re-render the file every five seconds, no port involved
+mdh-log --runs       # list the runs in the audit, newest first
+mdh-log --run <id>   # print one run in order: call, status, duration, detail
 ```
 
 `--watch` exists for people who would rather not open a socket at all: the file is the interface, the browser
