@@ -103,9 +103,12 @@
     $('share-close').focus({ preventScroll: true });
   }
 
-  function hideShare() {
+  function hideShare({ restoreFocus = true } = {}) {
+    const wasOpen = !$('share-sheet').hidden;
     $('share-sheet').hidden = true;
     markSharePrompted();
+    // Keyboard users land back on the button they opened, not at the top of the popup.
+    if (wasOpen && restoreFocus) $('share-open').focus({ preventScroll: true });
   }
 
   async function markSharePrompted() {
@@ -347,6 +350,12 @@
   $('share-close').addEventListener('click', hideShare);
   $('share-sheet').addEventListener('click', (e) => {
     if (e.target === $('share-sheet')) hideShare();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('share-sheet').hidden) {
+      e.preventDefault();
+      hideShare();
+    }
   });
 
   const links = report.shareLinks();

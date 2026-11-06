@@ -71,6 +71,21 @@ Twelve tests, and four of them exist because the alternative is a support tool t
 | popup wiring | nine platform labels, `#share-copy`, `#report-bug`, `#report-idea`, `navigator.clipboard`, `navigator.share` |
 | ask-once | `sharePrompted` is read, written, and guards the auto-open |
 
+## 3c. Popup markup — `tests/popup.test.mjs`
+
+Eight tests, written because this project has no browser in CI and a popup fails silently:
+
+| Case | Expected |
+|---|---|
+| ids | every `$('id')` in `popup.js` exists in `popup.html` |
+| CSP | no inline `on*=` handlers anywhere |
+| network | no `<script src="http…">`, no remote stylesheet |
+| share | every `data-share` value is a key in `report.shareLinks()`, no duplicates |
+| structure | `section`, `details`, `div`, `button`, `p` balanced |
+| dialog | `role="dialog"`, `aria-modal`, labelled, closable by button, backdrop and Escape, focus restored |
+| order | the issue strip is above the task box |
+| honesty | no "guarantee", "auto-fix", "works everywhere" copy; the NASA PC sentence is present |
+
 ## 4. Loop — deterministic parts
 
 The agent's `_internals` are exported for exactly this. The cases that decide whether the product is safe:

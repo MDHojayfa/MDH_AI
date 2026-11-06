@@ -166,3 +166,20 @@ reason is practical: without it, every bug report starts with a negotiation abou
 broken or the expectation was. With it, a reporter can point at a row, and a maintainer can turn that row into
 a fixture. A one-person project cannot buy coverage, but it can be precise about what it lacks — and precision
 is what makes a stranger's two-minute report worth reading.
+
+**D30 · A crash gets a card with the form, not a tab that steals focus.**
+The request was to redirect to the issue page on failure. A browser will not let an extension open a tab from
+a background event without a user gesture — `window.open` in that path is blocked, silently, in Chrome and in
+Firefox. Shipping a redirect that mostly fails would be worse than shipping nothing, because the user would
+learn the help button does not work. So the crash produces a card inside the page, next to the real error,
+with **Open an issue** (one click, real gesture, pre-filled) and **Copy log**, and the popup's strip promotes
+itself after a failure. Same destination, one honest click, and the error text stays on screen instead of
+being replaced by a GitHub tab the user did not ask for.
+
+**D31 · The popup's markup is tested like code.**
+A popup is invisible until it is broken: an id typo, an inline handler that MV3 refuses to run, an unbalanced
+`<div>` that swallows the share sheet, a share button with no destination. None of those would fail a unit
+test of the logic behind them, and all of them ship a blank or half-dead popup. `tests/popup.test.mjs` checks
+the things a browser would have told us if this project had a browser in CI: every looked-up id exists, no
+inline handlers, nothing loaded from the network, tags balanced, the sheet has an Escape key and returns
+focus, the issue strip comes before the controls, and no line promises a feature that is not there.
