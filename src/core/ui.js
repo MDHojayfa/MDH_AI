@@ -70,6 +70,10 @@
     .what summary { cursor: pointer; color: #a5b4fc; font-size: 12px; }
     .preview { margin: 8px 0 0; max-height: 220px; overflow: auto; padding: 10px; border-radius: 8px;
       background: #0b0a12; border: 1px solid #2a2547; color: #c9ccdb; font-size: 11.5px; white-space: pre-wrap; word-break: break-word; }
+    .credit { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; margin-top: 10px;
+      font-size: 11.5px; color: #a5b4fc; }
+    .linkish { background: none; border: 0; padding: 0; color: #c7d2fe; font: inherit; text-decoration: underline;
+      cursor: pointer; white-space: nowrap; }
     .ipbox { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; font-size: 11.5px; color: #9ca3af; cursor: pointer; }
     .ipbox input { margin-top: 2px; accent-color: #8b7bff; }
     .quip { margin-top: 8px; font-size: 12.5px; color: #a78bfa; font-style: italic; }
@@ -392,6 +396,21 @@
     const previewText = el('pre', { class: 'preview', text: (bundle?.body ?? `${reason}\n${detail}`).slice(0, 4000) });
     preview.append(previewText);
 
+    // The reward, stated plainly next to the buttons. People do not file ideas because they assume nobody
+    // reads them and there is nothing in it for them; both assumptions are wrong here, so both are answered.
+    const creditRow = el('div', { class: 'credit' },
+      el('span', { class: 'credit-text', text: MDH.report?.creditLine(seed) ?? '' }),
+    );
+    const ideaBtn = el('button', {
+      class: 'linkish',
+      text: 'Send an idea ↗',
+      onclick: () => {
+        const url = MDH.report?.ideaUrl?.({ title: '[idea] ' });
+        if (url) globalThis.open?.(url, '_blank', 'noopener');
+      },
+    });
+    creditRow.append(ideaBtn);
+
     const ipBox = el('label', { class: 'ipbox' });
     const ipInput = el('input', { type: 'checkbox' });
     const ipText = el('span', { text: 'include my public IP (off by default — one request, only if you tick this)' });
@@ -515,6 +534,7 @@
     const card = el('div', { class: 'card' },
       el('div', { class: 'hd' }, el('span', { class: 'dot err' }), el('span', { class: 'title', text: 'MDH stopped' })),
       body,
+      creditRow,
       preview,
       ipBox,
       footer,

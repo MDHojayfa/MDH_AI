@@ -145,3 +145,34 @@ test('the share sheet is automatic exactly once, and can be reopened', () => {
   assert.match(js, /showShare\(true\)/);
   assert.match(js, /sharePrompted: true/);
 });
+
+test('the credit promise is real, worded, and appears where the buttons are', () => {
+  assert.ok(report.CREDIT.length >= 3, 'one line is a slogan, three is a policy');
+  assert.ok(report.MOTIVATE.length >= 6);
+  for (const line of report.CREDIT) assert.match(line, /credit|CREDITS\.md|handle|name/i, line);
+  assert.match(report.creditLine(0), /CREDITS\.md|credit/i);
+  assert.notEqual(report.creditLine(0), report.creditLine(1));
+
+  const ui = readFileSync(join(ROOT, 'src/core/ui.js'), 'utf8');
+  const html = readFileSync(join(ROOT, 'src/popup/popup.html'), 'utf8');
+  const js = readFileSync(join(ROOT, 'src/popup/popup.js'), 'utf8');
+  assert.match(ui, /creditLine/, 'the failure card offers the deal, not just the form');
+  assert.match(html, /id="credit-hint"/);
+  assert.match(js, /creditLine|motivateLine/);
+});
+
+test('both forms ask for the handle and say what it earns', () => {
+  const bug = new URL(report.issueUrl({ detail: 'x' })).searchParams.get('body');
+  assert.match(bug, /GitHub username: @/);
+  assert.match(bug, /CREDITS\.md/);
+  const idea = new URL(report.ideaUrl({})).searchParams.get('body');
+  assert.match(idea, /GitHub username: @/);
+  assert.match(idea, /community section/);
+});
+
+test('CREDITS.md has a place to put the name it promises', () => {
+  const credits = readFileSync(join(ROOT, 'CREDITS.md'), 'utf8');
+  assert.match(credits, /Ideas and fixes from the community/);
+  assert.match(credits, /GitHub handle/);
+  assert.match(credits, /anonymous/i, 'credit must not force exposure');
+});

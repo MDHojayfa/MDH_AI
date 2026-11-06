@@ -49,6 +49,29 @@
   ];
 
   /** Twelve ways to say "share it", because word of mouth is the only marketing budget here. */
+  /**
+   * The ask, said out loud. People do not file issues because they assume nobody reads them, and because
+   * there is no upside. Both are wrong here: one person reads every report, and an accepted idea gets the
+   * reporter's name in the credits. Naming that is not a trick — it is the actual deal.
+   */
+  const CREDIT = [
+    'Ideas get credit: if your suggestion ships, your GitHub handle goes in CREDITS.md — one line, permanently.',
+    'Accepted idea, accepted credit. Leave your GitHub username in the report and it gets a line.',
+    'This project has one author and one credits file. Get your name in the second one.',
+    'Found a missing feature? That is not a complaint, that is a contribution with your name on it.',
+  ];
+
+  const MOTIVATE = [
+    'Filing an issue takes two minutes. The developer then spends the evening on it — that is the trade.',
+    'You do not need a perfect report. "It broke when I did X" is already more than nothing.',
+    'The tracker is not a complaint box. It is the roadmap, written by the people who use the product.',
+    'A feature you want is a feature other people want. Ask for it in the open.',
+    'Nothing here is telemetry. If you do not report it, nobody can know it happened.',
+    'The worst issue is the one that stays in your head. The second worst is the one that says "it does not work".',
+    'Your idea does not have to be good yet. Half of these features started as one line of impatience.',
+    'If you have ever thought "why does it not just…", that sentence is an issue.',
+  ];
+
   const SHARE = [
     'No ads, no tracking, no budget. If this saved you an hour, share it with someone.',
     'The promotion strategy is you, telling one friend. That is the entire campaign.',
@@ -68,6 +91,12 @@
   const pick = (list, seed) => list[Math.abs(Math.floor(Number(seed) || 0)) % list.length];
 
   /** One issue line per run, and a different one per failure count. */
+  /** The reward line, deterministic per seed so it can sit next to a button without flicker. */
+  const creditLine = (seed = 0) => pick(CREDIT, seed);
+
+  /** The "why bother" line. A separate pool from CREDIT on purpose: one is a promise, the other is a nudge. */
+  const motivateLine = (seed = 0) => pick(MOTIVATE, seed);
+
   const issueLine = (seed = 0) => pick(ISSUES, seed);
   const shareLine = (seed = 0) => pick(SHARE, seed);
 
@@ -99,6 +128,11 @@
       `- platform: ${safe(platform) || 'unknown'}`,
       `- browser: ${safe(browser) || 'unknown'}`,
       '',
+      '### Credit (optional, but it is the deal)',
+      '',
+      'If this report leads to a fix or a feature, the reporter gets named in CREDITS.md.',
+      'GitHub username: @<!-- your handle here -->',
+      '',
       '### Log',
       '',
       '<!-- popup → Advanced → Copy log → paste here -->',
@@ -111,7 +145,18 @@
   const ideaUrl = ({ title, body } = {}) => {
     const params = new URLSearchParams({
       title: String(title ?? '').slice(0, 180) || '[idea] ',
-      body: String(body ?? '').slice(0, 4000),
+      body: String(body ?? '').slice(0, 4000) ||
+        [
+          '### The idea',
+          '',
+          '<!-- one paragraph: what would you like it to do, and what were you doing when you wanted it? -->',
+          '',
+          '### Credit',
+          '',
+          "If this ships, your GitHub handle goes in CREDITS.md's community section.",
+          'GitHub username: @',
+          '',
+        ].join('\n'),
     });
     return `${IDEA_FORM}&${params.toString()}`;
   };
@@ -152,6 +197,8 @@
   const clipboard = ({ url = REPO } = {}) => `${shareText({ url }).text}\n${url}`;
 
   MDH.report = {
+    CREDIT,
+    MOTIVATE,
     REPO,
     HOME,
     PROFILE,
@@ -160,6 +207,8 @@
     ISSUES,
     SHARE,
     issueLine,
+    creditLine,
+    motivateLine,
     shareLine,
     issueUrl,
     ideaUrl,

@@ -8,6 +8,15 @@ First release. One script, one extension, eight platforms, no API key.
 
 ### Added
 
+- **A deal, not an ask**: every report form asks for a GitHub handle and promises a line in `CREDITS.md`'s
+  community section when the report leads to a fix or the idea ships (anonymous accepted). The failure card
+  carries **Send an idea ↗**; the popup strip carries the promise on every normal run and a nudge after a
+  failure.
+- **Continuity protocol**: text no longer ends a task. A prose-only reply gets two nudges, then the loop
+  **pauses** with Continue / Mark as finished / Stop / Report. `finish` is the only completion signal, and the
+  pill shows Sending / Waiting / Working / Paused / Done.
+- **Network advice that survives being half right**: another Wi-Fi first, then a hotspot, and a hotspot result
+  is a hint rather than proof.
 - **A control on the composer** (`src/core/dock.js`): a shadow-DOM pill anchored above the chat box — start,
   pause, continue, drag, remembered task and position. The popup is now the settings drawer rather than the
   only way in.

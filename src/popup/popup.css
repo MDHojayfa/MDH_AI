@@ -174,3 +174,5 @@ button.ghost { background: #141c23; }
 
 .toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #9ca3af; cursor: pointer; }
 .toggle input { accent-color: #8b7bff; }
+
+.credit-hint { font-size: 11px; color: #a5b4fc; margin: 4px 0 0; }

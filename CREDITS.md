@@ -19,6 +19,20 @@ Everything in this repository — the extension, the host, the installers, the t
 | `src/core/policy.js` + `host/tools/linux.mjs` | two independent guards, one lexical and one that resolves symlinks |
 | `host/*.mjs` | a native-messaging host with an MCP client, an audit chain and thirteen builtin tools |
 
+## Ideas and fixes from the community
+
+This section exists on purpose, and it is empty on purpose.
+
+If you report a bug that leads to a fix, or suggest something that ships, the changelog names the feature and
+this section names **you** — your GitHub handle, one line, permanently. That is the deal offered by every
+"Send an idea" button in the product, and it is the reason the bug form asks for a handle.
+
+Leave the handle in the issue. If you would rather stay anonymous, say so and the entry stays anonymous; the
+promise is credit, not exposure. There is no reward programme, no swag, no discount — just a line in a file in
+a repository, which is what a one-person project can honestly offer.
+
+<!-- Entries are added here when a contribution ships, newest first. -->
+
 ## How it was built
 
 By reading public documentation, the observable behaviour of the eight web apps, and the public

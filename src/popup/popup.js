@@ -436,6 +436,9 @@
       : report.issueLine(seed);
     $('report').classList.toggle('loud', trouble);
     $('report-bug').classList.toggle('primary', trouble);
+    $('credit-hint').textContent = trouble
+      ? report.motivateLine(seed)
+      : report.creditLine(seed);
     $('report-hint').textContent = trouble
       ? 'The form already has the stage, platform and browser. Paste the log and it is a useful report.'
       : 'A bug report is worth more than a star, and the developer reads every one.';

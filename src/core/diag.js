@@ -39,7 +39,7 @@
       match: /\b(1015|1020)\b|you have been (banned|blocked)|access denied.*cloudflare/i,
       what: 'The provider is refusing this network, not this code',
       why: 'Cloudflare returned a ban/block page. That is a decision about the IP address (or the country it is in), made before the app ever runs.',
-      fix: 'Try another network (phone hotspot is the fastest test). If it works there, the old IP is flagged — that is a provider problem, not an extension problem.',
+      fix: 'Try a different network — another Wi-Fi first, then a phone hotspot. A working hotspot is a hint, not proof: mobile carriers hand out addresses that are blocked in some regions and not others, so the same test can pass today and fail tomorrow. What matters is that the behaviour changed with the network, because that points at the address rather than at this code.',
       severity: 'external',
     },
     {
@@ -47,7 +47,7 @@
       match: /just a moment|checking your browser|cf-chl|cf-turnstile|verify you are human|unusual traffic/i,
       what: 'A bot check is standing between you and the chat',
       why: 'The page you are on is an interstitial, not the app. Every selector in the adapter misses because the real page never loaded.',
-      fix: 'Solve the check in that tab once, then press Resume. If it appears on every message, the network is on a shared/VPN address.',
+      fix: 'Solve the check in that tab once, then press Resume. If it comes back on every message, try another Wi-Fi and then a hotspot — a shared, datacentre or VPN address is the usual reason a check that used to be occasional becomes constant. One working network proves the address is suspect; it does not prove the extension is broken or fixed.',
       severity: 'external',
     },
     {
@@ -63,7 +63,7 @@
       match: /not available in your (country|region)|unavailable in your region|country is not supported|unsupported country/i,
       what: 'The provider does not serve this country',
       why: 'A regional block. It has nothing to do with the browser, the extension or the account age.',
-      fix: 'A supported network is the only fix. This is also the most common reason a VPN "fixes" a tool and then breaks it again.',
+      fix: 'Only a network the provider serves will work — another Wi-Fi, a different country, or switching the VPN to a supported region. This is also why a VPN sometimes "fixes" a tool and then breaks it again: it moved the address, it did not remove the rule.',
       severity: 'external',
     },
     {

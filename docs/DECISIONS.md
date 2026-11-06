@@ -236,3 +236,24 @@ composer's DOM or its styles. It is anchored by *measurement* (the composer's bo
 and scroll) instead of by *structure*, so a redesign moves it rather than breaking it, and the worst case is a
 pill in a silly place rather than an unusable page. When the composer disappears entirely, the pill drops to
 the corner and reports the drift instead of guessing.
+
+**D39 · Reporting is a two-way deal, and the deal is written down.**
+The product asks people to spend two minutes on a report instead of closing the tab and living with the bug.
+Asking that for free is how a tracker stays empty. So the ask is explicit: **if your report leads to a fix, or
+your idea ships, your GitHub handle goes into `CREDITS.md`'s community section** — one line, permanently, with
+an anonymous option. The bug form and the idea form both carry the field, the popup's strip carries the
+promise, and `CREDITS.md` carries an empty section waiting for the first entry. An empty promise would be worse
+than no promise, so the section exists before the names do.
+
+**D40 · Text is not an action: a task ends with `finish`.**
+The first real bug report about the loop was "it worked once, then it stopped and I had to press Start again".
+The cause was a prose reply being read as a completed task. The fix is a protocol, not a patch: `finish` is the
+only completion signal, a prose-only reply gets two automatic nudges with the exact reply shape, and after the
+second nudge the loop **pauses** — visibly, with Continue / Mark as finished / Stop / Report, the pending call
+still saved, and a purple pill that says Continue. Silence is never an outcome the user has to interpret.
+
+**D41 · Network advice must survive being half right.**
+"Try a phone hotspot" is the standard advice and it is unreliable: carriers serve different addresses per
+region and rotate them. A hotspot that works proves the address matters; it does not prove the product is
+fixed, and a hotspot that fails proves almost nothing. The signature table now says "another Wi-Fi first, then
+a hotspot, and treat the result as a hint" — and a test asserts that the hedge stays in the text.

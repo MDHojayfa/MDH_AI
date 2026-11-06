@@ -127,6 +127,15 @@ remembered per profile. What does **not** change: the issue strip, **Report a bu
 **Share** button, every real status line and the failure cards. `./install.sh --no-fun` does the same for the
 installer's own output; the popup switch is the one that lives in the browser.
 
+## 5d · Getting your name in the credits
+
+Every form the extension opens asks for a GitHub handle and says why: **if your bug report leads to a fix, or
+your idea ships, the handle goes into `CREDITS.md`'s community section** — one line, permanently. You can write
+"anonymous" instead and the entry stays anonymous.
+
+The failure card also carries a **Send an idea ↗** link, because the moment something is missing is usually the
+moment you are staring at a half-finished task.
+
 ## 5c · The local log page
 
 ```

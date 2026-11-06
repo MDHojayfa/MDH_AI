@@ -31,8 +31,8 @@ bug and are not. Each one carries *what*, *why* and *what to do*, because a diag
 
 | id | Looks like | Usually is | Fix it by |
 |---|---|---|---|
-| `cf-ban` | page loads nothing, 1015/1020 | the provider refuses **this network** | another network; a hotspot is the fastest test |
-| `cf-challenge` | "Just a moment…", selectors all miss | a bot check sits where the app should be | solve it once; a shared/VPN address triggers it |
+| `cf-ban` | page loads nothing, 1015/1020 | the provider refuses **this network** | another Wi-Fi, then a hotspot — and read the hotspot result as a hint, not proof |
+| `cf-challenge` | "Just a moment…", selectors all miss | a bot check sits where the app should be | solve it once; if it returns, test another Wi-Fi before blaming the extension |
 | `rate-limit` | 429, "retry after", empty replies | the plan's quota | waiting; reloading faster extends the block |
 | `geo-block` | "not available in your country" | a regional block | a supported network |
 | `clock-skew` | certificate errors, signed requests fail | the system clock | enable NTP, reload |
@@ -52,6 +52,14 @@ placed above every guess.
 The table is a *hypothesis generator*, and it says so in its own output. Every card and every report labels
 the guesses as guesses. A wrong confident answer costs a maintainer a day; a wrong labelled guess costs a
 glance.
+
+### Why the network advice is careful
+
+"Try a hotspot" is good advice with a bad failure mode: mobile carriers hand out addresses that are blocked in
+some regions and not others, and some carriers rotate them mid-session. So a hotspot that works is **evidence
+that the address matters**, not proof that the problem is solved — and a hotspot that fails does not clear the
+code either. The wording in the table says exactly that, and a test keeps it from drifting back into
+"just use your phone".
 
 ## 3. The failure card
 
@@ -108,6 +116,16 @@ fact can reveal it.
 | The page's DOM | only the adapter's selector list; no snapshots, no screenshots |
 | Clipboard, keystrokes, other tabs | out of scope by design, not by policy |
 | The user's IP | opt-in per report, never stored, never reused |
+
+## 6b. Credit for the person who reports it
+
+Every form the product opens asks for a GitHub handle, and says what it is for: if the report leads to a fix or
+the idea ships, the handle goes into [`CREDITS.md`](../CREDITS.md)'s community section — one line, permanently.
+Anonymous is an accepted answer; the promise is credit, not exposure.
+
+This is not decoration. A one-person project cannot pay a bounty, and most people do not file issues because
+they assume nobody reads them and there is nothing in it for them. Both assumptions are answered in the card:
+the same person reads every report, and the second file in this repository has their name on it.
 
 ## 7. Where the data lives
 

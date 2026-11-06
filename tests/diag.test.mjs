@@ -136,3 +136,17 @@ test('there are enough signatures to be worth having', () => {
     assert.match(sig.fix, /\./, `${sig.id} has no actionable fix`);
   }
 });
+
+test('network advice is not a single hot take about hotspots', () => {
+  const ban = diag.SIGNATURES.find((s) => s.id === 'cf-ban');
+  const challenge = diag.SIGNATURES.find((s) => s.id === 'cf-challenge');
+  const geo = diag.SIGNATURES.find((s) => s.id === 'geo-block');
+  for (const sig of [ban, challenge, geo]) {
+    assert.match(sig.fix, /network|Wi-Fi|wifi/i, `${sig.id} names no network action`);
+  }
+  // A hotspot can mislead: the advice has to say so rather than promise a clean test.
+  assert.match(ban.fix, /hint, not proof/i);
+  assert.match(ban.fix, /another Wi-Fi/i);
+  assert.match(challenge.fix, /another Wi-Fi/i);
+  assert.match(challenge.fix, /does not prove/i);
+});
