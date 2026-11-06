@@ -33,6 +33,14 @@ Tests load the same classic scripts the browser loads into a `vm` sandbox, so a 
 statement about shipped code. Fixtures for the interceptor live under `tests/fixtures/` as text, never as
 recordings with live tokens.
 
+## Adding a help-desk or share line
+
+Both pools live in `src/core/report.js` and nowhere else. Funny writing belongs in
+`src/core/fun-corpus.js`; these are the lines a person reads when something is broken, so a new one must
+contain a call to action, must not claim success, and must not mention credentials or keys.
+`tests/report.test.mjs` checks all three, plus the redaction in `issueUrl()` — a pre-filled public form must
+never carry a file path or a URL the user visited.
+
 ## Adding or fixing a platform
 
 Adapters are data. Copy the smallest one, change values, keep logic out of it.
