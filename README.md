@@ -35,8 +35,9 @@ already have open.
 
 And on top of the 8 platforms it gives you:
 
-- **9 builtin tools** — `list_dir`, `read_file`, `write_file`, `edit_file`, `run_command`,
-  `search_files`, `file_info`, `sys_info`, `open_app`
+- **13 builtin tools** — `list_dir`, `read_file`, `write_file`, `edit_file`, `run_command` (batched,
+  background-capable), `send_stdin`, `search_files`, `file_info`, `sys_info`, `open_app`, plus `ask_user`,
+  `update_plan` and `finish` for the loop itself
 - **every MCP server you already have**, with no extra config
 - **3-state approval** on every call — Deny / Allow once / Always (this tab)
 - **a path allowlist** — `~/projects`, `~/mdh`, `/tmp/mdh` by default; `~/.ssh` and your keyring are

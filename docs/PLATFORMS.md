@@ -19,6 +19,8 @@ export default {
   dom: {                                  // fallback read path + composer I/O
     composer: [...], send: [...], messages: [...], streaming: [...],
   },
+  pace: { minGapMs: 3000, perMinute: 8 }, // the send governor (specs/04 §4)
+  timings: { idleMs, stableMs, warmupMs, timeoutMs, hidden: {...} },
   inject: { strategy: 'prepend' | 'send' },
 };
 ```
@@ -40,9 +42,29 @@ Rules: no imports, no side effects, no timers. A platform file that needs anythi
 | 7 | GLM / z.ai | `chat.z.ai`, `z.ai`, `chatglm.cn` | `/chat\/completions|\/api\/chat\/completion|\/backend-api\/assistant\/stream/` | SSE | ai-tool-agent `zai.js`, `chatglm.js` |
 | 8 | Grok | `grok.com`, `x.com/i/grok` | *(no reference in any surveyed repo)* | ? | **to discover** |
 
-**Three of eight have no reference implementation in any of the 15 repos.** That is the honest state of
-the art: everyone covers the Chinese free tier and ChatGPT; Claude/Gemini/Grok adapters elsewhere are
-DOM-only. Our SSE-first approach means we must discover their endpoints ourselves at M8.
+**Three of eight have no stream evidence anywhere.** That is the honest state of the art: everyone covers
+the Chinese free tier and ChatGPT; Claude/Gemini/Grok adapters elsewhere are DOM-only. Our SSE-first
+approach means we must discover their endpoints ourselves at M8. Confidence per platform, the full union
+of selectors and the exact refusal regexes live in `research/05-PLATFORM-INTEL.md`.
+
+## Pacing and timing profiles
+
+Measured where possible; conservative elsewhere. Only DeepSeek has been measured (LuauPilot, a 6 s/5-per-
+minute limit), so everything else starts at the default and adapts from the ladder's hits.
+
+| Platform | `minGapMs` / `perMinute` | `idleMs` / `stableMs` | `warmupMs` / `timeoutMs` | Confidence |
+|---|---|---|---|---|
+| DeepSeek | **6 000 / 5** (measured) | 6 000 / 9 000 | 45 000 / 420 000 | ● |
+| ChatGPT | 3 000 / 8 | 2 500 / 3 500 | 45 000 / 300 000 | ● |
+| GLM / z.ai | 3 000 / 8 | 2 500 / 3 500 | 45 000 / 300 000 | ● |
+| Kimi | 3 000 / 8 | 3 000 / 4 000 | 60 000 / 300 000 | ◐ |
+| Qwen | 3 000 / 8 | 2 500 / 3 500 | 45 000 / 300 000 | ◐ |
+| Claude | 3 000 / 8 | 2 500 / 3 500 | 60 000 / 300 000 | ◐ |
+| Gemini | 3 000 / 8 | 3 000 / 4 000 | 45 000 / 300 000 | ◐ |
+| Grok | 3 500 / 6 | 3 500 / 5 000 | 60 000 / 300 000 | ○ |
+
+Hidden-tab profile for all: `idle 20 000 / stable 30 000` (`specs/04 §3` — a hidden tab is slow, not
+stopped).
 
 ---
 

@@ -18,23 +18,33 @@ Own tool execution. Be the thing that never lies to the model and never hangs th
 
 ## Builtin toolset (works with zero configuration)
 
+Thirteen tools (revised after the second survey — see `research/08-LESSONS.md` L14–L19).
+Names are the model-facing ones and must match `docs/prompt/SYSTEM.md` exactly.
+
 | Tool | Args | Notes |
 |---|---|---|
-| `file_read` | `path, offset?, limit?` | allowlist-checked |
-| `file_write` | `path, content, create_dirs?` | refuses outside allowlist; atomic write (tmp+rename) |
-| `file_edit` | `path, find, replace, all?` | exact match, fails loudly on 0 or >1 (unless `all`) |
-| `dir_list` | `path, depth?` | depth ≤ 3 |
-| `file_search` | `glob, root?` | capped at 500 results |
-| `code_search` | `pattern, root?, glob?` | ripgrep if present, else Python fallback |
-| `run_command` | `command, cwd?, timeout_ms?` | **approval required by default**; no shell metacharacter cleverness |
-| `proc_list` | — | `/proc` reader, Linux only |
-| `sys_info` | — | distro, kernel, CPU, RAM, disks — the "does it work" smoke tool |
+| `list_dir` | `path, depth?` | depth ≤ 3, 500 entries |
+| `read_file` | `path, offset?, limit?` | allowlist-checked; images refused, not garbled |
+| `write_file` | `path, content` | atomic (tmp + rename); refuses outside allowlist |
+| `edit_file` | `path, find, replace` | exact match; fails loudly on 0 or >1 occurrences |
+| `run_command` | `cmd? \| cmds?, cwd?, timeout_ms?, bg?` | **approval required by default**; `cmds` ≤ 20 in one shell, labelled sections, exit = first non-zero; `bg` returns `session_id` |
+| `send_stdin` | `session_id, input` | continues a `bg` process; kills it after 10 min idle |
+| `search_files` | `pattern, path?, glob?` | ripgrep if present, else a Python fallback; ≤ 500 hits |
+| `file_info` | `path` | size, type, mode, mtime — no read |
+| `sys_info` | — | distro, kernel, session, CPU, RAM, disks, cwd — the smoke tool |
+| `open_app` | `name_or_command` | the **only** GUI action in v1; launches in the user's session, never elevated |
+| `ask_user` | `question, options?` | renders a card, returns the user's typed answer or a chosen option |
+| `update_plan` | `steps[]` | renders/replaces a checklist card; carries no execution |
+| `finish` | `summary` | ends the loop deterministically; the only way a task is "done" |
 
-Explicitly **not** in v1: GUI automation (that is `computer-use-linux` via MCP), clipboard, screenshots.
+Explicitly **not** in v1: pixel-level GUI automation (that is `computer-use-linux` via MCP), clipboard,
+screenshots, file attachments into the chat.
 
 ## Output handling
 - UTF-8, `errors="replace"`.
-- Truncate at 48 KB with a marker; the full output is offered as an attachment.
+- Budget (revised — the round trip costs far more than the bytes): **128 KB per result**, **256 KB per
+  call**, and a `full:true` escape hatch up to **512 KB**. Above that, truncate at a UTF-8 boundary with
+  `[…truncated: showing 128 KB of 2.1 MB. Continue with offset/limit, or redirect to a file.]`
 - Binary output detected by NUL bytes → refuse with a clear message (no silent garbage).
 
 ## Timeouts

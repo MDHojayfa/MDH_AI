@@ -130,4 +130,18 @@ These are answered by the M8 checklist, not by more reading.
 | `CHECKPOINTS.md` | you are resuming a session |
 | `specs/01…09` | one module, in detail |
 | `prompt/SYSTEM.md`, `prompt/FRAMING.md` | any change to what the model sees |
-| `research/` | **internal only — deleted before v1 ships** |
+| `research/` | **internal only — deleted before v1 ships**; 8 files, 18 repos, the evidence behind every number |
+
+## 9. Definition of done — additions from the second survey
+
+The ten original items stand. These are added:
+
+- [ ] `install.sh` ends with a live `ping → pong` self-check against the host, and fails loudly if it
+      cannot connect — never "installed" on an assumption.
+- [ ] Chrome/Chromium extension ID is **pinned** by `key` and the derived ID is printed by the installer.
+- [ ] The rate governor (3 s / 8 per min; DeepSeek 6 s / 5) is observable in the debug log.
+- [ ] The ladder is exercised with a synthetic refusal: 1 → 2 → 3 → stop, each rung showing a countdown.
+- [ ] A hidden tab does not lose a turn (test: hide, reply arrives, loop continues).
+- [ ] The same assistant turn is never answered twice, including across a reload.
+- [ ] `research/` is deleted from the shipped tree, and `CREDITS.md` no longer mentions a third-party
+      snapshot.

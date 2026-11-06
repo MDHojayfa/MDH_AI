@@ -29,7 +29,7 @@ rejected alternatives, per-module specs, threat model, test matrix.
 **Next action:** M1 — scaffold `src/` + `tools/build.mjs` producing `dist/{chrome,firefox}`, then M2
 interceptor with synthetic-stream unit tests.
 
-## CP-004 · 2026-11-06 · design complete ← **you are here**
+## CP-004 · 2026-11-06 · design complete
 `docs/INTERFACES.md` · `docs/prompt/SYSTEM.md` · `docs/prompt/FRAMING.md` · `docs/specs/09-ui.md`
 · `docs/REVIEW.md` · `docs/research/00-RESEARCH-LOG.md` · `docs/PLAN.md §8` · `docs/ROADMAP.md`
 
@@ -42,6 +42,23 @@ the content script). Research findings now live *inside* the repo so a reset can
 
 **Next action:** M1 scaffold — `src/manifest.base.json`, both overlays, `tools/build.mjs`, empty module
 skeletons that satisfy `INTERFACES.md`, and a `dist/` that loads clean in all three browsers.
+
+## CP-005 · 2026-11-06 · second research pass, design revised ← **you are here**
+`docs/research/**` (8 files) · `docs/DECISIONS.md` D13–D19 · `docs/specs/02,04,06,09` · `docs/PLATFORMS.md`
+· `docs/prompt/SYSTEM.md` · `docs/PLAN.md §9` · `docs/INTERFACES.md`
+
+**Done:** 18 repositories cloned at pinned commits and read at source level (1.3 GB, of which nothing is
+kept). Findings archived *inside* the repo so a sandbox reset cannot destroy them. The pass changed the
+design in seven places — governed sending + a four-rung ladder (D13), hidden ≠ paused (D14), an outcome
+vocabulary where only `completed` advances (D15), thirteen builtins including `ask_user`/`update_plan`/
+`finish`/`send_stdin` (D16), 128/256/512 KB result budgets (D17), the countdown clock + pipeline strip +
+timestamps (D18), and no remote selector config in v1 (D19). Four errors from the first pass are corrected
+in `research/00 §Corrections`.
+
+**Not done (by instruction):** still no v1 code.
+
+**Next action:** M1 — scaffold `src/` + `tools/build.mjs` so `dist/{chrome,firefox}` loads clean, with the
+thirteen tool names and the thirteen error codes from `INTERFACES.md` stubbed.
 
 ---
 

@@ -130,3 +130,52 @@ actually run today. Deleting it early would leave the repo with nothing runnable
 3. Do any sites stream the *tool call* only in the DOM (e.g. as a rendered "tool use" widget) and never
    in the raw stream? DOM fallback covers it, at the cost of that platform's robustness.
 4. Will the 8 adapters' recorded API patterns still match? Unknown until M8.
+
+---
+
+# Round 2 — decisions forced by the second survey
+
+Source: `research/02`…`08`. Each of these replaces or sharpens an earlier decision.
+
+## D13 · Sending is paced by a governor, and refusals follow a ladder
+**Chosen:** one serialised governor per tab (`minGapMs` 3 000, `perMinute` 8; DeepSeek 6 000/5), and a
+four-rung ladder — 8 s → reload, 40 s → reload, 200 s → fresh chat, then stop for 5 min.
+**Rejected:** retry-on-error (burns the account), and chat-on-steroids' *unbounded* retry of retryable
+refusals (defensible on a paid plan, wrong for free tiers).
+**Trade accepted:** tasks get slower. A tool loop that respects 6 s between sends costs minutes, not
+minutes-and-a-ban.
+
+## D14 · A hidden tab is slow, not stopped
+**Chosen:** hidden-tab timing profile (`idle 20 s`, `stable 30 s`) + re-base on `visibilitychange`.
+**Rejected:** our earlier "pause while hidden" — it discards a turn the model already answered, and
+browsers only throttle timers.
+
+## D15 · Turn outcomes are a closed vocabulary
+**Chosen:** `completed | failed | stopped | interrupted | stalled | unknown`; only `completed` advances;
+`stopped` is terminal; `unknown` is described to the user as "the page ended the reply without a signal".
+**Rejected:** inferring completion from "no new text for N seconds" alone, and describing an unknown end
+as a provider limit.
+
+## D16 · Thirteen builtins, including three that exist only for the loop
+**Chosen:** the nine originals + `send_stdin` (background processes), `ask_user` (resolve ambiguity
+instead of guessing), `update_plan` (legibility), `finish` (deterministic end). `run_command` accepts
+`cmds[]` (≤20, one shell, exit = first non-zero).
+**Rejected:** a JS `exec` composition runtime (powerful, unbounded, and a second injection surface).
+**Trade accepted:** ~120 more prompt tokens, and three more tools the model can misuse — all three are
+non-destructive by construction.
+
+## D17 · Generous result budgets
+**Chosen:** 128 KB per result, 256 KB per call, 512 KB on explicit `full:true`.
+**Rejected:** the earlier 48 KB cap — it turns "read this file" into a three-call dance, and the round
+trip costs far more than the bytes.
+
+## D18 · The wait is visible: countdown, pipeline strip, quiet timestamps
+**Chosen:** a `mm:ss` countdown driven by wall clock; a four-stage pipeline strip in the popup; an opt-in
+timestamp chip per result.
+**Rejected:** a pleasant "thinking…" spinner with no number — the number is the information.
+
+## D19 · No remote configuration in v1
+**Chosen:** adapters ship in the build; a selector fix needs a rebuild.
+**Rejected:** Firebase-remote selector config (Superpower's approach). It fixes breakage instantly, and it
+also means a remote party can redirect our extension's typing. Revisit as **v1.1, data-only, opt-in,
+signed**, never as code.

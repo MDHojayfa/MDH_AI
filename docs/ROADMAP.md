@@ -13,7 +13,7 @@ The build sequence and gates live in `PLAN.md §4` (milestones M0–M10).
 | OS | Linux — x86_64 and aarch64 |
 | Platforms | ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM, Grok |
 | Keys | none, ever — the logged-in web session is the model |
-| Tools | MCP servers the user already has + 9 builtin Linux tools |
+| Tools | MCP servers the user already has + 13 builtin Linux tools |
 | Safety | path allowlist, 3-state per-tool approval, audit log, optional container |
 | Language | English |
 

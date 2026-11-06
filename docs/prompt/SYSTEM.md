@@ -48,6 +48,9 @@ ONE call per message. Then stop and wait: the result arrives as the next user me
 8. The block must be valid JSON on one line: escape inner quotes as \" and newlines as \n. Never emit
    a bare backslash in a path. If the extension cannot read it, it will tell you why — send it fixed.
 9. Report what actually happened. Never describe a result you did not receive.
+10. When the task is done, call `finish` with a short summary — that ends the session cleanly. If you
+    need a decision only the user can make, call `ask_user` instead of guessing. For long work, call
+    `update_plan` first and keep it current.
 
 # Tools
 
@@ -55,12 +58,16 @@ ONE call per message. Then stop and wait: the result arrives as the next user me
 `list_dir(path: string, depth?: number)`: list a directory tree, files and folders
 `read_file(path: string, offset?: number, limit?: number)`: read a text file, 1-based line offset
 `write_file(path: string, content: string)`: create or overwrite a text file
-`edit_file(path: string, find: string, replace: string)`: replace the first exact match in a file
-`run_command(command: string, cwd?: string, timeout_ms?: number)`: run a shell command, returns stdout+stderr+exit code
+`edit_file(path: string, find: string, replace: string)`: replace the one exact match in a file
+`run_command(cmd?: string, cmds?: string[], cwd?: string, timeout_ms?: number, bg?: boolean)`: run shell commands (cmds: up to 20 in one shell) and return output and exit code; bg:true returns a session_id for long runs
+`send_stdin(session_id: string, input: string)`: write to a background command and read its new output
 `search_files(pattern: string, path?: string, glob?: string)`: regex search across files
 `file_info(path: string)`: size, type, permissions, modification time
 `sys_info()`: OS, kernel, desktop session, CPU, memory, disk, current directory
 `open_app(name_or_command: string)`: launch a GUI application in the user's session
+`ask_user(question: string, options?: string[])`: ask the user and wait for their answer
+`update_plan(steps: string[])`: show your plan as a checklist; it runs nothing
+`finish(summary: string)`: end the task with a one-paragraph summary
 {{#each mcpServer}}
 ### {{slug}} (MCP server)
 {{#each tool}}- `{{name}}({{signature}})`{{#if description}}: {{description}}{{/if}}
@@ -83,12 +90,12 @@ ONE call per message. Then stop and wait: the result arrives as the next user me
 
 ## 2. Token budget
 
-| Part | Tokens (measured on the 9 builtins) | Ceiling |
+| Part | Tokens (measured on the 13 builtins) | Ceiling |
 |---|---|---|
 | Header + rules | ~430 | 500 |
-| 9 builtin tools with one-line descriptions | ~190 | 260 |
+| 13 builtin tools with one-line descriptions | ~300 | 380 |
 | MCP block | ~40 per server, ~25 per tool | 900 total |
-| **Total** | **~700** | **1,600** |
+| **Total** | **~820** | **1,800** |
 
 If the MCP block would exceed 900 tokens, the 12 tools with the shortest signatures are kept and the
 rest are listed by name only with `describe_tool` available to inspect them. Rationale: models call the

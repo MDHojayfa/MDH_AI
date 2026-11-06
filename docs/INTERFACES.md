@@ -67,15 +67,19 @@ Budget assertions live here: throws in dev if `renderPrompt` exceeds 1,600 token
 ```js
 start(task) -> void
 step() -> void                       // one turn
-state() -> {phase, turn, pendingCall, counter}
+state() -> {phase, outcome, turn, pendingCall, counter}
 pause() / resume() / stop() -> void
 on('need-approval'|'turn-end'|'notice', handler)
 ```
 `phase` ∈ `idle|injecting|waiting-reply|parsing|awaiting-approval|executing|delivering|paused|done|failed`.
-Illegal transitions throw in dev, log-and-ignore in prod (a thrown error inside the loop kills the tab).
+`outcome` ∈ `completed|failed|stopped|interrupted|stalled|unknown`; **only `completed` advances**
+(`specs/04 §3`). Illegal transitions throw in dev, log-and-ignore in prod (a thrown error inside the loop
+kills the tab).
 
 Hard rules enforced *in this module*, not in the prompt: one call per message · never re-send after
-refusal · dedup hash 15-min window, cap 4 · pause when `document.hidden` · always deliver something.
+refusal (the ladder is the only way back, and each rung waits) · dedup hash 15-min window, cap 4 ·
+answer each turn at most once · hidden tab switches to the slow timing profile, it does **not** pause ·
+always deliver something.
 
 ## 6. `core/policy.js`
 
@@ -108,6 +112,9 @@ All keys under `mdh:` in `storage.local`:
 | `mdh:pending` | `{call, queuedAt, attempts}` | yes |
 | `mdh:policy` | rules object | yes |
 | `mdh:history` | ring buffer, 50 turns | yes |
+| `mdh:answered` | `Set<turnId>` — a turn is answered at most once, ever | yes |
+| `mdh:pace` | `{mult, lastSendAt, sentInWindow}` — the send governor | yes |
+| `mdh:rate` | `{hits, lastHitAt, phase, resumeAt}` — the ladder's memory | yes |
 | `mdh:leases` | platform → tabId | yes |
 
 `storage.session` is deliberately unused: Firefox clears it on extension restart and we need the pending
@@ -137,7 +144,7 @@ main()                          // reads length-prefixed frames from stdin, writ
 // mcp_client.mjs
 start(serverCfg) -> {listTools(), callTool(name, args)}   // one child process per server
 // tools/linux.mjs
-registry -> Map<name, {schema, run(args, ctx)}>           // the 9 builtins
+registry -> Map<name, {schema, run(args, ctx)}>           // the 13 builtins (specs/06)
 // audit.mjs
 append(entry) -> void   verify() -> {ok, brokenAt}        // hash chain
 ```
@@ -147,7 +154,7 @@ the single most common native-messaging bug in the wild.
 ## 12. Error codes (single namespace, used by every layer)
 
 `NO_HOST` `TIMEOUT` `PROTO` `PATH_DENIED` `NOT_FOUND` `PERM` `TOOL_MISSING` `TOOL_FAILED`
-`PARSE` `REFUSED` `RATE_LIMIT` `RELOADED` `NO_TAB` `CANCELLED`
+`PARSE` `REFUSED` `RATE_LIMIT` `RELOADED` `NO_TAB` `CANCELLED` `SEND_FAILED` `STALLED` `AMBIGUOUS_MATCH`
 
 Anything else is a bug and must be wrapped before it reaches the model.
 
