@@ -92,3 +92,24 @@ test('headings are ordered: exactly one h1, and no h3 before an h2', () => {
     if (level === 3) assert.ok(seenH2, 'an h3 appears before the first h2');
   }
 });
+
+test('the mission patch is inline SVG, self-contained and described', () => {
+  const svg = html.match(/<svg[\s\S]*?<\/svg>/g) ?? [];
+  assert.ok(svg.length >= 1, 'no inline SVG on the page');
+  for (const block of svg) {
+    assert.match(block, /viewBox="0 0 320 320"/);
+    assert.match(block, /role="img"/);
+    assert.match(block, /aria-label="[^"]{20,}"/);
+    assert.doesNotMatch(block, /<image|xlink:href|https?:\/\//, 'the patch must not fetch anything');
+    assert.equal((block.match(/<svg/g) ?? []).length, (block.match(/<\/svg>/g) ?? []).length);
+  }
+  assert.match(html, /One mission patch per release/);
+});
+
+test('the media kit lists six usable screenshots and the permission story', () => {
+  const media = readFileSync(join(ROOT, 'docs/MEDIA.md'), 'utf8');
+  for (let i = 1; i <= 6; i += 1) assert.match(media, new RegExp(`0${i}-[a-z]+\\.png`));
+  assert.match(media, /nativeMessaging/);
+  assert.match(media, /No `<all_urls>`/);
+  assert.match(media, /never arrives with your paths/i);
+});

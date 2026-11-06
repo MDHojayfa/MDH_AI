@@ -135,7 +135,8 @@ it over a pipe, which is why a web page cannot reach it. Details: [`docs/ARCHITE
 | [`docs/KNOWN-LIMITS.md`](docs/KNOWN-LIMITS.md) | what one laptop cannot test — the honest version |
 | [`docs/SEO-AND-LAUNCH.md`](docs/SEO-AND-LAUNCH.md) | positioning, search and launch plan |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | build, test, package, add an adapter |
-| [`site/index.html`](site/index.html) | the landing page — one file, no dependencies |
+| [`docs/MEDIA.md`](docs/MEDIA.md) | screenshots, alt text and store listing copy |
+| [`site/index.html`](site/index.html) | the landing page — one file, no dependencies, one mission patch |
 
 ## Found a bug? Read this first (it is short, like the developer's budget)
 

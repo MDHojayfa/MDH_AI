@@ -188,3 +188,10 @@ second landing page.
   browser/platform support table, which is checkable.
 - No auto-generated blog network, no translated page spam.
 - No "as an AI" marketing language. The product's tone is a tool, not a promise.
+
+## Assets, when the day comes
+
+`docs/MEDIA.md` holds the six screenshots, their alt text, both store descriptions and the permission table
+reviewers ask for. `site/index.html` carries the v1.0.0 mission patch as inline SVG so a listing can use it
+without a design tool and without a licensed font. Take the screenshots from a real session or do not take
+them.

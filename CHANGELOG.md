@@ -56,7 +56,11 @@ First release. One script, one extension, eight platforms, no API key.
   labelled honestly: neither has a web intent, so the sheet copies the link first.
 - **`docs/KNOWN-LIMITS.md`** — an explicit verification ladder (automated / by hand once / never) so "it
   works" can be checked rather than believed.
-- **105 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **A mission patch per release** in `site/index.html`: inline SVG, drawn by hand, eight stars for eight
+  platforms and a prompt in the middle. No stock art, no borrowed logo, nothing fetched.
+- **`docs/MEDIA.md`** — the six screenshots worth taking, their alt text, store copy for Chrome/Brave and
+  Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
+- **107 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 
