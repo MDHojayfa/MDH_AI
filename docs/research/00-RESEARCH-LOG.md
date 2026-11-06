@@ -17,6 +17,7 @@ documentation. Numbers and paths below come from code, not from README claims.
 | `06-TRANSPORT-AND-INSTALL.md` | native messaging, ID pinning, Firefox limits, rejected transports |
 | `07-UI-INTEL.md` | popup/overlay/banner patterns, the clock, stalls |
 | `08-LESSONS.md` | the 34 lessons and exactly which document each one changed |
+| `09-WEB-CLIENT-ENDPOINTS.md` | Claude / Gemini / Kimi endpoints, buried in a client we do not use |
 
 ## The prior-art answer, unchanged
 
@@ -45,7 +46,12 @@ requirement:
    site refuses.
 3. **Kimi, Qwen and GLM had no measured pacing in the first pass.** They still have none — only DeepSeek
    does. Everything else starts at the conservative default (`3 s / 8 per min`) and adapts from hits.
-4. **The "clock" is two different things**, and we now have both: a *timestamps* toggle (chat-on-steroids)
+4. **Claude, Gemini and Kimi are no longer unknown transports.** A 19th repo (`ChatGPTBox-dev/chatGPTBox`,
+   MIT) reimplements the web clients; reading it gave us Claude's `completion` SSE (terminal
+   `stop_reason: stop_sequence`), Gemini's `StreamGenerate` RPC (body-complete, **not** SSE) and Kimi's
+   `all_done` SSE on `www.kimi.com`. Details and the reason we still do not use that approach:
+   `09-WEB-CLIENT-ENDPOINTS.md`.
+5. **The "clock" is two different things**, and we now have both: a *timestamps* toggle (chat-on-steroids)
    and a *countdown banner* during a rate-limit wait (LuauPilot). `specs/09-ui.md §8` implements both.
 
 ## Browser facts, verified (unchanged by round 2)
@@ -75,9 +81,10 @@ Governed sending + ladder (D13) · hidden ≠ paused (D14) · outcome vocabulary
 
 ## Re-survey queue (M8) — the part reading cannot finish
 
-1. Claude completion endpoint; whether the reply is SSE or a snapshot.
-2. Gemini Batchexecute framing — is there a parseable delta at all?
-3. Grok transport (WebSocket is the guess) and its real selectors.
+1. ~~Claude completion endpoint~~ — found: SSE, `stop_reason: stop_sequence` (verify live).
+2. ~~Gemini framing~~ — found: RPC, body-complete. Verify the text path and the DOM cross-check.
+3. Grok transport (WebSocket is the guess) and its real selectors — **still the one true unknown**.
 4. Verbatim refusal strings per platform, in the site's locale.
-5. Kimi Connect-RPC frame layout — confirm the 5-byte prefix.
+5. ~~Kimi frame layout~~ — two reports: SSE `{event:'cmpl'}` on kimi.com, binary frames on
+   kimi.moonshot.cn. Ship both paths; confirm per host during M8.
 6. Measured pacing for each platform (start conservative, record what the first hits teach).

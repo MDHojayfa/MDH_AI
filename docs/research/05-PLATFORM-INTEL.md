@@ -5,6 +5,15 @@ signatures are reliable; selectors rot; confidence is stated honestly per site.*
 
 Confidence: ● high (3+ independent sources) · ◐ medium (2 sources) · ○ low (1 source, or inference)
 
+**Read path chosen per platform** (after `09-WEB-CLIENT-ENDPOINTS.md`):
+
+| Path | Platforms | Meaning |
+|---|---|---|
+| `sse` | ChatGPT, Claude, DeepSeek, Kimi (`kimi.com`), Qwen, GLM | incremental text; terminal frame defined by the adapter |
+| `binary` | Kimi (`kimi.moonshot.cn`) | brace-depth scanner over framed bytes |
+| `body` | Gemini | the response is whole; "fetch resolved" = `completed` |
+| `dom` | Grok, and every platform as a cross-check | read the rendered message, not the network |
+
 ---
 
 ## 1 · ChatGPT — ●
@@ -25,7 +34,7 @@ Confidence: ● high (3+ independent sources) · ◐ medium (2 sources) · ○ l
 | Field | Value | Source |
 |---|---|---|
 | hosts | `claude.ai` | 4 manifests |
-| stream | **unknown** — hypothesis `/api/organizations/*/chat_conversations/*/completion`; **discover in M8** | — |
+| stream | `POST /api/organizations/{org}/chat_conversations/{id}/completion` — **SSE**, delta `completion`, terminal `stop_reason: "stop_sequence"` (not `[DONE]`) | ChatGPTBox `clients/claude/index.mjs:591,612` |
 | composer | `div[contenteditable="true"].ProseMirror` · `[data-testid="chat-input"]` | web-mcp-bridge |
 | send | `button[aria-label="Send message"]` · `button[aria-label*="Send" i]` | web-mcp-bridge |
 | messages | `.font-claude-response` · `[data-testid="assistant-message"]` · `div[data-is-streaming]` | web-mcp-bridge |
@@ -37,7 +46,7 @@ Confidence: ● high (3+ independent sources) · ◐ medium (2 sources) · ○ l
 | Field | Value | Source |
 |---|---|---|
 | hosts | `gemini.google.com` | 4 manifests |
-| stream | **unknown** — Batchexecute RPC; may not expose a parseable delta. **Treat as DOM-first** | — |
+| stream | `POST /_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate?bl=…&rt=c&_reqid=0` — **RPC, JSON-array body, no `data:` lines**; body-complete, no per-token delta | ChatGPTBox `clients/bard/index.mjs:102`, `09` |
 | composer | `rich-textarea .ql-editor[contenteditable="true"]` · `div.ql-editor.textarea.new-input-ui p` | web-mcp-bridge, Superpower, ZeroScript |
 | send | `button.mat-mdc-icon-button.send-button` · `button.send-button:not(.stop)` | Superpower, web-mcp-bridge |
 | messages | `model-response message-content` · `.model-response-text` | web-mcp-bridge |
@@ -64,12 +73,12 @@ Confidence: ● high (3+ independent sources) · ◐ medium (2 sources) · ○ l
 | Field | Value | Source |
 |---|---|---|
 | hosts | `kimi.com`, `www.kimi.com`, `kimi.moonshot.cn`, `moonshot.cn` | 3 manifests |
-| stream | `kimi.gateway.chat` / `ChatService/Chat` — **binary Connect-RPC frames, not SSE** | ai-tool-agent (`binaryStream: true`) |
+| stream | `POST /api/chat/{id}/completion/stream` on `www.kimi.com` — **SSE**, `{event:'cmpl', text}`, terminal `{event:'all_done'}`; *older host* `kimi.moonshot.cn` reports **binary Connect-RPC frames** | ChatGPTBox `apis/moonshot-web.mjs:397`; ai-tool-agent (`binaryStream`) |
 | composer | `.chat-input-editor[contenteditable]` | ZeroScript, Superpower |
 | send | `.send-button-container` · `svg.send-icon` · `button[aria-label*=…]` | ZeroScript, Superpower |
 | messages | `.segment-user` / `.segment-assistant` · `.segment-content` | ZeroScript |
 | stop | absent in DOM; use "no new frames + segment stopped growing" | — |
-| quirks | needs the brace-depth binary scanner; DOM idle is the primary completion signal | our inference |
+| quirks | ship **both** transports: `mode:'sse'` for kimi.com, `mode:'binary'` for moonshot.cn. The parser is chosen per host, not per account | our decision |
 
 ## 6 · Qwen — ◐
 
@@ -100,7 +109,7 @@ Confidence: ● high (3+ independent sources) · ◐ medium (2 sources) · ○ l
 | Field | Value | Source |
 |---|---|---|
 | hosts | `grok.com`; `x.com/i/grok` and `x.com/*` (matched in Superpower's manifest for "grok.com tool call parsing" and an X integration) | Superpower (only) |
-| stream | **unknown** — possibly WebSocket | — |
+| stream | **still unknown** — possibly WebSocket; Superpower ships a *grok.com tool-call parsing* content script, which suggests structured call nodes in the DOM | Superpower manifest |
 | composer | `.chat-input-container` · `.input-area` · `textarea` · `div[contenteditable]` | Superpower (generic list) |
 | send | `.ml-auto.flex.flex-row.items-end.gap-1` (utility-class chain — will rot) | Superpower |
 | messages | not found | — |

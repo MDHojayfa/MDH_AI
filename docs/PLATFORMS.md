@@ -12,7 +12,8 @@ export default {
   host: /chat\.deepseek\.com/,            // must match location.hostname exactly
   sse: {                                  // primary read path
     apiPattern: /chat\/completion/,        // network URL signature
-    binary: false,                        // true -> 5-byte frames + brace-depth JSON
+    mode: 'sse',                          // 'sse' | 'binary' (framed) | 'body' (whole response)
+    binary: false,                        // legacy alias of mode:'binary'
     extract(chunk) {},                    // -> string | null
     refusal: /too frequent|稍后重试/i,     // text that means "the message was REFUSED"
   },
@@ -34,15 +35,15 @@ Rules: no imports, no side effects, no timers. A platform file that needs anythi
 | # | Platform | Host(s) | Stream signature (reference) | Format | Reference source |
 |---|---|---|---|---|---|
 | 1 | ChatGPT | `chatgpt.com`, `chat.openai.com` | `/backend-api\/conversation/` | SSE | ai-tool-agent `chatgpt.js` |
-| 2 | Claude | `claude.ai` | *(none found — hypothesis: `/chat_conversations/.*/completion`)* | SSE | **to discover** |
-| 3 | Gemini | `gemini.google.com` | *(none found — hypothesis: Batchexecute RPC)* | RPC/JSON | **to discover** |
+| 2 | Claude | `claude.ai` | `/chat_conversations/.*/completion` — terminal `stop_reason:"stop_sequence"` | SSE | ChatGPTBox (`research/09`) |
+| 3 | Gemini | `gemini.google.com` | `BardChatUi/…/StreamGenerate` — **body-complete** | RPC/JSON | ChatGPTBox (`research/09`) |
 | 4 | DeepSeek | `chat.deepseek.com` | `/chat\/completion/` | SSE | ai-tool-agent `deepseek.js` |
-| 5 | Kimi | `kimi.com`, `kimi.ai`, `moonshot.cn` | `/kimi\.gateway\.chat|ChatService\/Chat/` | **binary (Connect-RPC)** | ai-tool-agent `kimi.js` |
+| 5 | Kimi | `kimi.com`, `kimi.ai`, `moonshot.cn` | `/api/chat/{id}/completion/stream` (SSE, `all_done`) · `/ChatService\/Chat/` (binary) | SSE **and** binary | ChatGPTBox + ai-tool-agent |
 | 6 | Qwen | `chat.qwen.ai`, `tongyi.aliyun.com`, `qianwen.com` | `/\/api\/v2\/chat\/completions|chat\/completions/` | SSE | ai-tool-agent `qwen*.js` |
 | 7 | GLM / z.ai | `chat.z.ai`, `z.ai`, `chatglm.cn` | `/chat\/completions|\/api\/chat\/completion|\/backend-api\/assistant\/stream/` | SSE | ai-tool-agent `zai.js`, `chatglm.js` |
 | 8 | Grok | `grok.com`, `x.com/i/grok` | *(no reference in any surveyed repo)* | ? | **to discover** |
 
-**Three of eight have no stream evidence anywhere.** That is the honest state of the art: everyone covers
+**One of eight still has no stream evidence anywhere (Grok).** That is the honest state of the art: everyone covers
 the Chinese free tier and ChatGPT; Claude/Gemini/Grok adapters elsewhere are DOM-only. Our SSE-first
 approach means we must discover their endpoints ourselves at M8. Confidence per platform, the full union
 of selectors and the exact refusal regexes live in `research/05-PLATFORM-INTEL.md`.

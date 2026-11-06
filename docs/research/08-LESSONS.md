@@ -71,6 +71,13 @@ Legend: **✓ confirmed** (we had it right, now with evidence) · **✎ changed*
 | L33 | Never describe an unknown outcome as a provider limit | CoS `endOutcome()` | ＋ wording rule |
 | L34 | Three repos in this space have **no licence** or a non-commercial one | k3d3 ×2, open-claude-in-chrome | ✓ nothing copied; recorded in `CREDITS.md` |
 
+## G. After `09-WEB-CLIENT-ENDPOINTS.md`
+
+| # | Lesson | Source | Effect |
+|---|---|---|---|
+| L35 | **Not every platform streams.** Gemini's reply is a whole RPC body; Claude's terminal is `stop_reason`, Kimi's is `all_done`, not `[DONE]` | ChatGPTBox | ＋ adapter `mode: 'sse' \| 'binary' \| 'body'`; `specs/01` accumulator rewritten around it |
+| L36 | A cookie/token client is a different product: it must own auth, PoW, `f.req` and conversation state forever | ChatGPTBox, deepseek-pp | ✓ D1 stands (intercept, do not reimplement) — but the endpoints are worth knowing for testing |
+
 ---
 
 ## The v1 tool surface after this pass (13 tools, replaces the 9)

@@ -25,6 +25,14 @@ Second pass, deeper than the first. Every repo was cloned at the commit below an
 | 16 | `AstraxOf/web-mcp-bridge` | `1026dfe` | 2026-11-03 | MIT | 10 | the `app/` snapshot in this repo |
 | 17 | `MaciekGos/LuauPilot` | `54ea7d9` | 2026-11-03 | MIT | 8 | Roblox + one web provider, **best loop engineering** |
 | 18 | `k3d3/mcpbridge` | `5d5e6b9` | 2025-03-20 | **none** | 3 | server half of #12 |
+| 19 | `ChatGPTBox-dev/chatGPTBox` | `78c54db` | 2026-11-02 | MIT | 9k | web-API clients for many chatbots (cookie/token, no DOM) |
+
+### 19 · ChatGPTBox — the other school, and the source of three endpoints
+MIT, actively maintained, and architecturally the opposite of this project: it reimplements each site's
+private API and calls it with the user's cookie or bearer token (`clients/claude`, `clients/bard`,
+`apis/moonshot-web.mjs`). We reject that (tokens, PoW, `f.req`, private state — all re-derived forever), but
+its source is the only place in the survey that documents **Claude's SSE, Gemini's RPC and Kimi's stream**.
+Recorded in `09-WEB-CLIENT-ENDPOINTS.md`; it is why three adapters went from "unknown" to "known transport".
 
 **Three licence walls:** #12/#18 have **no licence at all** (all rights reserved — read only, not even
 inspiration we may paraphrase closely); #9 is **non-commercial**; #14 is **GPL-3.0**; #8 is

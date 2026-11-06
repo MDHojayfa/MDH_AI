@@ -55,3 +55,24 @@ extract(chunkText) -> string|null   // implemented per platform
 - [ ] Fuzz: 10,000 random chunk splits produce identical concatenated output.
 - [ ] A wrapped page with an unrelated request is byte-identical in behaviour (test with a local fixture server).
 - [ ] No uncaught exception with `patterns = []`.
+
+---
+
+## Revision — three read modes, not one
+
+The second survey (`research/09-WEB-CLIENT-ENDPOINTS.md`) found that not every platform streams. The
+interceptor therefore exposes one accumulator with three modes, chosen by adapter data:
+
+| mode | pairs with | completion |
+|---|---|---|
+| `sse` | `text/event-stream` bodies split on `\n\n`, each `data:` line JSON-parsed | the adapter's terminal frame (`[DONE]`, `stop_reason:"stop_sequence"`, `{event:"all_done"}`) |
+| `binary` | framed responses (Kimi's `moonshot.cn` generation) | the frame carrying the finish flag, or stream end |
+| `body` | Gemini's `StreamGenerate` RPC: **no deltas at all** | the `fetch` promise resolving with the whole body |
+
+Consequences:
+- the wrapper must also capture **`response.text()` / `response.json()`** for `body` mode, not just the
+  stream reader — the same wrapper, one extra branch;
+- `body` mode has no partial text, so the UI must show "working" rather than a growing transcript, and
+  `timings.idleMs` is meaningless there (only `timeoutMs` applies);
+- `body` mode pairs with a **DOM cross-check** instead of a DOM fallback: if extracted text and rendered
+  text differ by >20 % in length, prefer the DOM and log `FIDELITY` (never silently choose the shorter one).
