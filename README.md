@@ -119,6 +119,9 @@ what is mitigated and what is not.
 | [`docs/SECURITY.md`](docs/SECURITY.md) | threat model and residual risk |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | v1.x, v2, v3 — and what was rejected |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | every choice, with the alternative that lost |
+| [`docs/MANUAL.md`](docs/MANUAL.md) | the ten-minute user manual |
+| [`docs/FAQ.md`](docs/FAQ.md) | the 20 questions people actually ask |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | how to add a ninth platform without touching the core |
 
 ## Requirements
 

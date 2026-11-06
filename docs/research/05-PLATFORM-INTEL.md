@@ -99,12 +99,12 @@ Confidence: ● high (3+ independent sources) · ◐ medium (2 sources) · ○ l
 
 | Field | Value | Source |
 |---|---|---|
-| hosts | `grok.com` (and `x.com/i/grok`, unverified) | Superpower (only) |
+| hosts | `grok.com`; `x.com/i/grok` and `x.com/*` (matched in Superpower's manifest for "grok.com tool call parsing" and an X integration) | Superpower (only) |
 | stream | **unknown** — possibly WebSocket | — |
 | composer | `.chat-input-container` · `.input-area` · `textarea` · `div[contenteditable]` | Superpower (generic list) |
 | send | `.ml-auto.flex.flex-row.items-end.gap-1` (utility-class chain — will rot) | Superpower |
 | messages | not found | — |
-| plan | DOM-first adapter; capture the real selectors and the transport in M8 before promising anything | — |
+| plan | DOM-first adapter; run `docs/M8-PLAYBOOK.md` before promising anything. Superpower ships a **separate content script for grok.com tool-call parsing**, which hints Grok renders calls in a structured node — worth 20 minutes to confirm | — |
 
 ---
 
