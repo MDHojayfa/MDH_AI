@@ -116,3 +116,23 @@ test('a finished task gets a finish card, not silence', () => {
   assert.match(agent, /MDH\.ui\.done\?\.\(/);
   assert.match(agent, /onAgain:/);
 });
+
+test('the tooltip answers "why is it like this" without opening anything', () => {
+  const { explain, PHASES } = dock._internals;
+
+  assert.equal(explain({ title: PHASES.running.title, turn: 12 }), `${PHASES.running.title} · turn 12`);
+  assert.equal(
+    explain({ title: PHASES.paused.title, pauseReason: 'no reply arrived', turn: 4 }),
+    `${PHASES.paused.title} — no reply arrived · turn 4`,
+    'the reason is in the tooltip, not only in the card',
+  );
+  assert.equal(explain({ title: PHASES.stopped.title, pauseReason: 'turn limit reached' }),
+    `${PHASES.stopped.title} — turn limit reached`);
+  assert.equal(explain({}), 'MDH', 'a missing state still says something true');
+});
+
+test('the title is refreshed when the reason changes, not only when the phase does', () => {
+  assert.match(source, /const title = explain\(state\);/);
+  assert.match(source, /if \(pill\.title !== title\)/);
+  assert.match(source, /pill\.setAttribute\('aria-label', title\)/, 'and screen readers get the same sentence');
+});

@@ -133,6 +133,16 @@ codebase to leak something by accident.
 | paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
+## 3d0b. Pill tooltip — `tests/dock.test.mjs`
+
+| Case | Expected |
+|---|---|
+| running | phase sentence plus the turn number |
+| paused | phase sentence, the reason, and the turn — in that order |
+| stopped | the reason, without a turn if unknown |
+| nothing | says "MDH" rather than an empty tooltip |
+| refresh | the title updates when the reason changes, not only on a phase change |
+
 ## 3d1. Plan mode — `tests/planmode.test.mjs`
 
 | Case | Expected |
