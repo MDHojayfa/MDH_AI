@@ -83,7 +83,8 @@ Governed sending + ladder (D13) · hidden ≠ paused (D14) · outcome vocabulary
 
 1. ~~Claude completion endpoint~~ — found: SSE, `stop_reason: stop_sequence` (verify live).
 2. ~~Gemini framing~~ — found: RPC, body-complete. Verify the text path and the DOM cross-check.
-3. Grok transport (WebSocket is the guess) and its real selectors — **still the one true unknown**.
+3. ~~Grok transport~~ — found: SSE on `/rest/app-chat/conversations/...`, terminal `[DONE]`, delta
+   `result.response.token`. **Selectors still unknown** — Superpower's are a utility-class chain.
 4. Verbatim refusal strings per platform, in the site's locale.
 5. ~~Kimi frame layout~~ — two reports: SSE `{event:'cmpl'}` on kimi.com, binary frames on
    kimi.moonshot.cn. Ship both paths; confirm per host during M8.

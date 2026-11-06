@@ -94,6 +94,29 @@ await fetchSSE(`https://www.kimi.com/api/chat/${this.conversationId}/completion/
 `binary` as a per-host flag and the brace-depth scanner stays, because we do not know which one the user's
 account gets.
 
+## 3b · Grok — SSE, despite the request header
+
+`justlovemaki/AIClient2API` (`src/providers/grok/grok-core.js`) implements Grok's web chat:
+
+```js
+this.chatApi = `${this.baseUrl}/rest/app-chat/conversations/new`;            // :66
+url = `${this.baseUrl}/rest/app-chat/conversations/${conversationId}/responses`; // :1303
+headers['content-type'] = 'application/grpc-web+proto'; headers['x-grpc-web'] = '1'; // :158
+for await (const line of rl) {                        // :1317
+  const dataStr = trimmed.startsWith('data:') ? trimmed.slice(5).trim() : trimmed;
+  if (dataStr === '[DONE]') break;
+  const json = JSON.parse(dataStr);
+  const resp = json.result.response;                  // resp.token = the text delta
+```
+
+| Field | Value |
+|---|---|
+| endpoint | `/rest/app-chat/conversations/new`, then `/rest/app-chat/conversations/{id}/responses` |
+| transport | **SSE JSON**, terminal `[DONE]` |
+| delta | `result.response.token`; `isThinking` / `messageStepId` mark reasoning frames |
+| trap | the request advertises `application/grpc-web+proto`; the response is *not* protobuf. Never infer the read path from the request header |
+| bonus | `GET /rest/rate-limits` returns the account's quota window |
+
 ## 4 · Why we still do not do it this way
 
 | Requirement of the reimplementation approach | Ours |

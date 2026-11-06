@@ -41,12 +41,12 @@ Rules: no imports, no side effects, no timers. A platform file that needs anythi
 | 5 | Kimi | `kimi.com`, `kimi.ai`, `moonshot.cn` | `/api/chat/{id}/completion/stream` (SSE, `all_done`) · `/ChatService\/Chat/` (binary) | SSE **and** binary | ChatGPTBox + ai-tool-agent |
 | 6 | Qwen | `chat.qwen.ai`, `tongyi.aliyun.com`, `qianwen.com` | `/\/api\/v2\/chat\/completions|chat\/completions/` | SSE | ai-tool-agent `qwen*.js` |
 | 7 | GLM / z.ai | `chat.z.ai`, `z.ai`, `chatglm.cn` | `/chat\/completions|\/api\/chat\/completion|\/backend-api\/assistant\/stream/` | SSE | ai-tool-agent `zai.js`, `chatglm.js` |
-| 8 | Grok | `grok.com`, `x.com/i/grok` | *(no reference in any surveyed repo)* | ? | **to discover** |
+| 8 | Grok | `grok.com`, `x.com/i/grok` | `/rest/app-chat/conversations/(new|{id}/responses)` — terminal `[DONE]` | SSE | AIClient2API (`research/05 §8`) |
 
-**One of eight still has no stream evidence anywhere (Grok).** That is the honest state of the art: everyone covers
-the Chinese free tier and ChatGPT; Claude/Gemini/Grok adapters elsewhere are DOM-only. Our SSE-first
-approach means we must discover their endpoints ourselves at M8. Confidence per platform, the full union
-of selectors and the exact refusal regexes live in `research/05-PLATFORM-INTEL.md`.
+**All eight now have a named transport.** Six are SSE, Gemini is a whole-body RPC, Kimi has a second
+binary host, and every one of them still needs a live check at M8 — what is known today is *where to look*,
+not that it works. Confidence per platform, the full union of selectors and the exact refusal regexes live
+in `research/05-PLATFORM-INTEL.md`.
 
 ## Pacing and timing profiles
 

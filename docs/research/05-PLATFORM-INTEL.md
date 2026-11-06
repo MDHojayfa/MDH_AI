@@ -12,7 +12,7 @@ Confidence: ● high (3+ independent sources) · ◐ medium (2 sources) · ○ l
 | `sse` | ChatGPT, Claude, DeepSeek, Kimi (`kimi.com`), Qwen, GLM | incremental text; terminal frame defined by the adapter |
 | `binary` | Kimi (`kimi.moonshot.cn`) | brace-depth scanner over framed bytes |
 | `body` | Gemini | the response is whole; "fetch resolved" = `completed` |
-| `dom` | Grok, and every platform as a cross-check | read the rendered message, not the network |
+| `dom` | every platform, as the cross-check; primary only if the other three fail | read the rendered message, not the network |
 
 ---
 
@@ -104,16 +104,17 @@ Confidence: ● high (3+ independent sources) · ◐ medium (2 sources) · ○ l
 | messages | `.user-message` · `.chat-assistant` · `.markdown-prose` · `.thinking-chain-container` | ZeroScript |
 | quirks | two products, two streams, one selector vocabulary — closest pair in the set | — |
 
-## 8 · Grok — ○ *(weakest, no stream evidence anywhere)*
+## 8 · Grok — ◐
 
 | Field | Value | Source |
 |---|---|---|
-| hosts | `grok.com`; `x.com/i/grok` and `x.com/*` (matched in Superpower's manifest for "grok.com tool call parsing" and an X integration) | Superpower (only) |
-| stream | **still unknown** — possibly WebSocket; Superpower ships a *grok.com tool-call parsing* content script, which suggests structured call nodes in the DOM | Superpower manifest |
+| hosts | `grok.com`; `x.com/i/grok` and `x.com/*` (Superpower matches both for "grok.com tool call parsing" and an X integration) | Superpower manifest |
+| stream | `POST /rest/app-chat/conversations/new` (new chat) or `/rest/app-chat/conversations/{id}/responses` — **SSE**, `data:` lines, terminal `data: [DONE]`; delta at `json.result.response.token`, reasoning flagged `isThinking`, `messageStepId` | AIClient2API `src/providers/grok/grok-core.js:66,1301,1327` |
+| quota | `GET /rest/rate-limits` exists and returns the account's window — a candidate for an honest countdown (v1.1; v1 must not make extra requests) | same `:329` |
 | composer | `.chat-input-container` · `.input-area` · `textarea` · `div[contenteditable]` | Superpower (generic list) |
 | send | `.ml-auto.flex.flex-row.items-end.gap-1` (utility-class chain — will rot) | Superpower |
-| messages | not found | — |
-| plan | DOM-first adapter; run `docs/M8-PLAYBOOK.md` before promising anything. Superpower ships a **separate content script for grok.com tool-call parsing**, which hints Grok renders calls in a structured node — worth 20 minutes to confirm | — |
+| messages | not found — Superpower parses "grok.com tool calls" in a dedicated content script, so a structured node exists | Superpower manifest |
+| quirks | the request is sent with `content-type: application/grpc-web+proto` + `x-grpc-web: 1` while the **response is SSE JSON**; do not infer the response format from the request header | AIClient2API `:158` |
 
 ---
 
