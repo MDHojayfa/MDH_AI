@@ -113,3 +113,21 @@ route, which is exactly what this project exists to avoid).
 5. Real prompt-injection escape rate against this bridge.
 
 These are answered by the M8 checklist, not by more reading.
+
+## 8. Documentation map
+
+| File | Read it when… |
+|---|---|
+| `PLAN.md` (this) | you need the scope, the milestones, or the definition of done |
+| `ARCHITECTURE.md` | you need to know which layer may do what, and why the ladder exists |
+| `DECISIONS.md` | you are about to change something and want to know what was already rejected |
+| `INTERFACES.md` | you are writing code — names, signatures, storage keys, error codes |
+| `PLATFORMS.md` | an adapter broke, or you are adding platform #9 |
+| `SECURITY.md` | a user asks "is this safe", or you are adding a tool |
+| `TESTPLAN.md` | before claiming anything works |
+| `REVIEW.md` | before a checkpoint — it is the list of ways this fails |
+| `ROADMAP.md` | something is out of scope and you want to know when it is not |
+| `CHECKPOINTS.md` | you are resuming a session |
+| `specs/01…09` | one module, in detail |
+| `prompt/SYSTEM.md`, `prompt/FRAMING.md` | any change to what the model sees |
+| `research/` | **internal only — deleted before v1 ships** |

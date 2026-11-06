@@ -17,7 +17,7 @@ Kept only as reference until M10.
 `MDH_work/Research/00–06` (outside the repo): 15 repos cloned and read, Firefox API matrix verified
 against MDN compat data v8.1.8.
 
-## CP-003 · 2026-11-06 · plan locked ← **you are here**
+## CP-003 · 2026-11-06 · plan locked
 `docs/PLAN.md` · `docs/ARCHITECTURE.md` · `docs/DECISIONS.md` · `docs/specs/**` · `docs/PLATFORMS.md`
 · `docs/SECURITY.md` · `docs/TESTPLAN.md`
 
@@ -28,6 +28,20 @@ rejected alternatives, per-module specs, threat model, test matrix.
 
 **Next action:** M1 — scaffold `src/` + `tools/build.mjs` producing `dist/{chrome,firefox}`, then M2
 interceptor with synthetic-stream unit tests.
+
+## CP-004 · 2026-11-06 · design complete ← **you are here**
+`docs/INTERFACES.md` · `docs/prompt/SYSTEM.md` · `docs/prompt/FRAMING.md` · `docs/specs/09-ui.md`
+· `docs/REVIEW.md` · `docs/research/00-RESEARCH-LOG.md` · `docs/PLAN.md §8` · `docs/ROADMAP.md`
+
+**Done:** the model-facing prompt in final wording; every frame and notice we send; the code contract
+(names, signatures, storage keys, error codes); the UI with all three approval states; an adversarial
+review that changed three things (Chrome ID pinning, `strict_min_version` 140 confirmed, loop stays in
+the content script). Research findings now live *inside* the repo so a reset cannot destroy them.
+
+**Deliberately absent:** still no v1 code — by instruction. Everything a coder needs is written down.
+
+**Next action:** M1 scaffold — `src/manifest.base.json`, both overlays, `tools/build.mjs`, empty module
+skeletons that satisfy `INTERFACES.md`, and a `dist/` that loads clean in all three browsers.
 
 ---
 
