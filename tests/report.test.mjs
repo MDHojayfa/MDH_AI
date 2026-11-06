@@ -115,6 +115,30 @@ test('the agent shows the form when the loop dies', () => {
   assert.match(js, /REPORTABLE/);
 });
 
+test('a changed page gets its own card, with the selector named', () => {
+  const ui = readFileSync(join(ROOT, 'src/core/ui.js'), 'utf8');
+  const agent = readFileSync(join(ROOT, 'src/core/agent.js'), 'utf8');
+  assert.match(ui, /function drift\(/);
+  assert.match(ui, /Report this selector/);
+  assert.match(agent, /MDH\.ui\.drift\?\.\(/);
+  assert.match(agent, /adapter\.dom\?\.composer/);
+});
+
+test('one failure shows one card, not two', () => {
+  const agent = readFileSync(join(ROOT, 'src/core/agent.js'), 'utf8');
+  assert.match(agent, /function reportCard/);
+  assert.match(agent, /Date\.now\(\) - lastIssueAt < 60000/);
+  // the catch must not re-report what the drift card already explained
+  assert.match(agent, /if \(!e\.reported\)/);
+});
+
+test('the help desk does not depend on the joke engine', () => {
+  // loaded with report.js alone: no fun.js in this context, and the lines still work
+  assert.equal(MDH.fun, undefined);
+  assert.ok(report.issueLine(0).length > 20);
+  assert.ok(report.shareLine(0).length > 20);
+});
+
 test('the share sheet is automatic exactly once, and can be reopened', () => {
   const js = readFileSync(join(ROOT, 'src/popup/popup.js'), 'utf8');
   assert.match(js, /if \(!sharePrompted\)/);

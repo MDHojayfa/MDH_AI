@@ -159,3 +159,10 @@ Eight of the ten destinations have a real web intent that pre-fills the text. In
 there is no URL that opens their composer with a caption — so the sheet copies the link first and opens the
 site, and says so. Faking a share endpoint would produce a button that appears to work and silently does
 nothing, which is worse than a button that explains itself.
+
+**D29 · Publishing the verification ladder is a feature, not a disclaimer.**
+`docs/KNOWN-LIMITS.md` separates "covered by a test" from "seen once, by hand" from "never executed". The
+reason is practical: without it, every bug report starts with a negotiation about whether the product is
+broken or the expectation was. With it, a reporter can point at a row, and a maintainer can turn that row into
+a fixture. A one-person project cannot buy coverage, but it can be precise about what it lacks — and precision
+is what makes a stranger's two-minute report worth reading.

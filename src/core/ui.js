@@ -365,6 +365,22 @@
       el('div', { class: 'cmd', text: String(detail || reason) }),
       el('div', { class: 'quip', text: quip }),
     );
+    const copyBtn = el('button', {
+      text: 'Copy log',
+      onclick: async () => {
+        const lines = (MDH.log?.tail?.(60) ?? []).map(
+          (entry) => `${new Date(entry.at).toISOString()} ${entry.level} ${entry.text}`,
+        );
+        const text = [`MDH_AI ${MDH.VERSION ?? 'dev'} · in-page log`, '', ...lines].join('\n');
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.textContent = 'Copied';
+          setTimeout(() => (copyBtn.textContent = 'Copy log'), 1400);
+        } catch {
+          copyBtn.textContent = 'Copy failed';
+        }
+      },
+    });
     const open = el('button', {
       class: 'primary',
       text: 'Open an issue',
@@ -380,7 +396,7 @@
         close();
       },
     });
-    const footer = el('div', { class: 'ft' }, open, el('div', { class: 'spacer' }));
+    const footer = el('div', { class: 'ft' }, open, copyBtn, el('div', { class: 'spacer' }));
     const closeBtn = el('button', { text: 'Dismiss', onclick: () => close() });
     footer.append(closeBtn);
 
@@ -396,10 +412,51 @@
     return { close };
   }
 
+  /**
+   * Adapter drift: the page is still one of the eight, but the button it used to have is gone. That is the
+   * single most likely breakage in this product's life, and it is the one case where the extension knows
+   * exactly which selector failed — so it says the selector out loud and puts it in the report.
+   */
+  function drift({ platform = 'unknown', selectors = [], reason = 'not found', seed = Date.now() } = {}) {
+    mount();
+    const list = selectors.length ? selectors.join('\n· ') : '(no selectors configured)';
+    const body = el('div', { class: 'bd' },
+      el('div', { class: 'cmd', text: `${platform}: ${reason} — the site probably changed its markup.` }),
+      el('div', { class: 'quip', text: 'Selectors tried:' }),
+      el('div', { class: 'cmd', text: `· ${list}` }),
+      el('div', { class: 'quip', text: MDH.report?.issueLine(seed) ?? '' }),
+    );
+    const open = el('button', {
+      class: 'primary',
+      text: 'Report this selector',
+      onclick: () => {
+        const url = MDH.report?.issueUrl({
+          title: `[bug] ${platform}: selector no longer matches`,
+          stage: 'send',
+          platform,
+          browser: navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Chrome',
+          detail: `Selector no longer matches on ${platform}.\nTried:\n${list}`,
+        });
+        if (url) globalThis.open?.(url, '_blank', 'noopener');
+        close();
+      },
+    });
+    const card = el('div', { class: 'card' },
+      el('div', { class: 'hd' }, el('span', { class: 'dot err' }), el('span', { class: 'title', text: 'Page changed' })),
+      body,
+      el('div', { class: 'ft' }, open, el('div', { class: 'spacer' }), el('button', { text: 'Dismiss', onclick: () => close() })),
+    );
+    card.id = 'mdh-drift';
+    root?.getElementById('mdh-drift')?.remove();
+    addCard(card);
+    const close = () => removeCard(card);
+    return { close };
+  }
+
   function clear() {
     for (const card of [...stack]) card.remove();
     stack = [];
   }
 
-  MDH.ui = { mount, showApproval, askQuestion, showPlan, notice, countdown, mission, issue, clear, el, removeCard };
+  MDH.ui = { mount, showApproval, askQuestion, showPlan, notice, countdown, mission, issue, drift, clear, el, removeCard };
 })();

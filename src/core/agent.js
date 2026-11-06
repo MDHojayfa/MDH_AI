@@ -313,7 +313,17 @@
     }
 
     const el = composer(adapter);
-    if (!el) throw Object.assign(new Error('composer not found'), { code: 'SEND_FAILED' });
+    if (!el) {
+      // Not a generic failure: this is the product's most likely breakage and the one report that can be
+      // fixed in a single commit, so the card carries the exact selectors and a one-click form.
+      lastIssueAt = Date.now();
+      MDH.ui.drift?.({
+        platform: adapter.id,
+        selectors: adapter.dom?.composer ?? [],
+        reason: 'composer not found',
+      });
+      throw Object.assign(new Error('composer not found'), { code: 'SEND_FAILED', reported: true });
+    }
 
     const before = assistantText(adapter).count;
     if (!setComposerText(el, text)) throw Object.assign(new Error('could not write into the composer'), { code: 'SEND_FAILED' });
@@ -479,10 +489,7 @@
             label: 'Report it',
             fn: (close) => {
               close();
-              MDH.ui.issue?.({
-                reason: 'stalled',
-                detail: `No reply arrived after ${Math.round(ms / 1000)} s on ${adapter.id}.`,
-              });
+              reportCard(`No reply arrived after ${Math.round(ms / 1000)} s on ${adapter.id}.`);
             },
           },
         ],
@@ -565,18 +572,25 @@
   const REPORTABLE = new Set(['stalled', 'failed', 'error', 'timeout', 'NO_HOST', 'NO_TAB', 'SEND_FAILED']);
   let lastIssueAt = 0;
 
+  /**
+   * One failure, one card. The loop can fail in two places (the throw, then `stop`), and a user who sees the
+   * same form twice learns to dismiss both without reading. 60 s is long enough to cover a single failure
+   * and short enough that a second, genuinely new one still gets through.
+   */
+  function reportCard(detail) {
+    if (Date.now() - lastIssueAt < 60000) return;
+    lastIssueAt = Date.now();
+    MDH.ui.issue?.({ reason: String(detail), detail });
+  }
+
   function stop(reason) {
     S.running = false;
     S.stopped = true;
     S.phase = 'stopped';
     log()?.warn('loop stopped:', reason);
     MDH.ui.notice(`MDH stopped: ${reason}`, { tone: 'warn', ms: 6000 });
-    if (REPORTABLE.has(String(reason)) && Date.now() - lastIssueAt > 60000) {
-      lastIssueAt = Date.now();
-      MDH.ui.issue?.({
-        reason: String(reason),
-        detail: `The loop stopped (${reason}) after ${S.turn} turn${S.turn === 1 ? '' : 's'}.\nStage: ${S.phase}`,
-      });
+    if (REPORTABLE.has(String(reason))) {
+      reportCard(`The loop stopped (${reason}) after ${S.turn} turn${S.turn === 1 ? '' : 's'}.\nStage: ${S.phase}`);
     }
     MDH.state.patch('session', { phase: 'stopped', outcome: reason }).catch(() => {});
   }
@@ -621,10 +635,7 @@
       log()?.error('loop failed', e);
       // A failure is the one moment a user might actually file an issue, so it is the one moment we hand
       // them the form. The joke is labelled; the reason is not.
-      MDH.ui.issue?.({
-        reason: e.code ?? 'error',
-        detail: `The loop stopped: ${e.message}\n\nStage: ${S.phase} · turn ${S.turn}`,
-      });
+      if (!e.reported) reportCard(`The loop stopped: ${e.message}\n\nStage: ${S.phase} · turn ${S.turn}`);
       stop(e.code ?? 'error');
     });
     return { ok: true };

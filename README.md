@@ -132,8 +132,8 @@ it over a pipe, which is why a web page cannot reach it. Details: [`docs/ARCHITE
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | why it is built this way |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | what comes after v1 |
 | [`docs/TESTPLAN.md`](docs/TESTPLAN.md) | what is tested and how to reproduce it |
+| [`docs/KNOWN-LIMITS.md`](docs/KNOWN-LIMITS.md) | what one laptop cannot test — the honest version |
 | [`docs/SEO-AND-LAUNCH.md`](docs/SEO-AND-LAUNCH.md) | positioning, search and launch plan |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | why it is built this way (including why the jokes are labelled) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | build, test, package, add an adapter |
 | [`site/index.html`](site/index.html) | the landing page — one file, no dependencies |
 

@@ -54,7 +54,9 @@ First release. One script, one extension, eight platforms, no API key.
 - **The share sheet**, opened automatically once per profile and available as a permanent button after that,
   with copy-to-clipboard and a native share fallback on browsers that have one. Instagram and TikTok are
   labelled honestly: neither has a web intent, so the sheet copies the link first.
-- **100 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **`docs/KNOWN-LIMITS.md`** — an explicit verification ladder (automated / by hand once / never) so "it
+  works" can be checked rather than believed.
+- **105 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

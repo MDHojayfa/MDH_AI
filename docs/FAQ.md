@@ -91,6 +91,11 @@ It is one line, on every run, in a place you already look, with two buttons that
 alternative — a footer link nobody reads — is how a tool with one developer ends up with zero reports and a
 reputation for being broken. The silly lines are a separate pool, so help never sounds like a joke.
 
+**What has not been tested at all?**
+[`docs/KNOWN-LIMITS.md`](KNOWN-LIMITS.md) lists it, table by table: what is automated, what was checked by
+hand once, and what nobody has ever run. The short version is that one person on one Linux machine tested as
+far as that allows, which is not the same as tested everywhere.
+
 **Why does it say the developer has no NASA PC?**
 Because it is true and it is the reason bug reports are worth more than donations. One laptop, eight sites
 that redesign on a Tuesday, no staging cluster. Assume the code was tested as far as one machine allows and
