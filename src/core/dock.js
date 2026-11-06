@@ -81,7 +81,12 @@
 
   const CSS = `
     :host { all: initial; }
-    .pill { position: fixed; z-index: ${Z}; display: flex; align-items: center; gap: 7px; height: ${SIZE}px;
+    /*
+   * Fixed, and measured against the composer's rectangle — never placed *inside* the composer's layout.
+   * Putting a control in a React textarea's flex row is a documented way to give someone a 0-width input on
+   * a Tuesday. The pill floats above the page like a sticker on a laptop lid; the lid does not care.
+   */
+  .pill { position: fixed; z-index: ${Z}; display: flex; align-items: center; gap: 7px; height: ${SIZE}px;
       padding: 0 12px 0 10px; border-radius: 999px; border: 1px solid #3b3663; background: #12111c;
       color: #e5e7eb; font: 600 12.5px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
       box-shadow: 0 8px 24px rgba(0,0,0,.45); cursor: pointer; user-select: none; touch-action: none;

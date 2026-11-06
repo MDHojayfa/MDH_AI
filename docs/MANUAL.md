@@ -96,6 +96,19 @@ globs or `~` gets no menu at all, because it can hide a second command — the c
 button that would be a lie. Remembered approvals are listed in **Advanced → Remembered approvals**, each with a
 ✕; removing one takes effect at the next call. Every execution is still written to the log.
 
+## 3d · "Runs on a potato" — the receipts
+
+```bash
+npm run weigh          # human table
+npm run weigh -- --json
+```
+
+It weighs the extension you actually install, starts the host for real and times it to the first `ready` frame,
+reads the host's resident memory, and counts dependencies. Current numbers on a two-core test box: **131 KB
+zipped · 51 ms to ready · 55 MB resident · 0 dependencies**. If any of those crosses its budget the script exits
+non-zero, so the claim cannot quietly rot. The comparison this backs up is in
+[`WHY.md`](WHY.md) — including what other tools do better.
+
 ## 4 · Where the knobs are
 
 | Knob | Where | Default |

@@ -133,6 +133,16 @@ codebase to leak something by accident.
 | paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
+## 3e2. Weight and claims — `tests/weigh.test.mjs`
+
+| Case | Expected |
+|---|---|
+| budgets | zip ≤ 300 KB, host RSS ≤ 80 MB, startup ≤ 1500 ms, dependencies = 0 |
+| verdict | a fabricated over-budget metric fails `evaluate()`; an in-budget one passes |
+| dependencies | `package.json` declares no dependencies, optional or dev |
+| honesty | `weigh.mjs` exits non-zero over budget; `docs/WHY.md` tells the reader to run it |
+| v2 notes | rotation and messaging are named, and marked as notes rather than promises |
+
 ## 3f1. Run grants — `tests/grant.test.mjs`
 
 | Case | Expected |

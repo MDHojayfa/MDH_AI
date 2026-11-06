@@ -6,8 +6,12 @@
  * what the delta is, and when the turn is finished.
  *
  * It never throws into page code and never blocks a request: the wrapper is transparent by contract
- * (and because a page that notices us is a page that can start lying to us).
  * (docs/ARCHITECTURE.md §3).
+ *
+ * Not out of politeness. A page that notices it is being watched has two options, and it will not pick the
+ * one where it tells you. It will start sending a tidier stream than the one the user sees. Every agent that
+ * scraped a product UI has learned this the expensive way; this file is written by someone who would rather
+ * not learn it twice.
  */
 (() => {
   'use strict';

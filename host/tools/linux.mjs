@@ -314,6 +314,9 @@ const HOST = [
   { name: 'read_file', description: 'Read a text file by line range', inputSchema: { type: 'object', properties: { path: str('file'), offset: num('first line, 1-based'), limit: num('max lines') }, required: ['path'] }, run: readFileTool },
   { name: 'write_file', description: 'Create or overwrite a text file', inputSchema: { type: 'object', properties: { path: str('file'), content: str('full contents') }, required: ['path', 'content'] }, run: writeFileTool },
   { name: 'edit_file', description: 'Replace the one exact match in a file', inputSchema: { type: 'object', properties: { path: str('file'), find: str('exact text to find'), replace: str('replacement') }, required: ['path', 'find', 'replace'] }, run: editFileTool },
+  // A shell, as the user, with their environment. Not a sandbox, not a "safe" subset of commands, not a promise
+  // that `rm` is a file operation. The guardrails are the allowlist, the approval card and the fact that a human
+  // is watching — in that order, and none of them is a substitute for the others.
   { name: 'run_command', description: 'Run shell commands and return output and exit code', inputSchema: { type: 'object', properties: { cmd: str('one command'), cmds: { type: 'array', items: { type: 'string' }, description: 'up to 20 commands in one shell' }, cwd: str('working directory'), timeout_ms: num('milliseconds') } }, run: runCommand },
   { name: 'send_stdin', description: 'Continue a background command (not available in v1 — see docs)', inputSchema: { type: 'object', properties: { session_id: str('id'), input: str('text') }, required: ['session_id', 'input'] }, run: async () => 'background sessions are not enabled in this build' },
   { name: 'search_files', description: 'Regex search across files', inputSchema: { type: 'object', properties: { pattern: str('regex'), path: str('folder'), glob: str('file glob') }, required: ['pattern'] }, run: searchFiles },

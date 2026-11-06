@@ -389,8 +389,12 @@
   });
 
   $('retry').addEventListener('click', async () => {
+    // The round trip is the cheapest evidence that "instant" is true on this machine, so it is shown rather
+    // than implied: a host that answers in 4 ms is a host you will never see a spinner for.
+    const started = performance.now();
     const res = await send(tabId, { type: 'mdh:ping-host' });
-    if (res?.ok) setState('host connected', 'ok');
+    const ms = Math.round(performance.now() - started);
+    if (res?.ok) setState(`host connected · ${ms} ms`, 'ok');
     setTimeout(refresh, 300);
   });
 

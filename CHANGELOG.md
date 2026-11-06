@@ -17,6 +17,14 @@ First release. One script, one extension, eight platforms, no API key.
 - **A completion code ("phoenix")**: every session gets `PHX-XXXXXX`, and only a `finish` call carrying it ends
   a task. A wrong or missing code gets one correction, then a pause with *Mark as finished*. Printed in the
   prompt, every reminder, the tool schema and the popup's Advanced panel.
+- **The numbers behind "lightweight"**: `npm run weigh` measures the extension, the host's startup and memory,
+  and the dependency count — and fails the build when a budget is crossed. 131 KB zipped · 51 ms to ready ·
+  55 MB resident · **0 npm dependencies**. `docs/WHY.md` is the honest comparison against API-key agents, CLI
+  coding agents and self-hosted gateways, including the things they do better.
+- **`docs/V2-NOTES.md`**: platform rotation (three chat URLs, a handoff prompt, evidence-based triggers, hard
+  caps) and a messaging bridge — written up with their failure modes, explicitly not promised.
+- **Fewer lame comments**: the ones that survive are about consequences (a 0-width composer, a page that
+  notices it is watched), not about vibes.
 - **The allow drop-down**: one big *Allow once*, plus a caret offering *for this run*, *for this session* (ends
   when the browser restarts, by boot stamp) and *always on this site* (listed in the popup with a ✕). Still one
   exact command, still after the policy check — the menu exists because four loud buttons teach people to click
@@ -122,7 +130,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **203 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **208 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

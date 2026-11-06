@@ -9,6 +9,20 @@ open applications — with your approval on every step.
 No API key. No account, no provider setup, no model picker, no billing. The model is the web chat you are
 already signed into, running in your browser, with your session.
 
+### What you do not have to bring
+
+| | |
+|---|---|
+| **No API key** | the chat you are signed into is the model — nothing to paste, nothing to bill |
+| **No daemon** | no gateway, no bot token, no port to keep open; close the browser and it is gone |
+| **No `npm install`** | zero dependencies: the host is Node's standard library and this repository |
+| **No NASA PC** | 131 KB zipped extension, 51 ms to a ready host, 55 MB resident, measured by `npm run weigh` — and the budget breaks a build, not a paragraph |
+| **No hidden calls** | loopback only, hash-chained audit on your disk, approvals before anything runs |
+
+The full comparison against API-key agents, CLI coding agents and self-hosted gateways — including what they do
+better — is in [`docs/WHY.md`](docs/WHY.md). Ideas for what comes next live in
+[`docs/V2-NOTES.md`](docs/V2-NOTES.md), clearly marked as notes rather than promises.
+
 ```bash
 git clone https://github.com/MDHojayfa/MDH_AI && cd MDH_AI
 ./install.sh                 # flags: --dry-run --uninstall --no-fun --barbos
@@ -143,6 +157,8 @@ it over a pipe, which is why a web page cannot reach it. Details: [`docs/ARCHITE
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | the five layers and why each exists |
 | [`docs/PLATFORMS.md`](docs/PLATFORMS.md) | per-platform read mode, selectors, quirks |
 | [`docs/PLUG.md`](docs/PLUG.md) | the completion code: what ends a task, and why a sentence cannot |
+| [`docs/WHY.md`](docs/WHY.md) | the honest comparison, and the measured numbers behind "lightweight" |
+| [`docs/V2-NOTES.md`](docs/V2-NOTES.md) | platform rotation, a messaging bridge, and the ideas that did not earn a place yet |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | threat model, controls, residual risk |
 | [`docs/FAQ.md`](docs/FAQ.md) | the questions people actually ask |
 | [`docs/DIAGNOSTICS.md`](docs/DIAGNOSTICS.md) | what a failure collects, what it refuses to, the signature table |

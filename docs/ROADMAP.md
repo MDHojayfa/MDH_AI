@@ -44,6 +44,16 @@ Each item below is a promise with a condition attached — nothing is listed tha
 
 ---
 
+## v2 candidates (notes, not promises)
+
+Two ideas are detailed in [`V2-NOTES.md`](V2-NOTES.md) with their failure modes spelled out:
+
+- **Platform rotation** — three chat URLs, and a run moves to the next when one hits a limit, carrying a handoff
+  prompt rather than a transcript.
+- **A messaging bridge** — talk to the agent from your phone, with approvals that survive leaving the desk.
+
+Neither is scheduled. Neither appears in the README until it has a test plan.
+
 ## v2 — other operating systems
 
 Windows first, then macOS. The bridge is the only OS-specific layer:

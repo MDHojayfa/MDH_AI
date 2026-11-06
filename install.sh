@@ -18,6 +18,11 @@
 # It registers the native host, builds both extension artifacts, and finishes by actually talking to the
 # host (a real ping/pong, not an assumption). Files are written only under ~/.config/mdh,
 # ~/.local/share/mdh, ~/.local/state/mdh and the browser host directories.
+#
+# Written for machines that are not new. If a step fails here, it is usually a distribution that renamed a
+# binary, not a computer that is too old to run a thirteen-kilobyte JSON host. The developer's own box
+# predates the second Bush administration's second term; it has never needed a NASA PC, only a Node version
+# that exists.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
