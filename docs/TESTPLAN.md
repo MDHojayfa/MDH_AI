@@ -133,6 +133,18 @@ codebase to leak something by accident.
 | paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
+## 3f1. Run grants — `tests/grant.test.mjs`
+
+| Case | Expected |
+|---|---|
+| plain command | grantable, key carries folder + normalised text (whitespace collapsed) |
+| same command, other folder | a different key — not the same grant |
+| `&&`, `;`, pipe, redirect, `$(…)`, backticks, glob, `~` | refused, with a reason a human can read |
+| non-command tool / empty command | refused |
+| lifetime | a new run clears grants; a granted command skips the card; the block never calls `state.set` |
+| the card | third button only when earned; "Allow once" / "Always" still present |
+| policy | `run_command` still asks even when the tool is set to allow |
+
 ## 3f2. Page probe — `tests/probe.test.mjs`
 
 | Case | Expected |

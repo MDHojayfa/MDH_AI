@@ -40,6 +40,18 @@ This software hands a language model a shell on a Linux machine. That sentence i
 | C10 | **No IP, no page snapshots, no DOM dumps** in a report; paths and foreign URLs redacted before the URL is built | a public bug tracker becoming a leak |
 | C11 | **The diagnostics frames are not tools** (`t:'diag'` never appears in `t:'list'`) | a prompt asking for the user's address |
 
+### Run grants
+
+A grant covers **one exact command** (tool + folder + normalised text) for the **rest of the current run**:
+
+- offered only after that command was approved twice in the same run, so it answers a real repetition;
+- cleared on Start/Stop, never persisted, never exported — nothing to leak, nothing to forget to revoke;
+- refused for any command containing shell chaining, pipes, redirection, command substitution or globs;
+- logged twice (`granted for this run`, then `run grant used`), so the audit trail still names every execution,
+  including the ones the user stopped seeing a card for.
+
+It cannot widen a deny rule: the deny check runs before any grant is consulted.
+
 ## 4. Residual risk — stated plainly, not hidden
 
 1. **Prompt injection is not solved.** Approvals reduce blast radius; they do not eliminate it. A user

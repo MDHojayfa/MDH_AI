@@ -81,6 +81,13 @@ MDH wants to run a command
 
 Read commands before approving. This is the only place a human is in the loop.
 
+## 3b · When you keep approving the same thing
+
+Approve the same exact command twice in one run and the third card gains **Allow for this run** — no more cards
+for that command until the run ends. It is deliberately narrow: pipes, `&&`, redirection, `$(…)`, backticks,
+globs and `~` all disqualify it, because those can hide a second command. Nothing is saved, and the log still
+records every execution.
+
 ## 4 · Where the knobs are
 
 | Knob | Where | Default |
