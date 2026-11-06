@@ -61,6 +61,15 @@ selectors still match and prints one line per part:
 `✘` on **composer** or **messages** means the site changed its DOM and this build cannot drive it — report it,
 that is a real bug and a quick fix. `○` on send or stop is normal: those buttons only exist at certain moments.
 
+## 2b2 · "Why is the pill like that?"
+
+Hover it. The pill's tooltip carries the phase, the turn and — when there is one — the reason it stopped:
+
+> Paused — nothing lost, click to continue — the model could not produce the completion code · turn 24
+
+The same sentence is the pill's `aria-label`, so it is available to a screen reader rather than being decoration
+only a mouse can reach.
+
 ## 2d · What happened last time
 
 **Advanced → Last run** shows one line: turns, elapsed, outcome and the reason if there was one (for example

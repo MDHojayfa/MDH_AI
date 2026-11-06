@@ -59,6 +59,20 @@
     };
   }
 
+  /**
+   * The tooltip is the answer to "why is it like this?" without opening anything: the phase's own sentence, plus
+   * the reason when there is one, plus the turn number when it is running. Hovering a paused pill and reading
+   * "Paused — nothing lost, click to continue — the model could not produce the completion code" is worth more
+   * than a prettier pill.
+   */
+  function explain(state) {
+    const base = state?.title ?? 'MDH';
+    const reason = state?.pauseReason ? String(state.pauseReason) : '';
+    const turn = state?.turn ? `turn ${state.turn}` : '';
+    if (reason) return `${base} — ${reason}${turn ? ` · ${turn}` : ''}`;
+    return turn ? `${base} · ${turn}` : base;
+  }
+
   /** Keep a floating control inside the viewport, whatever the saved position or the window size. */
   function clampPos(pos, size, viewport) {
     const maxLeft = Math.max(0, (viewport?.width ?? 0) - size.width);
@@ -353,8 +367,14 @@
           (state.phase === 'paused' ? ' paused' : '');
       }
       pill.dataset.phase = state.phase;
-      pill.setAttribute('aria-label', state.title);
-      pill.title = state.title;
+      pill.dataset.phase = state.phase;
+    }
+    // Title and aria-label are refreshed with the reason and the turn, not only on a phase change: the reason is
+    // attached while the phase (paused) stays the same, and a stale tooltip is worse than none.
+    const title = explain(state);
+    if (pill.title !== title) {
+      pill.title = title;
+      pill.setAttribute('aria-label', title);
     }
     const turn = pill.querySelector('.turn');
     if (turn) turn.textContent = state.turn > 0 ? `turn ${state.turn}` : '';
@@ -425,6 +445,7 @@
     get hidden() {
       return hiddenHere;
     },
-    _internals: { clampPos, anchorFor, PHASES },
+    _internals: {
+      explain, clampPos, anchorFor, PHASES },
   };
 })();
