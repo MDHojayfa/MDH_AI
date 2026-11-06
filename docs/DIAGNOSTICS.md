@@ -94,6 +94,8 @@ is the viewer, and a refresh is a reload.
 The same page is reachable from the popup (**Advanced → Log viewer**) and from the failure card. Properties:
 
 - **Loopback only** — `listen(port, '127.0.0.1')`, never `0.0.0.0`, never `::`.
+- **Shortened logs are visible** — the page compares the chain against `audit.jsonl.checkpoint.json` and says
+  *"N entries missing from the end"* if the file got shorter. A hash chain alone cannot notice that.
 - **Token-gated** — 32 random bytes in the URL, compared with `timingSafeEqual`; a wrong or missing token gets
   a `404`, not a `403`, so a probing page learns nothing.
 - **Script-free** — `default-src 'none'`, no `<script>`, no fonts, no icons, no CDN. It renders with the network

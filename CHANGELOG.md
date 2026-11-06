@@ -6,11 +6,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 First release. One script, one extension, eight platforms, no API key.
 
-**What ships:** 262 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
+**What ships:** 272 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
 `docs/RELEASE.md` is the checklist that was followed.
 
 ### Added
 
+- **The log now notices when its end has been deleted.** A hash chain cannot see its own tail — remove the last
+  ten lines and every remaining link still verifies. A checkpoint beside the chain (`{lines, lost, lastHash}`)
+  fixes the honest cases: a shorter file, a deleted file, and a tail replaced by new entries are each reported
+  with a count, and the page prints *"N entries missing from the end"* instead of a badge reading `verified`.
+  Archiving resets the count. It is not tamper-proofing against someone who can write both files, and the docs
+  say so.
 - **Every audit entry says who allowed the call**: `auto` (the policy allowed it, nobody was asked), `approval`
   (a person clicked *Allow once*), `grant:run` / `grant:session` / `grant:site` (a remembered approval answered,
   scope named) or `always-allow`. Previously a policy allow and a click both came back as `once`, which meant a
@@ -167,7 +173,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **262 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **272 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

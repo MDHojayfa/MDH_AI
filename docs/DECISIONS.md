@@ -282,6 +282,16 @@ read-only list, in the agent, before the host is called — and the refusal mess
 instead (`propose_plan`). An allowlist rather than a denylist because the dangerous tool is usually the one nobody
 thought about yet: an MCP server someone added last week should be assumed to write until proven otherwise.
 
+**D50 · A checkpoint beside the chain, because a hash chain cannot see its own tail.**
+Every link can be perfect and the last ten entries still be gone — deleting from the end never breaks a link
+(Bellare & Yee 1997; Ma & Tsudik 2008 call it the truncation attack). `verifyAudit()` used to call that `ok`,
+including when the file had been removed entirely. Now a small side file records how many entries the log had,
+what it ended with, and — the important one — a cumulative `lost` count, because the obvious bypass is to delete
+the tail and let one more call through, which would otherwise reset the total to something innocent. Archiving
+writes a fresh checkpoint, since a chain put aside on purpose has lost nothing. A corrupt or missing checkpoint is
+treated as no opinion rather than a broken chain: the chain is the record, the checkpoint is a smoke alarm. It
+does not stop an attacker with write access to both files, and the docs say that instead of implying otherwise.
+
 **D49 · The audit records who allowed a call, because `ok` is not a decision.**
 `gate()` used to answer `'once'` both when the policy allowed a call without asking and when a person clicked
 *Allow once*. The host then wrote `status: ok`, which is true and useless: reading the log you could not tell a
