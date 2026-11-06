@@ -349,6 +349,19 @@
       });
     }
 
+    // Timers are throttled in background tabs (1/s, and far worse after a few minutes), so a loop that looks
+    // frozen on a hidden tab is often just late, not dead. Worth saying before anyone reinstalls anything.
+    if (diag?.page?.visibility === 'hidden') {
+      found.push({
+        id: 'hidden-tab',
+        what: 'The tab was in the background',
+        why: 'Browsers throttle timers in hidden tabs — often to once a second, and after a few minutes to once a minute. The stream itself keeps arriving, but every clock, countdown and timeout in the page runs late, so a healthy run can look frozen.',
+        fix: 'Bring the tab to the front for a minute. If it finishes immediately, nothing was broken; if it was already done, the pill was just reporting late.',
+        severity: 'local',
+        evidence: 'document.visibilityState === "hidden"',
+      });
+    }
+
     if (diag?.network?.saveData) {
       found.push({
         id: 'save-data',

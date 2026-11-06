@@ -17,6 +17,9 @@ First release. One script, one extension, eight platforms, no API key.
 - **A completion code ("phoenix")**: every session gets `PHX-XXXXXX`, and only a `finish` call carrying it ends
   a task. A wrong or missing code gets one correction, then a pause with *Mark as finished*. Printed in the
   prompt, every reminder, the tool schema and the popup's Advanced panel.
+- **It can tell you why it stopped**: every finished, stopped or paused run is recorded (turns, elapsed,
+  outcome, reason, code) and the popup shows the last one. A stalled run on a background tab now says so, because
+  browsers throttle timers there and a healthy run can look frozen.
 - **A deal, not an ask**: every report form asks for a GitHub handle and promises a line in `CREDITS.md`'s
   community section when the report leads to a fix or the idea ships (anonymous accepted). The failure card
   carries **Send an idea ↗**; the popup strip carries the promise on every normal run and a nudge after a

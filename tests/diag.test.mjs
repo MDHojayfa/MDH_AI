@@ -150,3 +150,15 @@ test('network advice is not a single hot take about hotspots', () => {
   assert.match(challenge.fix, /another Wi-Fi/i);
   assert.match(challenge.fix, /does not prove/i);
 });
+
+test('a hidden tab is named as a cause, because timers are throttled there', () => {
+  const d = diag.collect({ stage: 'waiting-reply', error: new Error('no reply') });
+  d.page.visibility = 'hidden';
+  const hidden = diag.hypotheses(d).find((h) => h.id === 'hidden-tab');
+  assert.ok(hidden, 'a stalled run on a background tab should say why it looks frozen');
+  assert.match(hidden.why, /throttl/i);
+  assert.match(hidden.fix, /front|foreground/i);
+
+  const visible = diag.collect({ stage: 'waiting-reply' });
+  assert.ok(!diag.hypotheses(visible).some((h) => h.id === 'hidden-tab'));
+});

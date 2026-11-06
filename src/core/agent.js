@@ -430,6 +430,7 @@
       const summary = String(call.arguments?.summary ?? '').trim();
       S.outcome = 'completed';
       S.phase = 'done';
+      recordRun('completed', summary || null);
       MDH.dock?.sync?.();
       S.running = false;
       MDH.ui.notice(summary ? `Finished: ${MDH.util.truncate(summary, 140)}` : 'Finished.', { ms: 8000 });
@@ -532,8 +533,13 @@
           },
         ],
       });
+      const hidden = MDH.ui?.visibility?.() === 'hidden' || (typeof document !== 'undefined' && document.visibilityState === 'hidden');
       return pause('no reply arrived', {
-        detail: `Nothing arrived for ${Math.round(ms / 1000)} s on ${adapter.id}. The tab may have lost the stream, the plan may be rate-limited, or the page may simply have gone quiet.`,
+        detail:
+          `Nothing arrived for ${Math.round(ms / 1000)} s on ${adapter.id}. ` +
+          (hidden
+            ? 'This tab was in the background, where browsers throttle timers to as little as once a minute — the run may be fine and simply reporting late. Bring the tab forward and press Continue.'
+            : 'The tab may have lost the stream, the plan may be rate-limited, or the page may simply have gone quiet.'),
         allowFinish: false,
       });
     }
@@ -741,6 +747,7 @@
     S.pauseReason = reason;
     log()?.warn('loop paused:', reason);
     MDH.dock?.sync?.();
+    recordRun('paused', reason);
     await MDH.state.patch('session', { phase: 'paused', outcome: 'paused', reason }).catch(() => {});
 
     const actions = [
@@ -780,6 +787,7 @@
     S.stopped = true;
     S.phase = 'stopped';
     log()?.warn('loop stopped:', reason);
+    recordRun('stopped', reason);
     MDH.ui.notice(`MDH stopped: ${reason}`, { tone: 'warn', ms: 6000 });
     if (REPORTABLE.has(String(reason))) {
       reportCard(`The loop stopped (${reason}) after ${S.turn} turn${S.turn === 1 ? '' : 's'}.\nStage: ${stage}`, {
@@ -810,6 +818,13 @@
     turn().catch((e) => {
       log()?.error('resume failed', e);
       stop(e.message ?? 'resume failed');
+    });
+  }
+
+  if (typeof document !== 'undefined' && document.addEventListener) {
+    document.addEventListener('visibilitychange', () => {
+      log()?.info('tab visibility', document.visibilityState, 'turn', S.turn);
+      MDH.dock?.sync?.();
     });
   }
 
@@ -852,6 +867,29 @@
       stop(e.code ?? 'error');
     });
     return { ok: true };
+  }
+
+  /**
+   * A one-line record of every finished, stopped or paused run. Not analytics — a memory. "It stopped at
+   * turn 24 at 03:14" is the first question in every bug report, and the answer should already exist.
+   */
+  async function recordRun(outcome, reason = null) {
+    const entry = {
+      at: Date.now(),
+      task: String(S.task ?? '').replace(/\s+/g, ' ').slice(0, 90),
+      platform: S.adapter?.id ?? null,
+      turns: S.turn,
+      ms: Date.now() - (S.startedAt || Date.now()),
+      outcome,
+      reason: reason ? String(reason).slice(0, 120) : null,
+      phoenix: S.phoenix,
+    };
+    try {
+      await MDH.state.pushCapped('runs', entry, 20);
+    } catch (e) {
+      log()?.warn('could not record the run', e);
+    }
+    return entry;
   }
 
   const status = () => ({

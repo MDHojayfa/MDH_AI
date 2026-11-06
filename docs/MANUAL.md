@@ -41,6 +41,12 @@ The first message you send carries the tool catalogue. From then on the model kn
 
 Avoid the urge to start with "clean up my downloads".
 
+## 2d · What happened last time
+
+**Advanced → Last run** shows one line: turns, elapsed, outcome and the reason if there was one (for example
+`24 turns · 06:41 · paused (no reply arrived)`). The last twenty runs are kept locally. When something goes
+wrong, that line plus the log page is usually the whole story.
+
 ## 3 · Approvals
 
 Every action that can change something shows a card above the composer:

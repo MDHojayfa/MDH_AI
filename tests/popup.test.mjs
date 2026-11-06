@@ -88,3 +88,15 @@ test('a pause says so, in words, in the popup', () => {
   assert.match(js, /'warn'/);
   assert.match(js, /finished/);
 });
+
+test('the popup answers "what happened last run" without being asked', () => {
+  assert.match(html, /id="last-run"/);
+  assert.match(js, /mdh:runs/);
+  assert.match(js, /no runs yet/);
+  const agent = readFileSync(join(ROOT, 'src/core/agent.js'), 'utf8');
+  assert.match(agent, /pushCapped\('runs'/);
+  assert.match(agent, /recordRun\('completed'/);
+  assert.match(agent, /recordRun\('paused'/);
+  assert.match(agent, /recordRun\('stopped'/);
+  assert.match(agent, /visibilitychange/);
+});

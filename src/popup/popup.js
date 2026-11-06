@@ -290,7 +290,7 @@
   }
 
   async function renderStorage() {
-    const stored = await api.storage.local.get(['mdh:policy', 'mdh:history', 'mdh:rate']);
+    const stored = await api.storage.local.get(['mdh:policy', 'mdh:history', 'mdh:rate', 'mdh:runs']);
     const policy = stored['mdh:policy'];
     if (policy) {
       $('allow').textContent = (policy.allowPaths ?? []).join('  ·  ');
@@ -319,6 +319,13 @@
       li.append(mark, name);
       list.append(li);
     }
+    // The last run, in one line: the first question in every "it stopped" report, answered before it is asked.
+    const runs = stored['mdh:runs'] ?? [];
+    const last = runs[runs.length - 1];
+    $('last-run').textContent = last
+      ? `${last.turns} turn${last.turns === 1 ? '' : 's'} · ${MDH.util.clock(last.ms)} · ${last.outcome}${last.reason ? ` (${last.reason})` : ''}`
+      : 'no runs yet';
+
     $('calls').textContent = `${history.length} calls`;
     $('denied').textContent = `${denied} denied`;
   }
