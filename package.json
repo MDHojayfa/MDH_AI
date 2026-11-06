@@ -19,7 +19,7 @@
     "package": "node tools/package.mjs",
     "og": "node tools/make-og.mjs",
     "site": "node tools/make-og.mjs && node -e \"console.log('site/index.html is a static file; serve the folder to preview')\"",
-    "verify": "node tools/weigh.mjs && npm test && npm run build && npm run package",
+    "verify": "node tools/build.mjs && node tools/package.mjs && node tools/weigh.mjs && node --test tests/*.test.mjs",
     "logs": "node host/mdh-log.mjs",
     "logs:serve": "node host/mdh-log.mjs --serve --open",
     "weigh": "node tools/weigh.mjs",

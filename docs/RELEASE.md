@@ -6,14 +6,25 @@ decision is written next to it.
 ## 0. Before you tag
 
 ```bash
-npm run verify     # weigh → build → test → package; fails on any broken budget, test or manifest rule
+npm run verify     # build → package → weigh → test; fails on any broken budget, test or manifest rule
 ```
 
 `weigh` also re-reads the KB numbers quoted in `README.md`, `docs/WHY.md` and `docs/MANUAL.md` and fails if they
 are more than 15% away from the zip it just built. Update the prose when the bundle grows; that is the whole point.
 
-`verify` runs `tools/weigh.mjs` first on purpose: a release that ships a 4 MB bundle should fail before it ships a
-4 MB bundle, not after a user notices.
+`verify` builds and packages before it weighs, because the thing worth weighing is the zip a user would download,
+not the source tree it came from — and because the quote check needs an artifact to disagree with. It still runs
+before any upload, so a 4 MB bundle fails here rather than in a store review.
+
+The README art is optional and needs ImageMagick, so it is not in `verify`:
+
+```bash
+npm run art        # assets/hero.gif, terminal.gif, approval-card.png, social.png
+```
+
+Regenerate it when the pill's labels or the install output change, so the illustrations keep matching the product
+they claim to be drawn from. `tests/art.test.mjs` checks that every asset the README mentions exists and that each
+one still carries its *illustration, not a recording* label.
 
 Expected shape of a good run:
 
@@ -27,14 +38,20 @@ Expected shape of a good run:
 | host | `./install.sh --diagnose` | `host answered … audit ok` |
 | logs | `node host/mdh-log.mjs --json` | parses, `summary.calls` is a number |
 
-## 1. Version, in four places
+## 1. Version, in seven places
 
-Bump all of them together; a mismatch is a bug report waiting to happen.
+Bump all of them together; a mismatch is a bug report waiting to happen, and `tests/version.test.mjs` fails the
+build when one drifts, so this list is enforced rather than remembered.
 
 1. `package.json` → `version`
 2. `src/manifest.base.json` → `version`
-3. `host/mdh-host.mjs` → `VERSION`
-4. `release/` filenames are generated from `package.json` — nothing to edit
+3. `host/mdh-host.mjs` → `VERSION` (sent in every `pong`, which is what `install.sh` prints)
+4. `host/mdh-log.mjs` → `VERSION` (the log page footer)
+5. `host/diag.mjs` → `HOST_VERSION` (in every report a user might paste)
+6. `host/mcp_client.mjs` → the `clientInfo` handshake every MCP server sees
+7. `site/index.html` → `"softwareVersion"`
+
+`release/` filenames are generated from `package.json` — nothing to edit there.
 
 ## 2. Stores
 

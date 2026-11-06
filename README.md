@@ -20,6 +20,9 @@ one approval per step, one hash-chained log, no API key anywhere.</p>
 
 [Quickstart](#sixty-seconds) · [What it does](#what-it-does) · [Security](#security-in-three-sentences) · [Numbers](#the-numbers-measured) · [Docs](#docs) · [Credits](#credits)
 
+<sub>v1.0.0 — feature-complete, both zips built and verified, store submission next. What changed, and when:
+[`CHANGELOG.md`](CHANGELOG.md).</sub>
+
 </div>
 
 ---
@@ -151,6 +154,9 @@ runs.
 | [`docs/DIAGNOSTICS.md`](docs/DIAGNOSTICS.md) | what a failure collects, what it refuses to, the signature table |
 | [`docs/SCENARIOS.md`](docs/SCENARIOS.md) | fifteen real failures, walked through from screen to fix |
 | [`docs/KNOWN-LIMITS.md`](docs/KNOWN-LIMITS.md) | what one laptop cannot test — the honest version |
+| [`CHANGELOG.md`](CHANGELOG.md) | every change, in the order it happened |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | the ground rules a patch has to meet |
+| [`CREDITS.md`](CREDITS.md) | who made it, and who gets named for a bug that ships a fix |
 | [`docs/V2-NOTES.md`](docs/V2-NOTES.md) | platform rotation and a messaging bridge, written up, not promised |
 
 ## Credits

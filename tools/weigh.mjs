@@ -168,8 +168,12 @@ export function evaluate(metrics, budget = BUDGET) {
 
   // Prose must agree with the scale. 15% is room for compression noise, not for a paragraph from last month.
   for (const claim of metrics.claims ?? []) {
-    const near = metrics.zipKb ? Math.abs(claim.kb - metrics.zipKb) / metrics.zipKb <= 0.15 : false;
-    checks.push({ name: `${claim.file} quote`, value: claim.kb, unit: 'KB', max: metrics.zipKb ? Number(metrics.zipKb.toFixed(0)) : 0, ok: near });
+    // No zip yet means no artifact to disagree with: the claim is unmeasured, not wrong. Saying OVER here made
+    // `npm run weigh` fail on a fresh clone, which teaches people to ignore the tool that is supposed to be
+    // impossible to ignore.
+    if (!metrics.zipKb) continue;
+    const near = Math.abs(claim.kb - metrics.zipKb) / metrics.zipKb <= 0.15;
+    checks.push({ name: `${claim.file} quote`, value: claim.kb, unit: 'KB', max: Number(metrics.zipKb.toFixed(0)), ok: near });
   }
   return { checks, ok: checks.every((check) => check.ok) };
 }

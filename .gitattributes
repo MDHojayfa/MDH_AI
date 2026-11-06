@@ -1,0 +1,17 @@
+# Text is text, and the binaries are labelled so a diff never tries to show one as a patch.
+* text=auto eol=lf
+
+*.png binary
+*.gif binary
+*.jpg binary
+*.ico binary
+*.zip binary
+
+# Generated release artifacts and screenshots are not worth a word-diff.
+release/** linguist-generated=true
+dist/**   linguist-generated=true
+assets/** linguist-generated=true
+
+# The claims in the docs are checked by tests; this only stops the language bar from counting prose as code.
+docs/** linguist-documentation=true
+site/** linguist-documentation=true
