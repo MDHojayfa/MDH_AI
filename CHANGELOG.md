@@ -6,11 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 First release. One script, one extension, eight platforms, no API key.
 
-**What ships:** 284 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
+**What ships:** 288 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
 `docs/RELEASE.md` is the checklist that was followed.
 
 ### Added
 
+- **One version, in every place it is shown** — manifest, package.json, three host modules, the MCP client
+  handshake and the site; `tests/version.test.mjs` fails the build when any of them drifts, because a bug report
+  that quotes a version the artifact does not have costs an hour of everyone's time.
 - **CI is green again.** `tools/package.mjs` ran its packager on import, so the test that imports `makeZip` failed
   on any machine without a `dist/` — which is every fresh clone and every CI run. The packager is now guarded like
   the other tools, and a test proves an import writes no zip.
@@ -184,7 +187,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **284 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **288 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

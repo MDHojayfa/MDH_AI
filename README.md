@@ -155,8 +155,11 @@ runs.
 
 ## Credits
 
+<a href="https://github.com/MDHojayfa"><img src="https://github.com/MDHojayfa.png" width="76" align="right" alt="MDHojayfa"></a>
+
 **MDH_AI** is designed and written by **[MDHojayfa](https://mdhojayfa.github.io/)** — extension, host,
-installers, docs, the lot. If you report a bug that leads to a fix, or suggest something that ships,
+installers, docs, the lot. One person, a Linux box, and a rule that nothing ships until the tests and the
+numbers agree. If you report a bug that leads to a fix, or suggest something that ships,
 [`CREDITS.md`](CREDITS.md) names you permanently; that is the deal behind every *Send an idea* button in the
 product.
 
