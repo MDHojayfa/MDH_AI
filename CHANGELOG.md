@@ -11,6 +11,9 @@ First release. One script, one extension, eight platforms, no API key.
 
 ### Added
 
+- **`npm run verify` works from a clean checkout.** It weighed the source before building the zip, so the
+  README's KB quote had nothing to compare against and the whole run failed with "A budget is broken". The order
+  is now build → package → weigh → test, and an unbuilt bundle is reported as unmeasured rather than over budget.
 - **One version, in every place it is shown** — manifest, package.json, three host modules, the MCP client
   handshake and the site; `tests/version.test.mjs` fails the build when any of them drifts, because a bug report
   that quotes a version the artifact does not have costs an hour of everyone's time.
