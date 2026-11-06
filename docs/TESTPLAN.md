@@ -283,6 +283,18 @@ The docs are part of the product, so the late-v1 features have to exist in them:
 | corrupt checkpoint | no opinion, not a broken chain — the chain decides on its own |
 | the page | the sentence and the badge, and nothing red when nothing is wrong |
 
+## 3e9. Announced, not just drawn — `tests/a11y.test.mjs`, `tests/dock.test.mjs`
+
+| Case | Expected |
+|---|---|
+| live region | `role="status"`, `aria-live="polite"`, `aria-atomic="true"`, in the DOM before the first change |
+| wording | the announcement is the pill's own label; the turn counter is not read out |
+| timing | once per phase change, not once per poll |
+| hidden | visually hidden with `.sr`, never `display: none` |
+| focus in | a card focuses its `.primary` action, `preventScroll`, or the card itself |
+| focus back | on close, focus returns to where it was — if that element still exists |
+| dialog | `role="dialog"` with a name, and `tabIndex = -1` |
+
 ## 3f1. Run grants — `tests/grant.test.mjs`
 
 | Case | Expected |

@@ -96,6 +96,12 @@
   const CSS = `
     :host { all: initial; }
     /*
+     * Visible to a screen reader, invisible to everybody else. Not display:none — that removes it from the
+     * accessibility tree, which would defeat the entire point of the live region below.
+     */
+    .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+      clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    /*
    * Fixed, and measured against the composer's rectangle — never placed *inside* the composer's layout.
    * Putting a control in a React textarea's flex row is a documented way to give someone a 0-width input on
    * a Tuesday. The pill floats above the page like a sticker on a laptop lid; the lid does not care.
@@ -141,6 +147,7 @@
   let host = null;
   let shadow = null;
   let pill = null;
+  let live = null;
   let panel = null;
   let input = null;
   let adapter = null;
@@ -289,7 +296,14 @@
       el('div', { class: 'row' }, startBtn, cancel, el('span', { class: 'hint', text: 'Enter to start · Esc to close' })),
       el('div', { class: 'row' }, hideLink),
     );
-    shadow.append(pill, panel);
+    /*
+     * The pill changes phase without moving focus and without a dialog — paused, executing, done. None of that is
+     * announced, so a screen reader user learns nothing until they go looking. A rendered-but-empty polite live
+     * region, filled only when the phase changes, is the W3C's own technique for this (ARIA22 / WCAG 4.1.3);
+     * polite rather than assertive, because a phase change is status, not an emergency.
+     */
+    live = el('span', { class: 'sr', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' });
+    shadow.append(pill, panel, live);
     document.documentElement.append(host);
   }
 
@@ -367,7 +381,9 @@
           (state.phase === 'paused' ? ' paused' : '');
       }
       pill.dataset.phase = state.phase;
-      pill.dataset.phase = state.phase;
+      // Announced once per phase change, not once per poll: a live region that repeats itself is a live region
+      // people turn off. The turn number is deliberately left out — "turn 12" is noise, "Paused" is news.
+      if (live) live.textContent = `${state.label}.`;
     }
     // Title and aria-label are refreshed with the reason and the turn, not only on a phase change: the reason is
     // attached while the phase (paused) stays the same, and a stale tooltip is worse than none.
