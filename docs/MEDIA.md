@@ -31,6 +31,26 @@ Alt text (use it, it is also what a store reader hears):
 5. "BARBOS MODE: a scrolling boot log where real events and jokes are visually different."
 6. "A terminal running install.sh, ending with the host answering a ping."
 
+## Repository art (README)
+
+The images at the top of the README are **generated illustrations, not screenshots** — and they say so on every
+frame. `npm run art` (`tools/make-readme-art.mjs`) draws them with ImageMagick primitives from the same labels,
+states and buttons the extension renders.
+
+| File | What it is | Where it goes |
+|---|---|---|
+| `assets/hero.gif` | the pill through Start → Working → approval → Paused → Done, 5 frames, loops | README top, social posts as a still |
+| `assets/terminal.gif` | clone, `install.sh`, three checks, `mdh-log --runs` | README quickstart |
+| `assets/approval-card.png` | the approval card at 960 px: command, folder, reason, three lifetimes | README features |
+| `assets/social.png` | 1200×630 link-preview card, cropped from frame 1 | Open Graph / link unfurls |
+
+Two rules, and the first one is the one that gets broken elsewhere:
+
+1. **An illustration is labelled as one.** Every frame carries *"Illustration drawn from the real pill and card
+   markup — not a screen recording."* A mock in a README is fine; a mock presented as a screenshot is not.
+2. **Store screenshots stay real.** The rules in the section above are untouched: what goes into a listing is a
+   capture of the running product, because a listing is a promise about what the user will get.
+
 ## Chrome / Brave listing
 
 - **Name:** MDH_AI
