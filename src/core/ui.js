@@ -140,7 +140,7 @@
    * Approval. Resolves `deny|once|always` and never rejects; the timeout is a deny, because silence is
    * not consent (docs/SECURITY.md §3).
    */
-  function showApproval(desc, { timeoutMs = 120000 } = {}) {
+  function showApproval(desc, { timeoutMs = 120000, grant = null } = {}) {
     return new Promise((resolve) => {
       let settled = false;
       const finish = (decision) => {
@@ -177,11 +177,27 @@
         body.append(el('div', { class: 'why', text: desc.verdict.reason ?? 'not allowed by policy' }));
       }
 
+      /*
+       * A grant is offered only after the same exact command has already been approved twice, and only for a
+       * plain command. Approval fatigue is how a safety prompt becomes a reflex, so the answer is fewer, more
+       * meaningful prompts — never a quieter lock.
+       */
+      if (grant?.key) {
+        body.append(el('div', { class: 'why', text: grant.note ?? 'You have approved this exact command more than once in this run.' }));
+      }
+
       const footer = el('div', { class: 'ft' });
       const deny = el('button', { class: 'danger', text: 'Deny', onclick: () => finish('deny') });
       footer.append(deny, el('div', { class: 'spacer' }));
 
       if (desc.verdict.decision !== 'deny') {
+        if (grant?.key) {
+          footer.append(el('button', {
+            text: 'Allow for this run',
+            title: 'Stop asking for this exact command until the run ends. Nothing is saved.',
+            onclick: () => finish('run'),
+          }));
+        }
         footer.append(
           el('button', { text: 'Allow once', onclick: () => finish('once') }),
           el('button', { class: 'primary', text: 'Always', title: 'Always for this exact call, this tab', onclick: () => finish('always') }),

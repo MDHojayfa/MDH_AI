@@ -75,10 +75,41 @@
     return out;
   }
 
+/** Shell syntax that means "this is more than one thing": a grant covers one plain command, not a sentence. */
+const SHELL_META = /[;&|<>$`(){}[\]*?!#~\\\n]/;
+
+/** The command a call would run, normalised for comparison; null if it is not a command call. */
+function commandSignature(call) {
+  const args = call?.arguments ?? {};
+  const raw = typeof args.cmd === 'string' ? args.cmd : Array.isArray(args.cmds) ? args.cmds.join(' && ') : null;
+  if (raw === null) return null;
+  const cmd = raw.trim().replace(/\s+/g, ' ');
+  return cmd ? { tool: call.tool, cmd, cwd: String(args.cwd ?? '').trim() } : null;
+}
+
+/**
+ * Can this call be granted for the rest of the run? Only an exact, single, plain command — no chaining, no
+ * substitution, no globs. `run_command` keeps asking even when a tool is set to allow; a grant is the answer to
+ * "I have approved the same thing four times", not a way to switch the lock off.
+ */
+function grantable(call) {
+  const sig = commandSignature(call);
+  if (!sig) return { ok: false, reason: 'this is not a single command' };
+  if (SHELL_META.test(sig.cmd)) {
+    return {
+      ok: false,
+      reason: 'the command uses shell chaining, redirection or expansion — those are approved one at a time, on purpose',
+    };
+  }
+  return { ok: true, key: `${sig.tool}\u0000${sig.cwd}\u0000${sig.cmd}`, command: sig.cmd };
+}
+
   MDH.policy = {
     normalize,
     isInside,
     pathsIn,
+    commandSignature,
+    grantable,
 
     /**
      * @returns {{decision:'allow'|'ask'|'deny', rule:string, reason?:string}}

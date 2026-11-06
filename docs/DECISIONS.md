@@ -276,6 +276,14 @@ reminder, in the `finish` tool description, and in the popup's Advanced panel �
 nobody can debug. A wrong or missing code gets **one** correction, then a pause with *Mark as finished*, because
 at that point the model has failed the rule and the human should decide.
 
+**D44 · Approval fatigue is a safety bug, so grants are narrow and forgetful.**
+A prompt you see twenty times is a prompt you stop reading — that is how a guardrail becomes a formality. The
+answer is not a quieter lock but fewer, better-earned questions: after the **same exact** command has been
+approved twice in one run, the card offers *Allow for this run*. It is scoped to the run (cleared on Start,
+never written to storage), keyed on tool + folder + normalised command text, and refused for anything containing
+`; & | < > $ \` ( ) { } [ ] * ? ! # ~ \` — i.e. everything that can hide a second command. `run_command` still
+asks even when a tool is set to "always"; the grant shortens the conversation, it does not touch the policy.
+
 **D43 · Sentinels are a convention you enforce, not a feature you hope for.**
 No vendor documents a canonical completion sentinel, and stop sequences solve a different problem (they cut a
 generation, not a loop). The pattern is only worth anything if the pipeline checks it on the consuming side —

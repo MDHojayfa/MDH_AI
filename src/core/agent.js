@@ -41,6 +41,10 @@
     // The completion code for this session. Nothing else can end the task (see core/phoenix.js).
     phoenix: null,
     badFinish: 0,
+    // Run-scoped grants: exact commands the user has approved enough times to stop being asked about,
+    // and the count that earns one. Both are cleared when a new run starts (see start()).
+    grants: new Set(),
+    approvals: new Map(),
   };
 
   const LIMITS = {
@@ -473,7 +477,32 @@
       MDH.ui.notice(`${call.tool}: ${desc.verdict.reason}`, { tone: 'err', ms: 6000 });
       return 'deny';
     }
-    const decision = await MDH.ui.showApproval(desc, { timeoutMs: policy.approvalTimeoutMs ?? 120000 });
+    const grant = MDH.policy.grantable?.(call) ?? { ok: false };
+    const key = grant.ok ? grant.key : null;
+
+    // Already earned this run: run it, and say so once in the log so the audit trail is not a blank.
+    if (key && S.grants.has(key)) {
+      log()?.info('run grant used', grant.command);
+      return 'run';
+    }
+
+    const seen = key ? S.approvals.get(key) ?? 0 : 0;
+    const offer = key && seen >= 2
+      ? {
+          key,
+          note: `You have approved this exact command ${seen} times in this run.`,
+        }
+      : null;
+
+    const decision = await MDH.ui.showApproval(desc, { timeoutMs: policy.approvalTimeoutMs ?? 120000, grant: offer });
+
+    if (key && (decision === 'once' || decision === 'run')) {
+      S.approvals.set(key, seen + 1);
+    }
+    if (decision === 'run' && key) {
+      S.grants.add(key);
+      log()?.info('granted for this run', grant.command);
+    }
     if (decision === 'always') {
       policy.approval[call.tool] = 'allow';
       await MDH.state.set('policy', policy);
@@ -844,6 +873,8 @@
     S.badFinish = 0;
     S.pauseReason = null;
     S.phoenix = MDH.phoenix?.make?.() ?? null;
+    S.grants = new Set();
+    S.approvals = new Map();
     S.startedAt = Date.now();
     S.phase = 'starting';
     S.tools = [];
