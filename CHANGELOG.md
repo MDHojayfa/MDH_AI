@@ -6,11 +6,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 First release. One script, one extension, eight platforms, no API key.
 
-**What ships:** 288 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
+**What ships:** 290 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
 `docs/RELEASE.md` is the checklist that was followed.
 
 ### Added
 
+- **The landing page carries the same art, from its own folder.** `npm run art` now also writes `site/hero.gif`
+  (760 px, 88 KB), `site/approval-card.png` and `site/og.png`, so the page never requests an image from another
+  host. The loop sits under the headline with a caption saying what it is, and the approval card's copy on the page
+  lists all three lifetimes instead of only the session.
+- **The link preview was the wrong shape.** `assets/social.png` was 1200×605 — resized to fit the width and then
+  asked to crop to a 630-tall box it could not fill — so every scraper re-cropped it from wherever it liked. It is
+  generated at exactly 1200×630 now, and both art tests and the site test check the size.
 - **`npm run verify` works from a clean checkout.** It weighed the source before building the zip, so the
   README's KB quote had nothing to compare against and the whole run failed with "A budget is broken". The order
   is now build → package → weigh → test, and an unbuilt bundle is reported as unmeasured rather than over budget.
@@ -190,7 +197,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **288 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **290 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 
