@@ -73,6 +73,17 @@
         return { ok: true, ...res };
       }
 
+      /*
+       * "Check this page": run the adapter's own selectors against the live DOM and say what matched. A renamed
+       * composer should stop looking like a mysterious silence.
+       */
+      case 'mdh:probe': {
+        if (!adapter) return { ok: false, reason: 'unsupported page' };
+        const result = MDH.probe?.probe?.(adapter, document) ?? null;
+        if (result) log()?.info('probe', result.platform, result.ok ? 'ok' : `missing ${result.missing.join(',')}`);
+        return { ok: true, result };
+      }
+
       case 'mdh:policy': {
         const policy = await MDH.state.get('policy');
         return { ok: true, policy };

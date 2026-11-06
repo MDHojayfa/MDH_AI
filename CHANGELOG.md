@@ -17,6 +17,9 @@ First release. One script, one extension, eight platforms, no API key.
 - **A completion code ("phoenix")**: every session gets `PHX-XXXXXX`, and only a `finish` call carrying it ends
   a task. A wrong or missing code gets one correction, then a pause with *Mark as finished*. Printed in the
   prompt, every reminder, the tool schema and the popup's Advanced panel.
+- **"Check this page"**: the popup runs the platform adapter's own selectors against the live DOM and says what
+  matched, so a renamed composer stops looking like a mysterious silence. Missing send/stop buttons are drawn as
+  hints, never failures — they only exist at certain moments.
 - **It can tell you why it stopped**: every finished, stopped or paused run is recorded (turns, elapsed,
   outcome, reason, code) and the popup shows the last one. A stalled run on a background tab now says so, because
   browsers throttle timers there and a healthy run can look frozen.
@@ -108,7 +111,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **177 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **186 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

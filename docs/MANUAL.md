@@ -41,6 +41,22 @@ The first message you send carries the tool catalogue. From then on the model kn
 
 Avoid the urge to start with "clean up my downloads".
 
+## 2c2 · "It did nothing when I pressed Start"
+
+Press **Check this page** in the popup's Advanced panel. It asks the page which of the platform adapter's
+selectors still match and prints one line per part:
+
+```
+✔ ChatGPT wiring looks right
+  ✔ composer: #prompt-textarea
+  ✔ messages: [data-message-author-role="assistant"]
+  ○ send: no send button matched — usually fine: most sites add it after you type
+  · stream: sse/replace /backend-api/conversation
+```
+
+`✘` on **composer** or **messages** means the site changed its DOM and this build cannot drive it — report it,
+that is a real bug and a quick fix. `○` on send or stop is normal: those buttons only exist at certain moments.
+
 ## 2d · What happened last time
 
 **Advanced → Last run** shows one line: turns, elapsed, outcome and the reason if there was one (for example

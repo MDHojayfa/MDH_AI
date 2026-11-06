@@ -356,6 +356,22 @@
     setTimeout(refresh, 300);
   });
 
+  /*
+   * Ask the page to check itself: which of the adapter's selectors still match. This is the answer to
+   * "it did nothing when I pressed Start", and it costs one message.
+   */
+  $('probe').addEventListener('click', async () => {
+    const out = $('probe-out');
+    out.hidden = false;
+    out.textContent = 'checking…';
+    const res = await send(tabId, { type: 'mdh:probe' });
+    if (!res?.ok || !res.result) {
+      out.textContent = res?.reason ?? 'this page has no MDH content script';
+      return;
+    }
+    out.textContent = MDH.probe.report(res.result).join('\n');
+  });
+
   $('copy').addEventListener('click', async () => {
     const text = (status?.log ?? []).map((e) => `${new Date(e.at).toISOString()} ${e.level} ${e.text}`).join('\n');
     const withHeader = `MDH_AI ${MDH.VERSION} · ${status?.platform?.name ?? 'n/a'} · ${navigator.userAgent}\n\n${text}`;

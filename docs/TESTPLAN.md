@@ -133,6 +133,17 @@ codebase to leak something by accident.
 | paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
+## 3f2. Page probe — `tests/probe.test.mjs`
+
+| Case | Expected |
+|---|---|
+| full match | `ok: true`, `missing: []`, the stream pattern is exposed |
+| renamed composer | `ok: false`, `missing: ['composer']`, note says Start cannot type |
+| missing send/stop | `ok: true` — drawn as `○`, never as a failure |
+| invalid selector | listed as the adapter's bug, the valid sibling still counts |
+| no adapter | fails loudly, no invented result |
+| bus | `mdh:probe` answered by the content script; module loads before `content/main.js` |
+
 ## 3g. Completion code — `tests/phoenix.test.mjs`
 
 Nine tests around the one comparison that ends a session:

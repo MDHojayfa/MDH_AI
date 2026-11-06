@@ -68,6 +68,11 @@ Symptoms are specific and worth recognising:
 Only that one platform breaks. The other seven share no adapter code, which is the point of keeping the
 adapter to data.
 
+**Check this page** (popup → Advanced) runs those same `dom` lists against the live DOM and prints which matched
+(`src/core/probe.js`). A `✘` next to composer or messages is the expected signature of a redesign, and it turns
+"it did nothing" into one line you can paste into an issue. Send and stop are drawn as `○` when absent, because
+both only exist at certain moments — calling that a failure would be a lie that costs trust.
+
 ## Adding a ninth
 
 1. Copy the smallest adapter and change values — never fork `src/core/`.

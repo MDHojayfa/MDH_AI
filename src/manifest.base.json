@@ -101,6 +101,7 @@
         "core/log.js",
         "core/diag.js",
         "core/phoenix.js",
+        "core/probe.js",
         "core/state.js",
         "core/policy.js",
         "core/parser.js",
