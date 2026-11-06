@@ -6,11 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 First release. One script, one extension, eight platforms, no API key.
 
-**What ships:** 283 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
+**What ships:** 284 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
 `docs/RELEASE.md` is the checklist that was followed.
 
 ### Added
 
+- **CI is green again.** `tools/package.mjs` ran its packager on import, so the test that imports `makeZip` failed
+  on any machine without a `dist/` — which is every fresh clone and every CI run. The packager is now guarded like
+  the other tools, and a test proves an import writes no zip.
 - **A README with something to look at**: a five-frame loop of the pill (Start → Working → approval → Paused →
   Done), a terminal loop of the install and `mdh-log --runs`, and a still of the approval card. All three are
   drawn by `npm run art` (`tools/make-readme-art.mjs`) from the real labels and buttons, and every frame says
@@ -181,7 +184,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **283 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **284 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

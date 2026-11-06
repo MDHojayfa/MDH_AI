@@ -139,16 +139,26 @@ function packageTarget(target) {
   return out;
 }
 
-const only = process.argv[2];
-const targets = only ? [only] : ['chrome', 'firefox'];
-for (const target of targets) {
-  try {
-    packageTarget(target);
-  } catch (e) {
-    console.error(`✖ ${target}: ${e.message}`);
-    process.exitCode = 1;
+/**
+ * The packager has to be importable. `tests/package.test.mjs` imports `makeZip` to check the zip it writes, and
+ * without this guard that import ran the whole build, tried to zip a `dist/` that a fresh clone does not have,
+ * and set `exitCode = 1` — which failed the test file on CI while passing on any machine that had built once.
+ * A CLI that cannot be imported is a CLI that is tested only by running it.
+ */
+function main() {
+  const only = process.argv[2];
+  const targets = only ? [only] : ['chrome', 'firefox'];
+  for (const target of targets) {
+    try {
+      packageTarget(target);
+    } catch (e) {
+      console.error(`✖ ${target}: ${e.message}`);
+      process.exitCode = 1;
+    }
+  }
+  if (!process.exitCode) {
+    console.log('  upload chrome to the Web Store, firefox to addons.mozilla.org (or `web-ext sign`)');
   }
 }
-if (!process.exitCode) {
-  console.log('  upload chrome to the Web Store, firefox to addons.mozilla.org (or `web-ext sign`)');
-}
+
+if (process.argv[1] && process.argv[1].endsWith('package.mjs')) main();
