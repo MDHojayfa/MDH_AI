@@ -104,6 +104,13 @@ that enforces each of those three rules (`tests/fun.test.mjs`).
 | reply never arrives | tab was closed, page reloaded | the pending call is saved; press **Resume** |
 | Firefox lost the extension | temporary add-on | re-load from `about:debugging` |
 
+## 4c · Turning the chatter off
+
+`Advanced → Mission chatter → hide the jokes` stops the ticker and hides **BARBOS MODE**. The choice is
+remembered per profile. What does **not** change: the issue strip, **Report a bug**, **Send an idea**, the
+**Share** button, every real status line and the failure cards. `./install.sh --no-fun` does the same for the
+installer's own output; the popup switch is the one that lives in the browser.
+
 ## 5b · Reporting a problem, and sharing the project
 
 The popup opens with one line about reporting problems — a different one each run, from a pool of twenty —

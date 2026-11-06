@@ -62,7 +62,9 @@ First release. One script, one extension, eight platforms, no API key.
   platforms and a prompt in the middle. No stock art, no borrowed logo, nothing fetched.
 - **`docs/MEDIA.md`** — the six screenshots worth taking, their alt text, store copy for Chrome/Brave and
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
-- **117 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
+  only the jokes — the issue strip, the share button and every real status line stay put.
+- **118 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

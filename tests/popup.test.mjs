@@ -70,3 +70,14 @@ test('nothing in the popup promises a feature that is not there', () => {
   assert.doesNotMatch(html, /auto-?fix|guarantee|100% |works everywhere|all websites/i);
   assert.match(html, /NASA PC|developer/i);
 });
+
+test('turning the jokes off leaves the help desk on', () => {
+  assert.match(html, /id="fun-off"/);
+  assert.match(js, /funOff/);
+  assert.match(js, /stored\?\.funOff === true/, 'the choice has to survive a restart');
+  // the strip and the sheet must not live inside either thing the toggle hides
+  const barbosAt = html.indexOf('id="barbos"');
+  assert.ok(html.indexOf('id="report"') < barbosAt, 'the report strip must be outside BARBOS MODE');
+  assert.ok(html.indexOf('id="share-sheet"') > barbosAt, 'the sheet is a sibling, not a child');
+  assert.match(js, /applyFun\(\)/);
+});

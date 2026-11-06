@@ -311,12 +311,47 @@
     if (status?.agent?.startedAt) $('elapsed').textContent = MDH.util.clock(Date.now() - status.agent.startedAt);
   }, 1000);
 
-  // The ticker: one line at a time, clearly tagged, paused while the popup is not visible.
-  MDH.fun?.rotate($('ticker'), { everyMs: 2600 });
+  // ── Jokes are optional; help is not. Turning the chatter off hides the ticker and BARBOS MODE and stops
+  // the rotation, and nothing else changes: the issue strip, its buttons and the share sheet stay exactly
+  // where they were. `--no-fun` in the installer silences the shell; this silences the popup.
+  let funOff = false;
+  let stopTicker = () => {};
+
+  function applyFun() {
+    $('ticker')?.closest('section')?.toggleAttribute('hidden', funOff);
+    $('barbos').hidden = funOff;
+    $('fun-off').checked = funOff;
+    if (funOff) {
+      stopTicker();
+      barboRows.length = 0;
+      renderBarbo();
+    } else {
+      stopTicker = MDH.fun?.rotate($('ticker'), { everyMs: 2600 }) ?? (() => {});
+    }
+  }
+
+  $('fun-off').addEventListener('change', async (e) => {
+    funOff = e.target.checked;
+    applyFun();
+    try {
+      const { 'mdh:settings': stored } = await api.storage.local.get('mdh:settings');
+      await api.storage.local.set({ 'mdh:settings': { ...(stored ?? {}), funOff } });
+    } catch {
+      /* the choice still applies for this session */
+    }
+  });
+
+  api.storage.local
+    .get('mdh:settings')
+    .then(({ 'mdh:settings': stored }) => {
+      funOff = stored?.funOff === true;
+      applyFun();
+    })
+    .catch(() => applyFun());
 
   // The mission log keeps filling while the popup is open, so the wait has something to look at.
   setInterval(() => {
-    if (document.visibilityState !== 'visible' || !MDH.fun) return;
+    if (funOff || document.visibilityState !== 'visible' || !MDH.fun) return;
     barboTick += 1;
     if (barboTick % 5 === 0) barbo('deep', MDH.fun.quoteAt(barboTick));
     else barbo(MDH.fun.tagAt(barboTick), MDH.fun.missionAt(barboTick));

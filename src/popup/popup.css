@@ -171,3 +171,6 @@ button.ghost { background: #141c23; }
 .report.loud { border-color: #7f1d1d; background: linear-gradient(180deg, #1b1220, #17121c); }
 .report.loud .issue-line { color: #fecaca; }
 .report-hint { font-size: 11px; color: #6b7280; margin: 4px 0 0; }
+
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #9ca3af; cursor: pointer; }
+.toggle input { accent-color: #8b7bff; }

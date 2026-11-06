@@ -183,3 +183,11 @@ test of the logic behind them, and all of them ship a blank or half-dead popup. 
 the things a browser would have told us if this project had a browser in CI: every looked-up id exists, no
 inline handlers, nothing loaded from the network, tags balanced, the sheet has an Escape key and returns
 focus, the issue strip comes before the controls, and no line promises a feature that is not there.
+
+**D32 · The humour switch is in the product, not only in the installer.**
+`--no-fun` silenced the shell, which is where the developer works, not where the user works. The popup now has
+`Advanced → Mission chatter → hide the jokes`, stored as `mdh:settings.funOff`, and it hides exactly two
+things: the ticker and BARBOS MODE. Everything that carries information — status, history, the issue strip, the
+share sheet, failure cards — ignores the switch, and a test asserts that the strip and the sheet are not
+descendants of the elements the switch hides. Humour that cannot be turned off is a defect; help that can be
+turned off by accident is a worse one.
