@@ -282,6 +282,15 @@ read-only list, in the agent, before the host is called — and the refusal mess
 instead (`propose_plan`). An allowlist rather than a denylist because the dangerous tool is usually the one nobody
 thought about yet: an MCP server someone added last week should be assumed to write until proven otherwise.
 
+**D48 · The terminal gets the same grouping as the page, by calling the same function.**
+`mdh-log --runs` and `--run <id>` are the page's run view without a browser, and they import `groupRuns()` from
+the viewer instead of re-deriving runs from timestamps in a second place. Two implementations of "what is a run"
+would drift, and the drift would show up as a support question about which one is lying. The only difference is
+the shape of the timestamp: audit lines carry ISO strings, `stateSnapshot()` normalises to epoch ms, so the
+grouping accepts both rather than guessing which caller it has. An unknown run id exits 1 with a sentence —
+a CLI that prints an empty table for a run it cannot find is a CLI that says "nothing happened" about work that
+did.
+
 **D46 · A run id, because a log is not a story until something groups it.**
 Every call carries `run` — ten hex characters minted when the run starts — into the host frame, into the audit
 entry, and therefore into the hash. The log page groups by it, so "show me everything that run did" is a URL

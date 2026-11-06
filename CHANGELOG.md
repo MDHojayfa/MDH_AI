@@ -6,11 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 First release. One script, one extension, eight platforms, no API key.
 
-**What ships:** 236 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
+**What ships:** 255 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
 `docs/RELEASE.md` is the checklist that was followed.
 
 ### Added
 
+- **`mdh-log --runs` and `mdh-log --run <id>`** print the log page's run view to the terminal — one line per
+  run (id, calls, failures, first→last, tools), or every call of one run in order. Same grouping as the page,
+  because both call the same function; a run that is not in the audit exits 1 with a sentence.
 - **`mdh-log --watch [sec]`** re-renders the snapshot on a timer for people who would rather not open a socket;
   **a finish card** with the summary, turn count, elapsed time, *Run again* and *Report a problem*; and a
   per-site **Hide the pill** switch (in the pill's panel, restored from the popup).
@@ -156,7 +159,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **250 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **255 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 
