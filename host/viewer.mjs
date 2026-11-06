@@ -280,7 +280,8 @@ export function renderPage({
       const args = entry.args && Object.keys(entry.args).length ? JSON.stringify(entry.args, null, 2) : '';
       const open = `<details class="args"><summary>${esc(String(detail).slice(0, 160) || 'no detail')}</summary>
           <pre>${esc(args || '(no arguments recorded)')}</pre>
-          <p class="sub mono">run ${esc(entry.run ?? '— (before run ids)')} · hash ${esc(entry.hash ?? '—')}</p>
+          <p class="sub mono">run ${esc(entry.run ?? '— (before run ids)')} · via ${esc(entry.via ?? '— (before the field)')}
+            · hash ${esc(entry.hash ?? '—')}</p>
         </details>`;
       return `<tr><td class="mono">${esc(when(entry.at))}</td><td class="mono">${esc(entry.tool)}</td>
         <td><span class="badge ${tone}">${esc(entry.status ?? '?')}</span></td>
@@ -379,7 +380,7 @@ export function renderPage({
          <p class="sub mono">${esc(
            runEntries
              .slice(0, 40)
-             .map((entry) => `${entry.tool} ${entry.status}`)
+             .map((entry) => `${entry.tool} ${entry.status}${entry.via ? ` (${entry.via})` : ''}`)
              .join(' → '),
          )}${runEntries.length > 40 ? ' …' : ''}</p>
        </div>`

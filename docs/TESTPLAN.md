@@ -257,6 +257,19 @@ The docs are part of the product, so the late-v1 features have to exist in them:
 | unknown run | exit 1 and a sentence, not an empty table |
 | help | both flags are in `--help` |
 
+## 3e7. Who said yes — `tests/via.test.mjs`
+
+| Case | Expected |
+|---|---|
+| record | `auto` and `grant:session` reach the audit line, and the chain verifies |
+| hash | rewriting `via` afterwards breaks verification at that line |
+| vocabulary | unrecognisable or over-long values become `other`, never vanish |
+| absent | an entry written without `via` stays valid and has no empty field |
+| the loop | a policy allow returns `auto`; the old `return 'once'` is gone; every decision maps to a name |
+| transport | the frame carries `via`; the host forwards it to the audit |
+| page | every row shows who allowed it, and `?run=` keeps it in sequence |
+| terminal | `mdh-log --run` prints `allowed by: …` and the per-call column |
+
 ## 3f1. Run grants — `tests/grant.test.mjs`
 
 | Case | Expected |

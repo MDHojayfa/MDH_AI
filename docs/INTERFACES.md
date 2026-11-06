@@ -82,7 +82,7 @@ Four-byte little-endian length, then UTF-8 JSON. One frame in, one frame out.
 ```
 {t:'ping'}                          → {t:'pong', host, version, pid, audit}
 {t:'list'}                          → {t:'tools', tools:[{server,name,description,inputSchema,local}]}
-{t:'call', name, arguments, run}         → {t:'reply', status, body, ms} | {t:'error', code, message}
+{t:'call', name, arguments, run, via}    → {t:'reply', status, body, ms} | {t:'error', code, message}
 {t:'progress', id, message}         → resets the pending timeout
 {t:'audit'}                         → {t:'audit', ok, lines, brokenAt?}
 {t:'config'}                        → {t:'config', config, paths}
@@ -95,6 +95,12 @@ Four-byte little-endian length, then UTF-8 JSON. One frame in, one frame out.
 
 `diag` ops: `system` (kernel, node, load, RAM, disk, interfaces), `net` (DNS + TCP 443 to one of the eight
 platforms or loopback), `ip` (the single allowlisted outbound request), `clock` (the same request without the
+`via` is how the call was allowed, and it is the one field the model never controls: `auto` (the policy allowed
+it, nobody was asked), `approval` (a person clicked *Allow once*), `grant:run` / `grant:session` / `grant:site`
+(a remembered approval answered, scope named), or `always-allow` (the tool is set to always-allow). The host
+sanitises it to lowercase words and colons, 24 characters, and records anything else as `other` — it goes into
+the audit entry and therefore into the hash, so "who said yes" cannot be rewritten afterwards.
+
 address), `all`. **None of these are tools**: they are absent from `{t:'list'}`, so the model cannot call
 them, and `net` refuses any target outside its nine-entry allowlist before opening a socket.
 

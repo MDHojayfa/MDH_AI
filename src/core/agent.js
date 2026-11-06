@@ -411,7 +411,7 @@
     return { blocked: false };
   }
 
-  async function execute(call) {
+  async function execute(call, via = null) {
     const tool = call.tool;
 
     // Loop-local tools never reach the host: they are about the conversation, not the machine.
@@ -505,7 +505,7 @@
       };
     }
 
-    const reply = await MDH.transport.callTool(tool, call.arguments, { timeout: 130000, run: S.runId });
+    const reply = await MDH.transport.callTool(tool, call.arguments, { timeout: 130000, run: S.runId, via });
     const status = reply?.status ?? (reply?.ok === false ? 'error' : 'ok');
     return { status, body: reply?.body ?? reply?.result ?? '', meta: reply };
   }
@@ -549,11 +549,26 @@
     return `[MDH_RESULT tool="${tool}" status="${status}"]\n${safe}${tail}\n[/MDH_RESULT]`;
   }
 
+  /**
+   * The decision, spelled for the audit. "Who said yes" is the question a log exists to answer, and a line that
+   * says only `ok` answers it with silence. These are also the strings the viewer and `mdh-log --run` print.
+   */
+  const VIA = {
+    auto: 'auto',
+    once: 'approval',
+    run: 'grant:run',
+    session: 'grant:session',
+    site: 'grant:site',
+    always: 'always-allow',
+  };
+
   /** Decides whether this call may run, and returns the user's decision. */
   async function gate(call) {
     const policy = await MDH.state.get('policy');
     const desc = MDH.policy.describe(call, policy);
-    if (desc.verdict.decision === 'allow') return 'once';
+    // Not 'once': nobody was asked. The audit says `auto` for a policy allow and `approval` for a click, because
+    // "the rules allowed this" and "a person allowed this" are different facts and only one of them has a witness.
+    if (desc.verdict.decision === 'allow') return 'auto';
     if (desc.verdict.decision === 'deny') {
       MDH.ui.notice(`${call.tool}: ${desc.verdict.reason}`, { tone: 'err', ms: 6000 });
       return 'deny';
@@ -740,7 +755,7 @@
 
     let result;
     try {
-      result = await execute(call);
+      result = await execute(call, VIA[decision] ?? 'approval');
     } catch (e) {
       S.errors += 1;
       result = { status: 'error', body: `${e.code ? `[${e.code}] ` : ''}${e.message}` };

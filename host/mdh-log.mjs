@@ -114,10 +114,21 @@ async function main() {
       }
       const when = (iso) => new Date(iso).toISOString().replace('T', ' ').slice(0, 19);
       process.stdout.write(`run ${args.run} — ${mine.length} calls\n\n`);
+      if (mine.some((entry) => entry.via)) {
+        const counted = mine.reduce((acc, entry) => {
+          const key = entry.via ?? 'unknown';
+          acc[key] = (acc[key] ?? 0) + 1;
+          return acc;
+        }, {});
+        process.stdout.write(
+          `allowed by: ${Object.entries(counted).map(([via, n]) => `${via} ${n}`).join(' · ')}\n\n`,
+        );
+      }
       for (const entry of mine) {
         process.stdout.write(
           `${when(entry.at)}  ${String(entry.tool).padEnd(14)} ${String(entry.status ?? '?').padEnd(7)} ` +
-            `${String(entry.ms ?? '').padStart(5)} ms  ${String(entry.detail ?? '').slice(0, 90)}\n`,
+            `${String(entry.ms ?? '').padStart(5)} ms  ${String(entry.via ?? '—').padEnd(14)} ` +
+            `${String(entry.detail ?? '').slice(0, 70)}\n`,
         );
       }
       process.exit(0);
