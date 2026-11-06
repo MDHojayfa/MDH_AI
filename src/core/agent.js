@@ -44,6 +44,7 @@
     // Enough state to write a handoff at any moment: the plan, and the last few results that actually ran.
     plan: [],
     recentResults: [],
+    planMode: false,
     // Run-scoped grants: exact commands the user has approved enough times to stop being asked about,
     // and the count that earns one. Both are cleared when a new run starts (see start()).
     grants: new Set(),
@@ -419,6 +420,26 @@
       MDH.ui.showPlan(S.plan);
       return { status: 'ok', body: 'plan shown to the user' };
     }
+    if (tool === 'propose_plan') {
+      if (!S.planMode) {
+        return { status: 'ok', body: 'plan mode is off in this run — continue with the task' };
+      }
+      const steps = Array.isArray(call.arguments?.steps) ? call.arguments.steps : [];
+      S.plan = steps;
+      MDH.ui.showPlan(steps, { title: 'Plan — awaiting your decision' });
+      const approved = await MDH.ui.approvePlan?.(steps);
+      if (approved) {
+        S.planMode = false;
+        log()?.info('plan approved', steps.length, 'steps');
+        MDH.ui.notice('Plan approved — it can now change things.', { ms: 5000 });
+        return { status: 'ok', body: 'the user approved the plan. You may now make changes — carry it out.' };
+      }
+      log()?.info('plan declined; staying read-only');
+      return {
+        status: 'ok',
+        body: 'the user wants more planning. Stay read-only: investigate further, then call propose_plan again with a better plan.',
+      };
+    }
     if (tool === 'read_skill') {
       const skills = await MDH.state.get('skills').catch(() => []);
       const name = call.arguments?.name ?? '';
@@ -467,6 +488,21 @@
       });
       await MDH.state.patch('session', { phase: 'done', outcome: 'completed' });
       return { status: 'ok', body: 'finished', finish: true };
+    }
+
+    /*
+     * Plan mode refuses anything that changes the machine — before the host is asked, so the refusal costs nothing
+     * and reads as a rule rather than a failure. The model is told the same thing in its prompt, twice: in the plan
+     * section and in this message.
+     */
+    if (S.planMode && !READ_ONLY_TOOLS.has(tool)) {
+      log()?.info('plan mode refused', tool);
+      return {
+        status: 'error',
+        body:
+          `[PLAN MODE] ${tool} is not available yet: this run is read-only until the user approves a plan. ` +
+          'Investigate with the read-only tools, then call `propose_plan` with your steps.',
+      };
     }
 
     const reply = await MDH.transport.callTool(tool, call.arguments, { timeout: 130000, run: S.runId });
@@ -559,7 +595,13 @@
       await ensureTools().catch((e) => log()?.warn('tool list failed', e));
       const memory = await MDH.state.get('memory').catch(() => '');
       const skills = await MDH.state.get('skills').catch(() => []);
-      const prompt = MDH.prompt.renderPrompt({ tools: S.tools, phoenix: S.phoenix, memory, skills });
+      const prompt = MDH.prompt.renderPrompt({
+        tools: S.tools,
+        phoenix: S.phoenix,
+        memory,
+        skills,
+        planMode: S.planMode,
+      });
       message = MDH.prompt.wrapFirstMessage(prompt, S.task);
     } else {
       message = S.pendingText ?? '';
@@ -923,8 +965,27 @@
     }
   }
 
+  /*
+   * What plan mode allows. Everything else is refused until a human says go — an allowlist, because a new tool
+   * (an MCP server, say) should be assumed to change things until someone decides otherwise.
+   */
+  const READ_ONLY_TOOLS = new Set([
+    'list_dir',
+    'read_file',
+    'search_files',
+    'file_info',
+    'sys_info',
+    // conversation tools: they change nothing on disk
+    'update_plan',
+    'ask_user',
+    'propose_plan',
+    'read_skill',
+    'finish',
+  ]);
+
   async function start(task, adapter) {
     if (S.running) return { ok: false, reason: 'already running' };
+    const settings = await MDH.state.get('settings');
     S.adapter = adapter ?? MDH.platforms.match(location.hostname);
     if (!S.adapter) return { ok: false, reason: 'unsupported page' };
 
@@ -943,6 +1004,7 @@
     S.approvals = new Map();
     S.plan = [];
     S.recentResults = [];
+    S.planMode = Boolean(settings?.planFirst);
     // One id per run, stamped on every call it makes. Without it the log is a list of events and a support
     // question is a puzzle; with it, "show me everything that run did" is a URL.
     S.runId = MDH.util.uuid().replace(/-/g, '').slice(0, 10);
@@ -986,6 +1048,7 @@
       reason: reason ? String(reason).slice(0, 120) : null,
       phoenix: S.phoenix,
       runId: S.runId,
+      planMode: S.planMode,
     };
     try {
       await MDH.state.pushCapped('runs', entry, 20);
@@ -1006,6 +1069,7 @@
     prose: S.prose,
     phoenix: S.phoenix,
     runId: S.runId,
+    planMode: S.planMode,
   });
 
   MDH.agent = {

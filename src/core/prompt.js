@@ -66,7 +66,7 @@
    */
   const MEMORY_LIMIT = 1200;
 
-  function renderPrompt({ tools = [], phoenix = null, memory = '', skills = [] } = {}) {
+  function renderPrompt({ tools = [], phoenix = null, memory = '', skills = [], planMode = false } = {}) {
     const grouped = groupByServer(tools);
     const lines = [];
 
@@ -104,6 +104,19 @@
     lines.push('9. Report what actually happened. Never describe a result you did not receive.');
     lines.push('10. When the task is finished, call `finish` with a summary **and the session completion code**. If you need a decision only the user can make, call `ask_user`. ' +
       'For long work, call `update_plan` first and keep it current.');
+
+    if (planMode) {
+      lines.push('');
+      lines.push('# Plan mode — read-only until the user agrees');
+      lines.push('');
+      lines.push('You may read: `list_dir`, `read_file`, `search_files`, `file_info`, `sys_info`.');
+      lines.push('You may not write, edit, run commands or open apps yet. Those calls will be refused, and the refusal is not a bug.');
+      lines.push('');
+      lines.push('1. Look around until you understand the job.');
+      lines.push('2. Call `update_plan` with the steps you intend to take, in order, and what each one changes.');
+      lines.push('3. Call `propose_plan` with the same steps. The user approves or asks for more planning.');
+      lines.push('4. Only after approval do you act. The refusal message tells you when that has happened.');
+    }
 
     const notes = String(memory ?? '').trim();
     if (notes) {

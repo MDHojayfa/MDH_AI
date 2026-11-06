@@ -21,7 +21,7 @@ No API key, no account, no billing, and it works in Firefox and Brave, not just 
 | No API key | zero cost, zero setup | README §1, install in two commands |
 | Firefox + Brave + Chrome | most tools in this space are Chromium-only | three-browser table, `web-ext lint` at 0 errors |
 | Eight platforms | not locked to one vendor | `docs/PLATFORMS.md` |
-| Deep desktop control | files, shell, GUI — not one app | thirteen builtin tools + MCP |
+| Deep desktop control | files, shell, GUI — not one app | fifteen builtin tools + MCP |
 | Approval + allowlist + audit | "I am not letting a model run `rm -rf`" | `docs/SECURITY.md` |
 | Rate-limit recovery | "my free account got banned" | refusal ladder in `docs/ARCHITECTURE.md` §4 |
 

@@ -350,6 +350,56 @@
     return card;
   }
 
+  /**
+   * Plan mode's one decision: this plan, yes or no. Deliberately *not* an approval card — nothing is being executed
+   * yet, so there is nothing to approve, only a direction to agree with. The buttons say so.
+   */
+  function approvePlan(steps = [], { title = 'Plan — may I go ahead?' } = {}) {
+    mount();
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        document.removeEventListener('keydown', onKey, true);
+        removeCard(card);
+        resolve(value);
+      };
+
+      const body = el('div', { class: 'bd' });
+      const list = el('ol', { class: 'steps' });
+      for (const step of steps) {
+        const text = typeof step === 'string' ? step : step?.step ?? String(step);
+        list.append(el('li', { text }));
+      }
+      body.append(list);
+      body.append(el('div', { class: 'why', text: 'Nothing has been changed yet. Approving continues on the same page; asking for more planning keeps it read-only.' }));
+
+      const footer = el('div', { class: 'ft' });
+      footer.append(
+        el('button', { text: 'Keep planning', onclick: () => finish(false) }),
+        el('button', { class: 'primary', text: 'Approve and continue', onclick: () => finish(true) }),
+      );
+
+      const card = el('div', { class: 'card', role: 'dialog', 'aria-modal': 'false', 'aria-label': title },
+        el('div', { class: 'hd' }, el('span', { class: 'dot warn' }), el('span', { class: 'title', text: title })),
+        body,
+        footer,
+      );
+
+      const onKey = (ev) => {
+        if (ev.key !== 'Escape') return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        finish(false);
+      };
+      card.tabIndex = -1;
+      document.addEventListener('keydown', onKey, true);
+      addCard(card);
+      card.focus?.();
+    });
+  }
+
   /** One-shot toast. It disappears on its own; the audit log does not, which is the right way round. */
   /** One-shot toast. */
   function notice(text, { tone = 'info', ms = 5000 } = {}) {
@@ -728,5 +778,20 @@
     stack = [];
   }
 
-  MDH.ui = { mount, showApproval, askQuestion, showPlan, notice, countdown, mission, issue, drift, done, clear, el, removeCard };
+  MDH.ui = {
+    mount,
+    showApproval,
+    askQuestion,
+    showPlan,
+    approvePlan,
+    notice,
+    countdown,
+    mission,
+    issue,
+    drift,
+    done,
+    clear,
+    el,
+    removeCard,
+  };
 })();

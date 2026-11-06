@@ -542,6 +542,17 @@
     }
   }
 
+  /*
+   * Plan first. A setting, not a per-run dialog: people who want it want it every time, and people who do not
+   * should never see the question. The refusal that makes it real lives in the agent, not here.
+   */
+  $('plan-first').addEventListener('change', async (e) => {
+    const settings = await api.storage.local.get('mdh:settings');
+    const next = { ...(settings['mdh:settings'] ?? {}), planFirst: e.target.checked };
+    await api.storage.local.set({ 'mdh:settings': next });
+    barbo('sys', `plan mode ${e.target.checked ? 'on' : 'off'}`);
+  });
+
   $('fun-off').addEventListener('change', async (e) => {
     funOff = e.target.checked;
     applyFun();
@@ -558,6 +569,7 @@
     .then(({ 'mdh:settings': stored }) => {
       funOff = stored?.funOff === true;
       applyFun();
+      $('plan-first').checked = stored?.planFirst === true;
     })
     .catch(() => applyFun());
 

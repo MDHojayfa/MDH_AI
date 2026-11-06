@@ -13,7 +13,7 @@ Each item below is a promise with a condition attached — nothing is listed tha
 | OS | Linux — x86_64 and aarch64 |
 | Platforms | ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM, Grok |
 | Keys | none, ever — the logged-in web session is the model |
-| Tools | MCP servers the user already has + 13 builtin Linux tools |
+| Tools | MCP servers the user already has + 10 host tools + 5 browser-side tools |
 | Safety | path allowlist, 3-state per-tool approval, audit log, optional container |
 | Control | pill on the composer (start / pause / continue), popup as settings drawer |
 | Support | diagnostic reports with a signature table, opt-in IP, local log page (`mdh-log`) |

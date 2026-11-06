@@ -6,6 +6,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 First release. One script, one extension, eight platforms, no API key.
 
+**What ships:** 236 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
+`docs/RELEASE.md` is the checklist that was followed.
+
 ### Added
 
 - **`mdh-log --watch [sec]`** re-renders the snapshot on a timer for people who would rather not open a socket;
@@ -41,6 +44,11 @@ First release. One script, one extension, eight platforms, no API key.
   *Show all*.: approve the same exact command twice and the approval card stops bothering you for
   the rest of the run. Run-scoped, never saved, refused for anything with `&&`, pipes, redirects, `$(…)`,
   backticks, globs or `~` — approval fatigue is a safety bug, not a convenience target.
+- **The build checks the prose**: `npm run weigh` now compares the KB figures quoted in the README, WHY and MANUAL
+  with the zip it just measured, and fails when they drift. Claims that are not enforced become folklore.
+- **Plan first**: an optional read-only start. The loop allows only look-around tools until the model proposes a
+  plan and you press *Approve and continue* — enforced as an allowlist in the agent, so a new tool cannot quietly
+  gain write access to a plan-mode run.
 - **Skills (playbooks)**: write `## build` / `## deploy` blocks in the popup; the model sees the *names* and opens
   a body with `read_skill` only when it needs one. No folder, no `~/.config` edit, no context cost until used.
 - **Runs in the log**: every call now carries the run that made it, and the log page groups them — id, calls,
@@ -142,7 +150,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **231 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **238 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

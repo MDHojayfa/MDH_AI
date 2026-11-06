@@ -75,7 +75,7 @@ Browsers throttle timers in background tabs, so timers look dead while the page 
 stretches its idle and stability windows in a hidden tab rather than pausing the work — pausing would make
 "keep it in another tab" a lie.
 
-**D15 · Thirteen builtins, then MCP.**
+**D15 · A small builtin set, then MCP.**
 The builtins are the minimum a person needs to get work done on a Linux box: list, read, write, edit, run,
 search, inspect, one GUI launch, plus three conversation-level tools. Everything else — databases, git,
 browser control, GUI automation — is better served by the MCP servers the user already runs than by a
@@ -275,6 +275,12 @@ characters, it is regenerated per session but reused across Resume, it appears i
 reminder, in the `finish` tool description, and in the popup's Advanced panel — a rule nobody can see is a rule
 nobody can debug. A wrong or missing code gets **one** correction, then a pause with *Mark as finished*, because
 at that point the model has failed the rule and the human should decide.
+
+**D47 · Plan mode is an allowlist, not a prompt.**
+Telling a model "please investigate first" is a wish. Plan mode instead refuses every tool that is not on a short
+read-only list, in the agent, before the host is called — and the refusal message tells the model what to do
+instead (`propose_plan`). An allowlist rather than a denylist because the dangerous tool is usually the one nobody
+thought about yet: an MCP server someone added last week should be assumed to write until proven otherwise.
 
 **D46 · A run id, because a log is not a story until something groups it.**
 Every call carries `run` — ten hex characters minted when the run starts — into the host frame, into the audit

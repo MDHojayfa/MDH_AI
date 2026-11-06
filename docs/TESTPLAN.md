@@ -133,6 +133,17 @@ codebase to leak something by accident.
 | paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
+## 3d1. Plan mode — `tests/planmode.test.mjs`
+
+| Case | Expected |
+|---|---|
+| prompt | the read-only promise is stated, and only when the setting is on |
+| enforcement | every non-allowlisted tool is refused inside the agent, never reaching `transport` |
+| exit | only `approvePlan` returning true clears the flag |
+| decline | "keep planning" leaves it read-only and says so |
+| card | a direction, not an action: nothing has been changed yet |
+| setting | persisted, default off, declared to the model as a local tool |
+
 ## 3d2. Skills — `tests/skills.test.mjs`
 
 | Case | Expected |
@@ -173,6 +184,7 @@ codebase to leak something by accident.
 | verdict | a fabricated over-budget metric fails `evaluate()`; an in-budget one passes |
 | dependencies | `package.json` declares no dependencies, optional or dev |
 | honesty | `weigh.mjs` exits non-zero over budget; `docs/WHY.md` tells the reader to run it |
+| stale prose | a quoted KB figure more than 15% from the built zip fails the run |
 | v2 notes | rotation and messaging are named, and marked as notes rather than promises |
 
 ## 3e3. Runs in the log — `tests/audit.test.mjs`, `tests/viewer.test.mjs`

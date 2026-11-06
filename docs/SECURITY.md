@@ -40,6 +40,13 @@ This software hands a language model a shell on a Linux machine. That sentence i
 | C10 | **No IP, no page snapshots, no DOM dumps** in a report; paths and foreign URLs redacted before the URL is built | a public bug tracker becoming a leak |
 | C11 | **The diagnostics frames are not tools** (`t:'diag'` never appears in `t:'list'`) | a prompt asking for the user's address |
 
+### Plan mode
+
+Optional and off by default. When on, a run starts with an **allowlist** of read-only tools; everything else —
+including any MCP tool nobody has classified — is refused in the agent before the host is asked. The exit is a
+human pressing **Approve and continue** on a card that lists the intended steps. Because the check is an
+allowlist, adding a new tool can never silently grant write access to a plan-mode run.
+
 ### Remembered approvals
 
 A grant always covers **one exact command** (tool + folder + normalised text), never a pattern, and is refused for

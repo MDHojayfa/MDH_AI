@@ -51,3 +51,26 @@ test('v2 notes exist, name the rotation feature, and promise nothing', () => {
   assert.match(v2, /messaging/i);
   assert.match(v2, /not promised|no dates|notes, not a promise/i);
 });
+
+test('the numbers in the prose are checked against the zip', () => {
+  const stale = evaluate({
+    zipKb: 139,
+    dependencies: 0,
+    claims: [{ file: 'README.md', kb: 80 }],
+  });
+  assert.equal(stale.ok, false, 'a stale claim is a failed build, not a stale paragraph');
+
+  const fresh = evaluate({
+    zipKb: 139,
+    dependencies: 0,
+    claims: [{ file: 'README.md', kb: 139 }],
+  });
+  assert.equal(fresh.ok, true);
+
+  const shrinkflation = evaluate({
+    zipKb: 100,
+    dependencies: 0,
+    claims: [{ file: 'README.md', kb: 139 }],
+  });
+  assert.equal(shrinkflation.ok, false, 'and it works in the other direction too');
+});

@@ -24,7 +24,7 @@ src/
 host/
   mdh-host.mjs                  framing, dispatch, MCP lifecycle
   mcp_client.mjs                stdio MCP client
-  tools/linux.mjs               the thirteen builtins and the canonical path guard
+  tools/linux.mjs               the builtin tools and the canonical path guard
   config.mjs  audit.mjs  servers.example.json
 tools/
   build.mjs  make-icons.mjs  make-og.mjs  package.mjs  selfcheck.mjs
@@ -57,7 +57,7 @@ Every module is an IIFE that attaches exactly one object:
 | `MDH.interceptor` | `begin/end/finalize`, event emitter |
 | `MDH.fun` | `MISSION`, `QUOTES`, `missionAt/quoteAt/tagAt`, `chip(index)`, `rotate(node, opts)` |
 | `MDH.agent` | `start/stop/resume/status`, `_internals` for tests |
-| `MDH.ui` | `mount()`, `status()`, `card()`, `history()` |
+| `MDH.ui` | `mount()`, `showApproval(desc, {grant})`, `approvePlan(steps)`, `askQuestion`, `showPlan`, `notice`, `countdown`, `mission`, `issue`, `drift`, `done` |
 
 ## 3. Runtime messages
 

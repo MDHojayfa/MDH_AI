@@ -124,6 +124,31 @@ function rssMb(pid) {
   }
 }
 
+/**
+ * Numbers quoted in prose. A doc that says 131 KB while the zip says 139 KB is not a rounding error, it is the
+ * beginning of every "lightweight" claim that was true once. The tolerance is generous because compression moves
+ * a little between builds; anything beyond it is a stale paragraph, and stale paragraphs are how trust is lost.
+ */
+const QUOTED = [
+  { file: 'README.md', re: /(\d+)\s*KB\s+zipped/i },
+  { file: 'docs/WHY.md', re: /extension \(zip\)\s+(\d+)\s*KB/i },
+  { file: 'docs/MANUAL.md', re: /(\d+)\s*KB\s+zipped/i },
+];
+
+function claims() {
+  const found = [];
+  for (const claim of QUOTED) {
+    try {
+      const text = readFileSync(join(ROOT, claim.file), 'utf8');
+      const match = text.match(claim.re);
+      if (match) found.push({ file: claim.file, kb: Number(match[1]) });
+    } catch {
+      /* a missing doc is not a measurement problem */
+    }
+  }
+  return found;
+}
+
 function dependencies() {
   const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
   return Object.keys(pkg.dependencies ?? {}).length + Object.keys(pkg.optionalDependencies ?? {}).length;
@@ -140,6 +165,12 @@ export function evaluate(metrics, budget = BUDGET) {
   }
   if (metrics.startupMs != null) checks.push({ name: 'host startup', value: Math.round(metrics.startupMs), unit: 'ms', max: budget.startupMs, ok: metrics.startupMs <= budget.startupMs });
   checks.push({ name: 'npm dependencies', value: metrics.dependencies, unit: '', max: budget.dependencies, ok: metrics.dependencies <= budget.dependencies });
+
+  // Prose must agree with the scale. 15% is room for compression noise, not for a paragraph from last month.
+  for (const claim of metrics.claims ?? []) {
+    const near = metrics.zipKb ? Math.abs(claim.kb - metrics.zipKb) / metrics.zipKb <= 0.15 : false;
+    checks.push({ name: `${claim.file} quote`, value: claim.kb, unit: 'KB', max: metrics.zipKb ? Number(metrics.zipKb.toFixed(0)) : 0, ok: near });
+  }
   return { checks, ok: checks.every((check) => check.ok) };
 }
 
@@ -164,6 +195,7 @@ async function main() {
     startupMs: host.ok ? host.ms : null,
     startupError: host.ok ? null : host.error,
     hostRssMb: rss,
+    claims: claims(),
     node: process.version,
     platform: `${process.platform}/${process.arch}`,
   };

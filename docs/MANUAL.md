@@ -98,6 +98,17 @@ Never touch ~/work/legacy. Answer in Bangla if I write in Bangla.
 Saved when the field loses focus (no Save button to forget), stored locally, quoted verbatim. It is not sent to
 anyone but the chat you are already driving.
 
+## 3a1 · Plan first (read-only until you approve)
+
+Tick **Plan first** in Advanced and every run starts read-only. The model may look — list, read, search, inspect —
+and nothing else. It must then call `propose_plan`; you get a card with the steps and two buttons:
+
+- **Approve and continue** — the same run carries on and may now change things;
+- **Keep planning** — it stays read-only and has to come back with a better plan.
+
+A write, a command or an app launch during plan mode is refused before it reaches the host, with a message that
+tells the model why. That refusal is a rule in the loop, not a note in the prompt — the prompt could be ignored.
+
 ## 3a2 · Skills (playbooks)
 
 **Advanced → Skills** holds short playbooks, one `## name` block each:
@@ -140,8 +151,8 @@ npm run weigh -- --json
 ```
 
 It weighs the extension you actually install, starts the host for real and times it to the first `ready` frame,
-reads the host's resident memory, and counts dependencies. Current numbers on a two-core test box: **131 KB
-zipped · 51 ms to ready · 55 MB resident · 0 dependencies**. If any of those crosses its budget the script exits
+reads the host's resident memory, and counts dependencies. Current numbers on a two-core test box: **139 KB
+zipped · ~60 ms to ready · 55 MB resident · 0 dependencies**. If any of those crosses its budget the script exits
 non-zero, so the claim cannot quietly rot. The comparison this backs up is in
 [`WHY.md`](WHY.md) — including what other tools do better.
 

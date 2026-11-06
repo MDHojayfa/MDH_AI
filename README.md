@@ -16,7 +16,7 @@ already signed into, running in your browser, with your session.
 | **No API key** | the chat you are signed into is the model — nothing to paste, nothing to bill |
 | **No daemon** | no gateway, no bot token, no port to keep open; close the browser and it is gone |
 | **No `npm install`** | zero dependencies: the host is Node's standard library and this repository |
-| **No NASA PC** | 131 KB zipped extension, 51 ms to a ready host, 55 MB resident, measured by `npm run weigh` — and the budget breaks a build, not a paragraph |
+| **No NASA PC** | 139 KB zipped extension, ~60 ms to a ready host, 55 MB resident, measured by `npm run weigh` — and the budget breaks a build, not a paragraph |
 | **No hidden calls** | loopback only, hash-chained audit on your disk, approvals before anything runs |
 
 The full comparison against API-key agents, CLI coding agents and self-hosted gateways — including what they do
@@ -47,7 +47,12 @@ as a first-class target — not a port of last resort.
 
 **Linux only in v1.** The host is the only OS-specific layer, and it is small.
 
-### Thirteen builtin tools
+**Plus the things that make it usable on a bad day:** a completion code so a task cannot "finish" by accident
+(`docs/PLUG.md`), *Plan first* read-only mode, skills you write once (`## build`, `## deploy`), notes sent with
+every run, remembered approvals with three lifetimes, a page check that tells you when a site changed, a runs
+view in the local log, and one **Copy handoff** button that moves a stuck task to another chat.
+
+### Fifteen builtin tools
 
 | Tool | What it does |
 |---|---|
@@ -159,6 +164,7 @@ it over a pipe, which is why a web page cannot reach it. Details: [`docs/ARCHITE
 | [`docs/PLUG.md`](docs/PLUG.md) | the completion code: what ends a task, and why a sentence cannot |
 | [`docs/WHY.md`](docs/WHY.md) | the honest comparison, and the measured numbers behind "lightweight" |
 | [`docs/V2-NOTES.md`](docs/V2-NOTES.md) | platform rotation, a messaging bridge, and the ideas that did not earn a place yet |
+| [`docs/RELEASE.md`](docs/RELEASE.md) | the shipping checklist: verify, version in four places, stores, post-release |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | threat model, controls, residual risk |
 | [`docs/FAQ.md`](docs/FAQ.md) | the questions people actually ask |
 | [`docs/DIAGNOSTICS.md`](docs/DIAGNOSTICS.md) | what a failure collects, what it refuses to, the signature table |

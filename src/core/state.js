@@ -48,7 +48,8 @@
     grants: { boot: null, items: [] }, // remembered approvals: session and per-site
     memory: '',
     skills: [],      // [{ name, body }] — playbooks the model opens on demand, names only in the prompt
-    probes: {},      // last layout check per chat host: { at, ok, missing }      // free text the user wants in every prompt — the CLAUDE.md of a no-files product
+    probes: {},      // last layout check per chat host: { at, ok, missing }
+    planFirst: false, // start read-only and ask for a plan before touching anything      // free text the user wants in every prompt — the CLAUDE.md of a no-files product
   };
 
   const memo = new Map();

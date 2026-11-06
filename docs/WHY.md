@@ -34,11 +34,11 @@ those projects are the right answer and this one is not. What MDH_AI has that th
 
 ```
 $ npm run weigh
-extension (unpacked)  374 KB in 39 files
-extension (zip)       131 KB
-source                10,390 lines
+extension (unpacked)  396 KB in 40 files
+extension (zip)       139 KB
+source                11,005 lines
 npm dependencies      0 — Node standard library only
-host startup          51 ms to ready
+host startup          61 ms to ready
 host memory           55 MB resident
 ```
 
