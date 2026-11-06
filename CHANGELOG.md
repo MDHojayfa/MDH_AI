@@ -150,7 +150,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **238 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **242 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

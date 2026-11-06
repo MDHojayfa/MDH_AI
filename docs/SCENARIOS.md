@@ -118,10 +118,66 @@ page control is useful for one thing even without a host: it can open the report
 
 ---
 
+## 11 · "It says it's done and nothing finishes" — the plug
+
+**What they did.** Asked for a long install. The model replied "All done! Everything is set up." — as text.
+
+**What they see.** A warn line: *a finish call arrived without the completion code — asking again*, and the run
+continues. If the model tries twice without the code, the pause card appears with **Mark as finished**, which
+ends it on the human's word.
+
+**Why.** Completion is a checkable code (`docs/PLUG.md`), not a sentence. A summary in prose is a summary, and a
+task that ends on a sentence ends by accident sooner or later.
+
+## 12 · "The site changed and I found out mid-task" — layout watch
+
+**What they did.** Updated the browser, opened Claude, pressed Start. Nothing typed.
+
+**What they see.** A card within a few seconds of the page loading: *Claude looks different since your last
+visit: composer not found. It may still work — press Check this page.* The popup's **Last page check** says the
+same thing with a time, before any task is involved. A `dom-drift` signature appears in the next report.
+
+**Why.** A regression is only reported once — a page that was already broken has been reported once before, and
+warnings that repeat get muted.
+
+## 13 · "I approved the same command forty times" — grants
+
+**What they did.** A long build loop: `npm test`, approve; `npm test`, approve; …
+
+**What they see.** From the third card onward, a caret beside **Allow once** offering *for this run* / *for this
+session* / *always on this site*. Choosing one writes `granted for this run` to the log, and every later use
+writes `grant used`. The popup lists site grants with a ✕.
+
+**What it deliberately does not do.** Grant anything containing `&&`, a pipe, a redirect, `$(…)`, backticks or
+globs. Those are approved one at a time, forever, because they can hide a second command.
+
+## 14 · "It ran something I don't remember approving" — runs in the log
+
+**What they did.** Came back to a finished task and did not recognise a `write_file` in the log.
+
+**What they see.** The log page groups every call into a **run** — id, calls, failures — and one click narrows
+the table to that run (`?run=…`). Each row carries the tool, the status, the time and the detail; the run id is
+also in the popup's *Last run* line. If a call was approved, the approval is in the same run, in order.
+
+**Why.** "Show me everything that run did" is the first question after a surprise, and it should be a URL, not an
+argument.
+
+## 15 · "The chat filled up in the middle of the task" — handoff
+
+**What they did.** A 40-turn refactor on a free plan. The chat hit its context limit; the model started repeating
+itself.
+
+**What they see.** Press **Copy handoff** on the pause card: task, plan with statuses, the last three real
+results, next step and a fresh completion code. Paste it into any other chat, press Start there. Nothing is
+re-transcribed, because a summary of what was *said* is worth less than what actually *ran*.
+
+**What is not here yet.** Doing that automatically across three chats — platform rotation — is written up in
+`docs/V2-NOTES.md` with its failure modes and is explicitly not promised.
+
 ## What this list is for
 
 Every scenario above is a row the product can *name*. That is the entire design goal of the diagnostics
-layer: not to fix the world, but to make each of these ten sentences appear at the right moment, in the
+layer: not to fix the world, but to make each of these fifteen sentences appear at the right moment, in the
 right place, with the right next action — and to make the eleventh one report itself with enough context to
 become a test.
 

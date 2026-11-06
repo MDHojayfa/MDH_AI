@@ -99,3 +99,18 @@ not a disclaimer bolted onto the bottom — it is the reason the issue button is
 the reason the failure card carries the form, and the reason every line about bugs mentions the same thing:
 
 > There is no NASA PC here. There is a laptop, an issue tracker, and a person who reads it.
+
+## Added in 1.0.0, and what is *not* proven about it
+
+| Feature | What was tested | What was not |
+|---|---|---|
+| Completion code (plug) | unit tests for shape, matching and the refusal path; a wrong code cannot complete | how eight different models behave when told to remember six characters over 40 turns |
+| Plan first | the allowlist, the refusal message, approve/decline in tests | a plan-mode run against a real MCP server; only builtin tools were exercised |
+| Skills | parsing, limits, lookup, prompt line | very large playbooks, or a model that ignores the name and never opens one |
+| Remembered approvals | lifetimes, pruning, revoke, per-site scoping | a browser crash in the middle of a grant write |
+| Layout watch | regression vs recovery logic; the probe itself | whether every platform renders its composer inside the four-second window (some are slower, hence the 15 s re-check) |
+| Runs in the log | grouping, `?run=` filtering, hash coverage | long histories (thousands of runs) on a slow disk |
+| Weigh | budgets, the stale-prose check | other machines, other Node versions, spinning disks |
+
+The pattern is the same as everywhere else in this file: the logic has tests, the *behaviour of eight chat
+products over a long session* does not. That is the part only real users can find.
