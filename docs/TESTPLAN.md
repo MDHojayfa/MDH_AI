@@ -86,6 +86,48 @@ Eight tests, written because this project has no browser in CI and a popup fails
 | order | the issue strip is above the task box |
 | honesty | no "guarantee", "auto-fix", "works everywhere" copy; the NASA PC sentence is present |
 
+## 3d. Diagnostics — `tests/diag.test.mjs`, `tests/hostdiag.test.mjs`
+
+Fifteen tests. The ones that matter are the privacy ones, because a report builder is the easiest place in a
+codebase to leak something by accident.
+
+| Case | Expected |
+|---|---|
+| collection | build, browser, OS, device, network, page, failure and host facts present; nothing invented |
+| signatures | a 1015 ban is `cf-ban` + `external`, with a fix involving another network |
+| ordering | a measured clock skew outranks every guessed signature; `onLine === false` outranks everything |
+| redaction | `/home/...` → `<path>`, `me@example.com` → `<email>`, foreign URLs → `<url host>`, platform host kept |
+| consent | the body says the IP is absent *because the user chose so*, and includes it only with `includeIp` |
+| submission | the URL is `issues/new?template=…`; nothing in the module posts anywhere |
+| degeneracy | an empty diagnostic still produces a valid body and URL |
+| table health | ≥ 12 signatures, unique ids, each with what/why/fix and a valid severity |
+| host allowlist | `reachProbe('evil.example.com')` refuses before opening a socket |
+| not tools | no `diag`/`net_probe`/`viewer`/`snapshot` in the model's catalogue |
+| probes | IP + skew in one request; clock-only returns no address; timeout and refusal are values, not throws |
+| machine facts | node version, cores, load, interfaces, container hints — and disk either answers or says why not |
+
+## 3e. The viewer — `tests/viewer.test.mjs`
+
+| Case | Expected |
+|---|---|
+| page | no `<script>`, no remote reference, CSP `default-src 'none'` |
+| escaping | a tool name of `<img onerror=…>` arrives escaped, not dropped |
+| percentiles | missing timings are ignored, not counted as zero |
+| binding | `127.0.0.1` only — asserted on the live server, not the source |
+| auth | 200 with the token, 404 without and 404 for a wrong token |
+| surface | `/health` and `/data.json`; `/../../etc/passwd` is a 404 |
+
+## 3f. The composer pill — `tests/dock.test.mjs`
+
+| Case | Expected |
+|---|---|
+| load order | `dock.js` after `agent.js`, before `content/main.js`, mounted by `boot()` |
+| phases | seven phases, each with icon, label, tooltip and one of five actions |
+| anchoring | above-right of the composer, clamped inside the viewport |
+| saved position | a position from a 4K screen is clamped, never negative, never off-screen |
+| drag vs click | a 4 px threshold separates a drag from a click |
+| persistence | `dockPos` and `lastTask` are read and written |
+
 ## 4. Loop — deterministic parts
 
 The agent's `_internals` are exported for exactly this. The cases that decide whether the product is safe:

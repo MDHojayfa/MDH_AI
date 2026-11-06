@@ -65,6 +65,13 @@
     }
     .mission .line { font-size: 13px; color: #93a3b1; min-height: 1.4em; }
     .mission .real { font-size: 12px; color: #7d8b98; margin-top: 6px; }
+    .nudge { margin-top: 4px; font-size: 12.5px; color: #c7d2fe; }
+    .what { margin-top: 10px; }
+    .what summary { cursor: pointer; color: #a5b4fc; font-size: 12px; }
+    .preview { margin: 8px 0 0; max-height: 220px; overflow: auto; padding: 10px; border-radius: 8px;
+      background: #0b0a12; border: 1px solid #2a2547; color: #c9ccdb; font-size: 11.5px; white-space: pre-wrap; word-break: break-word; }
+    .ipbox { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; font-size: 11.5px; color: #9ca3af; cursor: pointer; }
+    .ipbox input { margin-top: 2px; accent-color: #8b7bff; }
     .quip { margin-top: 8px; font-size: 12.5px; color: #a78bfa; font-style: italic; }
     .row-btns { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     .shimmer { height: 2px; background: #1e2830; overflow: hidden; }
@@ -354,17 +361,116 @@
   }
 
   /**
-   * The failure card. Three things, in this order: what broke (true), a line about the developer having no
-   * NASA PC (labelled as a joke), and a button that opens the bug form with the context already filled.
-   * A dead end with a door in it is the whole idea.
+   * The failure card. It answers three questions in order: what actually broke, what we think caused it,
+   * and what exactly will be sent if the user chooses to send it. Nothing is uploaded here — the GitHub form
+   * opens pre-filled and the user decides. A report button that posts on its own is a bug report from the
+   * extension about the user, which is not what this is.
+   *
+   * `bundle` is `MDH.diag.bundle(...)` when the caller could collect facts; without it the card still works,
+   * just with less to say.
    */
-  function issue({ reason = 'Something went wrong', detail = '', seed = Date.now() } = {}) {
+  function issue({ reason = 'Something went wrong', detail = '', bundle = null, seed = Date.now() } = {}) {
     mount();
     const quip = MDH.report?.issueLine(seed) ?? 'If you found a bug, the issue tracker is the QA team.';
-    const body = el('div', { class: 'bd' },
-      el('div', { class: 'cmd', text: String(detail || reason) }),
-      el('div', { class: 'quip', text: quip }),
-    );
+    const hypothesis = bundle?.hypotheses?.[0] ?? null;
+    const includeIp = { value: false };
+    let ipState = 'idle'; // idle | loading | done | failed
+
+    const body = el('div', { class: 'bd' });
+    body.append(el('div', { class: 'cmd', text: String(detail || reason) }));
+    if (hypothesis) {
+      body.append(
+        el('div', { class: 'quip', text: `Likely: ${hypothesis.what}` }),
+        el('div', { class: 'nudge', text: hypothesis.fix }),
+      );
+    }
+    body.append(el('div', { class: 'quip', text: quip }));
+
+    // The "what will be sent" drawer: the same text the issue body receives, so there are no surprises.
+    const preview = el('details', { class: 'what' });
+    preview.append(el('summary', { text: `What will be sent (${bundle?.hypotheses?.length ?? 0} guesses, ${(bundle?.diag?.log ?? []).length} log lines)` }));
+    const previewText = el('pre', { class: 'preview', text: (bundle?.body ?? `${reason}\n${detail}`).slice(0, 4000) });
+    preview.append(previewText);
+
+    const ipBox = el('label', { class: 'ipbox' });
+    const ipInput = el('input', { type: 'checkbox' });
+    const ipText = el('span', { text: 'include my public IP (off by default — one request, only if you tick this)' });
+    ipBox.append(ipInput, ipText);
+    ipInput.addEventListener('change', async () => {
+      includeIp.value = ipInput.checked;
+      if (!ipInput.checked) {
+        if (bundle?.diag?.host) delete bundle.diag.host.publicIp;
+        return;
+      }
+      if (ipState === 'done') return;
+      ipState = 'loading';
+      ipText.textContent = 'asking the local host for your address…';
+      try {
+        const probe = await MDH.transport?.hostDiag?.('ip', {}, { timeout: 6000 });
+        if (probe?.ok && probe.ip) {
+          ipState = 'done';
+          bundle.diag.host = { ...(bundle.diag.host ?? {}), publicIp: probe.ip, ipEndpoint: probe.endpoint };
+          ipText.textContent = `include my public IP (${probe.ip} — from ${probe.endpoint})`;
+        } else {
+          ipState = 'failed';
+          ipText.textContent = `could not read the address (${probe?.error ?? 'no answer'}) — leave it unticked`;
+          ipInput.checked = false;
+          includeIp.value = false;
+        }
+      } catch (e) {
+        ipState = 'failed';
+        ipText.textContent = `could not read the address (${e.message}) — leave it unticked`;
+        ipInput.checked = false;
+        includeIp.value = false;
+      }
+    });
+
+    const openIssue = el('button', {
+      class: 'primary',
+      text: 'Open issue with report',
+      onclick: () => {
+        const url = bundle
+          ? MDH.diag?.issueUrl(bundle.diag, { includeIp: includeIp.value })
+          : MDH.report?.issueUrl({
+              title: '[bug] ',
+              stage: 'agent',
+              platform: globalThis.MDH?.platforms?.match?.(location.hostname)?.id ?? 'unknown',
+              browser: navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Chrome',
+              detail: String(detail || reason).slice(0, 600),
+            });
+        // Opens the form. GitHub is the thing that submits it, with the user's own click.
+        if (url) globalThis.open?.(url, '_blank', 'noopener');
+      },
+    });
+
+    const copyReport = el('button', {
+      text: 'Copy report',
+      onclick: async () => {
+        const text = bundle?.body ?? `${reason}\n\n${detail}`;
+        try {
+          await navigator.clipboard.writeText(text);
+          copyReport.textContent = 'Copied';
+          setTimeout(() => (copyReport.textContent = 'Copy report'), 1500);
+        } catch {
+          copyReport.textContent = 'Copy failed';
+        }
+      },
+    });
+
+    const viewerBtn = el('button', {
+      text: 'Log viewer',
+      onclick: async () => {
+        viewerBtn.textContent = 'Opening…';
+        try {
+          const reply = await MDH.transport?.openViewer?.();
+          if (reply?.url) globalThis.open?.(reply.url, '_blank', 'noopener');
+          else viewerBtn.textContent = 'No viewer';
+        } catch (e) {
+          viewerBtn.textContent = e.code === 'NO_HOST' ? 'Host offline' : 'No viewer';
+        }
+      },
+    });
+
     const copyBtn = el('button', {
       text: 'Copy log',
       onclick: async () => {
@@ -381,28 +487,15 @@
         }
       },
     });
-    const open = el('button', {
-      class: 'primary',
-      text: 'Open an issue',
-      onclick: () => {
-        const url = MDH.report?.issueUrl({
-          title: '[bug] ',
-          stage: 'agent',
-          platform: globalThis.MDH?.platforms?.match?.(location.hostname)?.id ?? 'unknown',
-          browser: navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Chrome',
-          detail: String(detail || reason).slice(0, 600),
-        });
-        if (url) globalThis.open?.(url, '_blank', 'noopener');
-        close();
-      },
-    });
-    const footer = el('div', { class: 'ft' }, open, copyBtn, el('div', { class: 'spacer' }));
-    const closeBtn = el('button', { text: 'Dismiss', onclick: () => close() });
-    footer.append(closeBtn);
+
+    const footer = el('div', { class: 'ft' }, openIssue, copyReport, viewerBtn, copyBtn, el('div', { class: 'spacer' }));
+    footer.append(el('button', { text: 'Dismiss', onclick: () => close() }));
 
     const card = el('div', { class: 'card' },
       el('div', { class: 'hd' }, el('span', { class: 'dot err' }), el('span', { class: 'title', text: 'MDH stopped' })),
       body,
+      preview,
+      ipBox,
       footer,
     );
     card.id = 'mdh-issue';

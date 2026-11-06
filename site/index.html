@@ -319,6 +319,16 @@
       <p>The loop stops instead of hammering. It reloads, waits longer, opens a fresh chat, then pauses and
         offers Resume. Your account matters more than the task.</p></details>
 
+    <details><summary>Can I start a task without the popup?</summary>
+      <p>Yes. A small pill sits above the chat box on every supported site: click to start, click to pause,
+        click to continue, drag it if it is in the way. It remembers the last task, so restarting after a
+        refresh is one click.</p></details>
+
+    <details><summary>Where can I see what it actually did?</summary>
+      <p><code>mdh-log</code> writes one self-contained HTML file with every call, its time, its status and its
+        audit hash — no script in the page, nothing fetched. <code>mdh-log --serve</code> gives a live view on
+        <code>127.0.0.1</code> with a token that dies with the process.</p></details>
+
     <details><summary>Something broke. Who fixes it?</summary>
       <p>You report it, and the same person reads it. The popup opens with a line about exactly this and two
         buttons that pre-fill the form with the stage, platform and browser — never with your paths. If the

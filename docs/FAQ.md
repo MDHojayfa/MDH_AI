@@ -37,6 +37,22 @@ agent masks native input off on Linux because it is unreliable there.
 Stream interception is exactly the kind of thing store review rejects, and a store build could not
 guarantee "no network". `install.sh` plus *Load unpacked* is one command and two clicks.
 
+**What does a bug report actually contain?**
+Browser and version, OS hint, timezone, cores/memory/screen, page host and stage, the log trail, and — via the
+host — kernel, node version, load, free disk, interfaces, MTU and a *measured* clock skew. No file paths, no
+visited URLs, no cookies, no DOM snapshots. [`docs/DIAGNOSTICS.md`](DIAGNOSTICS.md) lists every field and the
+redaction rules, and the card shows you the exact text before opening GitHub.
+
+**Does it send my IP address?**
+Only if you tick a box that starts unticked. It exists because a blocked IP is the classic "works for
+everyone else" bug: three months of debugging in somebody's case. One request to one documented endpoint, the
+result goes into the form, nothing is stored.
+
+**Why is there a website running on my machine?**
+Only when you click **Log viewer**, or run `mdh-log --serve`. It binds `127.0.0.1`, needs a token printed in
+the URL, serves one read-only page with no script, and dies with the process. `mdh-log` with no arguments
+writes a file instead and starts nothing at all.
+
 **Does it phone home?**
 There is no telemetry and no update check. The only network traffic is the browser you already have open,
 plus whatever MCP servers you configure. You can verify this: the built extension is unminified vanilla JS
@@ -66,6 +82,10 @@ first.
 **Does it keep working if I switch tabs?**
 Yes. A hidden tab is slower, not paused: browsers throttle timers in background tabs, so the extension
 waits longer rather than declaring the reply dead.
+
+**Can I start a task without opening the popup?**
+Yes — that is what the pill on the chat box is for. Click **Start**, type, Enter. Click again to pause, again
+to continue. The popup is for settings and history now.
 
 **What if a site changes and it breaks?**
 That adapter breaks; the others do not, and the popup says which platform is unsupported instead of

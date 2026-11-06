@@ -141,6 +141,7 @@
       return;
     }
     MDH.ui.mount();
+    MDH.dock.mount(adapter);
     MDH.interceptor.attach(adapter);
     watchNavigation();
     hello();

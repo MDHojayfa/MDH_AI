@@ -411,6 +411,7 @@
       const summary = String(call.arguments?.summary ?? '').trim();
       S.outcome = 'completed';
       S.phase = 'done';
+      MDH.dock?.sync?.();
       S.running = false;
       MDH.ui.notice(summary ? `Finished: ${MDH.util.truncate(summary, 140)}` : 'Finished.', { ms: 8000 });
       await MDH.state.patch('session', { phase: 'done', outcome: 'completed' });
@@ -446,6 +447,7 @@
 
   async function turn() {
     S.turn += 1;
+    MDH.dock?.sync?.();
     if (S.turn > LIMITS.maxTurns) {
       return stop('turn limit reached');
     }
@@ -465,6 +467,7 @@
     S.phase = 'injecting';
     await deliver(message, { first });
     S.phase = 'waiting-reply';
+    MDH.dock?.sync?.();
 
     // A real sentence about the real state, plus nonsense that is visibly tagged as nonsense. The joke
     // is not the status; if the two ever disagree, the status wins and the joke is just a joke.
@@ -537,6 +540,7 @@
     }
 
     S.phase = 'executing';
+    MDH.dock?.sync?.();
     await MDH.state.set('pending', { call, pushedAt: Date.now(), turn: S.turn });
 
     let result;
@@ -573,25 +577,90 @@
   let lastIssueAt = 0;
 
   /**
+   * Everything we can honestly know at failure time, in one object the report builder understands.
+   *
+   * The browser half comes from `core/diag.js`; the machine half comes from the host over the same pipe the
+   * tools use, on a frame type the model cannot reach. If the host is down, that is itself a fact and gets
+   * reported as `host: null` rather than quietly omitted.
+   */
+  async function diagnostics(error, { stage = null } = {}) {
+    const trail = MDH.log?.tail?.(60) ?? [];
+    let host = null;
+
+    if (MDH.transport?.connected) {
+      try {
+        const [sys, clock] = await Promise.all([
+          MDH.transport.hostDiag('system', {}, { timeout: 4000 }),
+          MDH.transport.hostDiag('clock', {}, { timeout: 4000 }),
+        ]);
+        host = {
+          version: sys?.facts?.hostVersion ?? null,
+          pid: sys?.facts?.pid ?? null,
+          node: sys?.facts?.node ?? null,
+          kernel: sys?.facts ? `${sys.facts.platform} ${sys.facts.release}` : null,
+          diskFreeGB: sys?.disk?.freeGB ?? null,
+          diskOk: sys?.disk?.ok ?? null,
+          tunnels: sys?.facts?.tunnels ?? [],
+          smallMtu: sys?.facts?.smallMtu ?? [],
+          clockSkewMs: clock?.ok ? clock.clockSkewMs : null,
+        };
+      } catch (e) {
+        host = { error: String(e.message ?? e) };
+      }
+    }
+
+    const collected = MDH.diag.collect({
+      stage: stage ?? S.phase,
+      platform: S.adapter,
+      error,
+      logTrail: trail,
+      host,
+    });
+
+    const bundle = MDH.diag.bundle(collected);
+
+    // Keep the last report on disk so the log viewer can show it after the tab is gone. Best effort: a
+    // failed save must never make a failure worse.
+    if (MDH.transport?.connected) {
+      MDH.transport
+        .hostDiag('system', { save: true, summary: MDH.diag.summary(collected), hypotheses: bundle.hypotheses, diag: collected }, { timeout: 6000 })
+        .catch(() => {});
+    }
+
+    return bundle;
+  }
+
+  /**
    * One failure, one card. The loop can fail in two places (the throw, then `stop`), and a user who sees the
    * same form twice learns to dismiss both without reading. 60 s is long enough to cover a single failure
    * and short enough that a second, genuinely new one still gets through.
    */
-  function reportCard(detail) {
+  async function reportCard(detail, { error = null, stage = null } = {}) {
     if (Date.now() - lastIssueAt < 60000) return;
     lastIssueAt = Date.now();
-    MDH.ui.issue?.({ reason: String(detail), detail });
+    let bundle = null;
+    try {
+      bundle = await diagnostics(error ?? new Error(String(detail)), { stage });
+    } catch (e) {
+      log()?.warn('could not build the report', e);
+    }
+    MDH.ui.issue?.({ reason: String(detail), detail: String(detail), bundle });
   }
 
   function stop(reason) {
+    const stage = S.phase;
     S.running = false;
     S.stopped = true;
     S.phase = 'stopped';
     log()?.warn('loop stopped:', reason);
     MDH.ui.notice(`MDH stopped: ${reason}`, { tone: 'warn', ms: 6000 });
     if (REPORTABLE.has(String(reason))) {
-      reportCard(`The loop stopped (${reason}) after ${S.turn} turn${S.turn === 1 ? '' : 's'}.\nStage: ${S.phase}`);
+      reportCard(`The loop stopped (${reason}) after ${S.turn} turn${S.turn === 1 ? '' : 's'}.\nStage: ${stage}`, {
+        stage,
+        error: Object.assign(new Error(String(reason)), { code: String(reason) }),
+      });
     }
+    MDH.dock?.sync?.();
     MDH.state.patch('session', { phase: 'stopped', outcome: reason }).catch(() => {});
   }
 
@@ -630,12 +699,13 @@
 
     await MDH.state.set('session', { tabId: null, platform: S.adapter.id, startedAt: S.startedAt, phase: 'running', outcome: null });
     MDH.ui.mount();
+    MDH.dock?.sync?.();
 
     turn().catch((e) => {
       log()?.error('loop failed', e);
       // A failure is the one moment a user might actually file an issue, so it is the one moment we hand
       // them the form. The joke is labelled; the reason is not.
-      if (!e.reported) reportCard(`The loop stopped: ${e.message}\n\nStage: ${S.phase} · turn ${S.turn}`);
+      if (!e.reported) reportCard(`The loop stopped: ${e.message}\n\nStage: ${S.phase} · turn ${S.turn}`, { error: e, stage: S.phase });
       stop(e.code ?? 'error');
     });
     return { ok: true };
@@ -650,5 +720,5 @@
     startedAt: S.startedAt,
   });
 
-  MDH.agent = { start, stop, resume, status, _internals: { setComposerText, composerText, isStreaming, assistantText, governorWait, dedupCheck } };
+  MDH.agent = { start, stop, resume, status, diagnostics, _internals: { setComposerText, composerText, isStreaming, assistantText, governorWait, dedupCheck } };
 })();

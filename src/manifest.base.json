@@ -99,6 +99,7 @@
       "js": [
         "shared/compat.js",
         "core/log.js",
+        "core/diag.js",
         "core/state.js",
         "core/policy.js",
         "core/parser.js",
@@ -120,6 +121,7 @@
         "platforms/qwen-domestic.js",
         "platforms/glm.js",
         "platforms/grok.js",
+        "core/dock.js",
         "content/main.js"
       ],
       "run_at": "document_start",

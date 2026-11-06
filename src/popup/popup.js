@@ -84,16 +84,76 @@
     };
   }
 
-  function openIssue(kind = 'bug') {
-    const ctx = contextForIssue();
-    const detail = kind === 'idea'
-      ? ''
-      : `<!-- what were you doing, and what did you expect? -->\n\n`;
-    const url = kind === 'idea'
-      ? report.ideaUrl({ title: '[idea] ', body: '' })
-      : report.issueUrl({ ...ctx, title: '[bug] ', detail });
-    barbo('sys', `opening the ${kind} form`);
-    openUrl(url);
+  /**
+   * Build the report locally, show nothing, upload nothing. The popup has the page's log and the browser
+   * facts; the background adds the machine's facts through a one-shot host call. Only the user's click on
+   * GitHub's own Submit button moves any of it off the machine.
+   */
+  async function buildBundle() {
+    let host = null;
+    try {
+      const res = await api.runtime.sendMessage({ type: 'mdh:diagnose' });
+      host = res?.host ?? null;
+      if (host) barbo('host', `diagnostics: ${host.node ?? 'node ?'} · skew ${host.clockSkewMs ?? '?'} ms`);
+    } catch {
+      barbo('sys', 'diagnostics: host not answering, report will say so');
+    }
+
+    const collected = MDH.diag.collect({
+      stage: status?.agent?.phase ?? 'popup',
+      platform: status?.platform ?? null,
+      error: null,
+      logTrail: status?.log ?? [],
+      host,
+    });
+    return MDH.diag.bundle(collected);
+  }
+
+  async function openIssue(kind = 'bug') {
+    if (kind === 'idea') {
+      barbo('sys', 'opening the idea form');
+      openUrl(report.ideaUrl({ title: '[idea] ', body: '' }));
+      return;
+    }
+
+    const label = $('report-bug');
+    const was = label.textContent;
+    label.textContent = 'Building…';
+    label.disabled = true;
+    try {
+      const bundle = await buildBundle();
+      barbo('sys', `report ready · ${bundle.hypotheses.length} guesses · ${(bundle.diag.log ?? []).length} log lines`);
+      openUrl(MDH.diag.issueUrl(bundle.diag, { title: `[bug] ${bundle.diag.page?.platform ?? 'unknown'} · ${bundle.diag.stage}` }));
+    } catch (e) {
+      barbo('sys', `report failed: ${e.message}`);
+      openUrl(report.issueUrl({ ...contextForIssue(), title: '[bug] ', detail: '' }));
+    } finally {
+      label.textContent = was;
+      label.disabled = false;
+    }
+  }
+
+  /** The viewer is the host's, on loopback; the popup only asks for its URL and opens a tab. */
+  async function openViewer() {
+    const button = $('viewer');
+    const was = button.textContent;
+    button.textContent = 'Opening…';
+    try {
+      const res = await api.runtime.sendMessage({ type: 'mdh:viewer' });
+      if (res?.ok && res.url) {
+        barbo('host', `log viewer on loopback :${res.port}`);
+        api.tabs.create({ url: res.url }).catch(() => {});
+      } else {
+        button.textContent = res?.code === 'NO_HOST' ? 'Host offline' : 'Unavailable';
+        setTimeout(() => (button.textContent = was), 1800);
+        return;
+      }
+    } catch {
+      button.textContent = 'Unavailable';
+      setTimeout(() => (button.textContent = was), 1800);
+      return;
+    }
+    button.textContent = was;
   }
 
   function showShare(force = false) {
@@ -382,6 +442,7 @@
   $('report-bug').addEventListener('click', () => openIssue('bug'));
   $('report-idea').addEventListener('click', () => openIssue('idea'));
   $('share-open').addEventListener('click', () => showShare(true));
+  $('viewer').addEventListener('click', openViewer);
   $('share-close').addEventListener('click', hideShare);
   $('share-sheet').addEventListener('click', (e) => {
     if (e.target === $('share-sheet')) hideShare();

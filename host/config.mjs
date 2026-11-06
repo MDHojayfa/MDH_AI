@@ -34,6 +34,8 @@ export const DEFAULTS = {
   maxResultBytes: 131072,
   maxCallBytes: 262144,
   commandTimeoutMs: 60000,
+  // 0 = a random loopback port each time the viewer starts. Set a number only if you bookmark it.
+  viewerPort: 0,
   maxTimeoutMs: 300000,
   container: false,
 };

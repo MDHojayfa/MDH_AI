@@ -60,7 +60,8 @@ export function loadExtension(files, page = {}) {
     URLSearchParams,
     encodeURIComponent,
     decodeURIComponent,
-    navigator: { userAgent: 'Mozilla/5.0 (X11; Linux x86_64) test', clipboard: { writeText: async () => {} } },
+    navigator: {
+      userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36', clipboard: { writeText: async () => {} } },
     location: { hostname: page.hostname ?? 'chatgpt.com', pathname: page.pathname ?? '/', origin: 'https://example.test' },
     document: {
       visibilityState: 'visible',

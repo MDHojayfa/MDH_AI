@@ -104,12 +104,42 @@ that enforces each of those three rules (`tests/fun.test.mjs`).
 | reply never arrives | tab was closed, page reloaded | the pending call is saved; press **Resume** |
 | Firefox lost the extension | temporary add-on | re-load from `about:debugging` |
 
+## 2b · The pill on the chat box
+
+On any of the eight platforms a small pill appears above the composer. It is the main control:
+
+| The pill | Clicking it |
+|---|---|
+| **▶ Start** | opens a one-field panel; type a task, press Enter |
+| **⏳ Waiting** | pauses the loop (it can always be resumed) |
+| **⚙ Working** | pauses after the current tool returns — never mid-write |
+| **↻ Resume** | continues from the last pending call |
+| **↻ Again** | re-runs the last task verbatim |
+| **! Report** | opens the failure card with the diagnostics already collected |
+
+Drag it anywhere; the position is remembered per profile. `Esc` closes the panel. The task you typed last is
+remembered too, so **Start** after a refresh is one click and no retyping.
+
 ## 4c · Turning the chatter off
 
 `Advanced → Mission chatter → hide the jokes` stops the ticker and hides **BARBOS MODE**. The choice is
 remembered per profile. What does **not** change: the issue strip, **Report a bug**, **Send an idea**, the
 **Share** button, every real status line and the failure cards. `./install.sh --no-fun` does the same for the
 installer's own output; the popup switch is the one that lives in the browser.
+
+## 5c · The local log page
+
+```
+mdh-log             # writes ~/.local/state/mdh/log.html and prints the path
+mdh-log --open      # …and opens it in your browser
+mdh-log --serve     # live view on 127.0.0.1, random port, token in the URL
+mdh-log --json      # summary for a script or a paste
+```
+
+From the UI: **popup → Advanced → Log viewer**, or **Log viewer** on the failure card. The page shows totals,
+p50/p95 per tool, every call newest-first with its chain hash, and the last failure with its hypotheses. It is
+one file with inline CSS and **no script at all** — it works with the network unplugged. The live mode binds
+loopback only and refuses every request without the token printed next to the URL.
 
 ## 5b · Reporting a problem, and sharing the project
 
@@ -122,12 +152,19 @@ and three buttons under it:
 | **Send an idea** | opens the feature form. No template required, one sentence is enough. |
 | **Share** | opens the share sheet; copies the link, or opens a pre-filled post |
 
-When the loop fails, the same form appears **inside the page**, directly under the real error, because that
-is the moment you have the information and the motivation at the same time. The card is not a joke: the
-error text is printed above it in the same colour as any other error.
+When the loop fails, a card appears **inside the page**, directly under the real error, because that is the
+moment you have the information and the motivation at the same time. It carries the browser, OS, page, log
+trail and — through the host — the kernel, clock skew, free disk, tunnel interfaces and MTU. It labels the top
+hypothesis (`Likely: the plan is rate-limited right now`) and the fix. Nothing is uploaded: the card shows
+exactly what will be sent, then opens GitHub's form pre-filled.
 
 Two things the bug form will never contain, by design: your file paths and the URLs you visited. They are
 replaced with `<path>` and `<url>` before the link is built. If the path matters, type it yourself.
+
+Your **public IP** is the opposite case: it can be the actual cause (a blocked address looks exactly like a
+broken extension), so the card offers it behind a checkbox that starts unticked. Ticking it makes one request
+to a documented IP-echo endpoint and adds the result to the report. Nothing is stored, and the next report
+starts unticked again. Full detail: [`docs/DIAGNOSTICS.md`](DIAGNOSTICS.md).
 
 The share sheet opens itself **once per profile** and then stays a button. Instagram and TikTok cannot accept
 a pre-filled post from a URL, so those two copy the link and open the app — the sheet labels them that way

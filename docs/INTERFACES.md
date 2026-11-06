@@ -46,7 +46,9 @@ Every module is an IIFE that attaches exactly one object:
 | `MDH.parser` | `parse(text, ctx)`, `explain(reason)`, `repair(text)`, `coerceArguments()` |
 | `MDH.prompt` | `renderPrompt({tools})`, `wrapFirstMessage(prompt, text)`, `reminder(mode)`, `BUDGET_CHARS` |
 | `MDH.platforms` | `register(adapter)`, `current(location)`, `get(id)` |
-| `MDH.transport` | `connect()`, `ping()`, `listTools()`, `callTool(name, args, opts)`, `close()` |
+| `MDH.transport` | `connect()`, `ping()`, `listTools()`, `callTool(name, args, opts)`, `hostDiag(op, extra)`, `openViewer()`, `writeSnapshot()`, `close()` |
+| `MDH.diag` | `collect(opts)`, `hypotheses(diag)`, `issueBody(diag)`, `issueUrl(diag)`, `factsTable()`, `summary()`, `bundle()`, `redact()` |
+| `MDH.dock` | `mount(adapter)`, `sync()`, `destroy()`, `stateFor(status)` |
 | `MDH.interceptor` | `begin/end/finalize`, event emitter |
 | `MDH.fun` | `MISSION`, `QUOTES`, `missionAt/quoteAt/tagAt`, `chip(index)`, `rotate(node, opts)` |
 | `MDH.agent` | `start/stop/resume/status`, `_internals` for tests |
@@ -59,12 +61,14 @@ Every module is an IIFE that attaches exactly one object:
 | popup → content | `mdh:start`, `mdh:stop`, `mdh:resume`, `mdh:status` | session control |
 | popup → content | `mdh:ping-host` | is the native host alive |
 | popup → content | `mdh:set-policy`, `mdh:save-settings` | user changed settings |
+| popup → background | `mdh:viewer`, `mdh:snapshot`, `mdh:diagnose` | log viewer URL, HTML snapshot, machine facts |
 | content → background | `mdh:badge`, `mdh:hello`, `mdh:open-home` | badge, install handshake, website link |
 | content → page | `mdh:injected` `{kind, payload}` | interceptor events from the MAIN world |
 | page → content | `mdh:injected-ready`, `mdh:injected-send` | tap handshake |
 
 Storage keys: `mdh:settings`, `mdh:policy`, `mdh:pace`, `mdh:rate`, `mdh:pending`, `mdh:answered`,
-`mdh:history`, `mdh:session`, `mdh:lease`.
+`mdh:history`, `mdh:session`, `mdh:lease`. Inside `mdh:settings`: `enabled`, `autoResume`, `welcomed`,
+`sharePrompted`, `funOff`, `dockPos`, `lastTask`.
 
 ## 4. Host protocol
 
@@ -77,7 +81,15 @@ Four-byte little-endian length, then UTF-8 JSON. One frame in, one frame out.
 {t:'progress', id, message}         → resets the pending timeout
 {t:'audit'}                         → {t:'audit', ok, lines, brokenAt?}
 {t:'config'}                        → {t:'config', config, paths}
+{t:'diag', op}                      → {t:'diag', ok, facts?, disk?, ip?, clockSkewMs?, …}
+{t:'viewer'}                        → {t:'viewer', url, port}   (loopback, token in the URL)
+{t:'snapshot'}                      → {t:'snapshot', path}       (~/.local/state/mdh/log.html)
 ```
+
+`diag` ops: `system` (kernel, node, load, RAM, disk, interfaces), `net` (DNS + TCP 443 to one of the eight
+platforms or loopback), `ip` (the single allowlisted outbound request), `clock` (the same request without the
+address), `all`. **None of these are tools**: they are absent from `{t:'list'}`, so the model cannot call
+them, and `net` refuses any target outside its nine-entry allowlist before opening a socket.
 
 Error codes: `TOOL_MISSING`, `TOOL_FAILED`, `NOT_FOUND`, `PATH_DENIED`, `AMBIGUOUS_MATCH`, `PROTO`,
 `TIMEOUT`. The extension adds `NO_HOST`, `NO_TAB`, `SEND_FAILED`, `TIMEOUT` for its own failures.

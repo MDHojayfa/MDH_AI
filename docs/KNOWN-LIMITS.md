@@ -55,6 +55,19 @@ it is why the popup opens with a line about reporting problems instead of a line
 | Firefox for Android | explicitly out of scope; `web-ext lint` warns about it | — |
 | Screen readers over the injected cards | no screen reader on this machine | an accessibility audit |
 | A store review of either package | neither is submitted yet | the listing file |
+| The IP probe on IPv6-only or CGNAT | one network was available | a report from each, with the address redacted |
+| MTU/tunnel detection outside Linux | it reads `/sys/class/net/*/mtu` | a macOS port, if one ever exists |
+| The pill on all eight layouts | four were checked by hand | a screenshot per platform that misplaces it |
+| A report built while the host is down | the fallback path is tested, the *timing* is not | one report from a machine with no host |
+| The live viewer after a host restart | the port is random per process | a bookmark, if you set `viewerPort` |
+
+## The limits of the diagnostics themselves
+
+- **A hypothesis is not a cause.** The signature table matches text and a few measurements. It is right often
+  enough to be worth reading and wrong often enough that every surface calls it a guess.
+- **The clock is compared to one server.** A second of error is the resolution; a badly configured endpoint is
+  indistinguishable from a badly configured laptop.
+- **The log page is the audit log.** If a call was not audited (a crash mid-write), the page cannot show it.
 
 ## The three limits that are not about testing
 

@@ -57,6 +57,21 @@ Point `~/.config/mdh/servers.json` at any stdio MCP server — filesystem, git, 
 GUI automation — and its tools appear to the model under a server prefix. The host speaks the protocol
 directly; nothing needs to be bridged or rewritten.
 
+### The pill on the chat box, and the log page behind it
+
+- **A control where the work happens.** A small pill anchors above the composer on any of the eight sites:
+  click to start, click to pause, click to continue, drag it out of the way. It remembers your last task and
+  your last position, and it lives in a shadow root so eight different global stylesheets cannot bend it.
+- **A local log page.** `mdh-log` renders the audit chain as one self-contained HTML file — totals, p50/p95 per
+  tool, every call newest-first with its hash, and the last failure with its hypotheses. `--serve` gives a live
+  view on `127.0.0.1` with a per-process token; nothing is reachable from anywhere else, and the page has no
+  script in it at all.
+- **A report that is actually diagnostic.** On failure the extension merges what the page knows, what the
+  browser knows and what the host can measure — kernel, clock skew, free disk, tunnel interfaces, MTU — then
+  ranks a table of real-world signatures (`cf-ban`, `rate-limit`, `clock-skew`, `mtu-vpn`, `dom-drift`…) and
+  hands you a pre-filled GitHub form. It never posts anything itself, and your public IP is behind a checkbox
+  that starts unticked. [`docs/DIAGNOSTICS.md`](docs/DIAGNOSTICS.md) is the full field list.
+
 ### The parts that make it survive real use
 
 - **Approval card** on anything that writes or executes: the parsed request is shown, never the model's
@@ -129,6 +144,7 @@ it over a pipe, which is why a web page cannot reach it. Details: [`docs/ARCHITE
 | [`docs/PLATFORMS.md`](docs/PLATFORMS.md) | per-platform read mode, selectors, quirks |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | threat model, controls, residual risk |
 | [`docs/FAQ.md`](docs/FAQ.md) | the questions people actually ask |
+| [`docs/DIAGNOSTICS.md`](docs/DIAGNOSTICS.md) | what a failure collects, what it refuses to, the signature table |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | why it is built this way |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | what comes after v1 |
 | [`docs/TESTPLAN.md`](docs/TESTPLAN.md) | what is tested and how to reproduce it |

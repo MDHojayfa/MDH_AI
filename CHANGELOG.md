@@ -8,6 +8,22 @@ First release. One script, one extension, eight platforms, no API key.
 
 ### Added
 
+- **A control on the composer** (`src/core/dock.js`): a shadow-DOM pill anchored above the chat box — start,
+  pause, continue, drag, remembered task and position. The popup is now the settings drawer rather than the
+  only way in.
+- **Diagnostics that explain, not just describe** (`src/core/diag.js`): 13 ranked failure signatures with
+  what/why/fix, a measured clock-skew rule, redaction of paths, emails and foreign URLs, and a report body that
+  leads with hypotheses before facts.
+- **Machine facts from the host** (`host/diag.mjs`): kernel, node, load, RAM, disk, interfaces, tunnels, MTU —
+  read from Node APIs and `/proc`/`/sys`, never from a shell. `probe` targets are an explicit nine-entry
+  allowlist and the frames are **not** in the model's tool catalogue.
+- **A local log page** (`host/viewer.mjs`, `host/mdh-log.mjs`, `mdh-log` wrapper): self-contained HTML, no
+  script, totals and p50/p95 per tool, newest calls first with chain hashes, last failure with hypotheses.
+  `--serve` binds `127.0.0.1` only and gates on a per-process token.
+- **A failure card you can read and audit**: real error, top hypothesis with its fix, a collapsed "what will be
+  sent" preview, Open issue with report, Copy report, Log viewer, Copy log, and a public-IP checkbox that
+  starts unticked.
+- **`docs/DIAGNOSTICS.md`** — every field, every exclusion, the signature table and the three honest limits.
 - **Eight platform adapters** — ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM/z.ai, Grok — each a
   small data file: hosts, read mode, network signature, composer and send selectors, pacing, timing.
 - **Three read modes** in one interceptor: SSE with a terminal-frame check, byte-framed binary with brace
@@ -64,7 +80,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **118 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **153 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

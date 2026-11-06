@@ -26,7 +26,9 @@ This software hands a language model a shell on a Linux machine. That sentence i
 
 | # | Control | Stops |
 |---|---|---|
-| C1 | **No listening socket** (native messaging only) | every web-page-to-local reachability attack |
+| C1 | **No listening socket by default** (native messaging only) | every web-page-to-local reachability attack |
+| C1b | **The log viewer is the one exception**, and it is bounded: opt-in per click, `127.0.0.1` only, 32-byte token compared in constant time, `404` without it, no CORS, no write endpoints, script-free page | a LAN peer, a web page, an unrelated local process |
+| C1c | **Diagnostics never leave the machine on their own**; the reports are built locally and hand the user a pre-filled GitHub form | silent telemetry, and a maintainer receiving data nobody meant to send |
 | C2 | **Path allowlist + hard deny list**, symlinks resolved | reads of `~/.ssh`, keys, browser profiles |
 | C3 | **Per-tool approval, default `ask`**, 120 s timeout = deny | arbitrary one-shot damage |
 | C4 | **Container mode** (rootless podman, `--network=none`) | network egress, host writes |
@@ -35,6 +37,8 @@ This software hands a language model a shell on a Linux machine. That sentence i
 | C7 | **Hash-chained audit log** | silent misuse; gives forensics |
 | C8 | **Refusal rule** (never re-send after a rate-limit rejection) | account bans |
 | C9 | **One driver tab lease** | two tabs racing the same session |
+| C10 | **No IP, no page snapshots, no DOM dumps** in a report; paths and foreign URLs redacted before the URL is built | a public bug tracker becoming a leak |
+| C11 | **The diagnostics frames are not tools** (`t:'diag'` never appears in `t:'list'`) | a prompt asking for the user's address |
 
 ## 4. Residual risk — stated plainly, not hidden
 
@@ -46,6 +50,13 @@ This software hands a language model a shell on a Linux machine. That sentence i
 4. **Free-tier ToS.** Automating a web UI may violate a provider's terms. We do not hide this: rate
    limits, temporary blocks and account action are possible. `docs/DECISIONS.md` records the trade.
 5. **We cannot prove the model's intent.** Only its arguments.
+6. **The log viewer is a real, if small, listening socket.** It binds loopback, requires a token that is
+   generated per process and dies with it, and serves a page with no script and no write path — but a process
+   running as the same user could still talk to it if it learned the token. That is the same trust boundary as
+   the audit file itself, which is also readable by that user. It is off unless somebody clicks a button or
+   runs `mdh-log`.
+7. **The public-IP probe goes to one third party**, only when ticked. If you consider your address sensitive,
+   leave the box alone: the report works without it and says so in plain words.
 
 ## 5. What we will never ship
 

@@ -146,8 +146,26 @@
     return reply;
   }
 
+  /**
+   * Diagnostics, not tools. Same pipe, different frame type — the host keeps them out of the catalogue the
+   * model sees, so "read the user's public IP" is not something a prompt can ask for.
+   */
+  async function hostDiag(op, extra = {}, { timeout = 15000 } = {}) {
+    return send({ t: 'diag', op, ...extra }, { timeout });
+  }
+
+  /** Ask the host to start (once) and return the loopback viewer URL. */
+  async function openViewer() {
+    return send({ t: 'viewer' }, { timeout: 10000 });
+  }
+
+  /** Write a static HTML snapshot next to the audit log; returns its path. */
+  async function writeSnapshot() {
+    return send({ t: 'snapshot' }, { timeout: 15000 });
+  }
+
   MDH.transport = {
-    send, ping, listTools, callTool, close,
+    send, ping, listTools, callTool, hostDiag, openViewer, writeSnapshot, close,
     get connected() {
       return state.connected;
     },

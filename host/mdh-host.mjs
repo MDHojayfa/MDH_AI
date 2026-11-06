@@ -16,6 +16,11 @@ import { McpClient } from './mcp_client.mjs';
 import { builtinTools, runBuiltin, ToolError } from './tools/linux.mjs';
 import { appendAudit, verifyAudit } from './audit.mjs';
 import { ensureConfigFiles, loadConfig, loadServers, paths } from './config.mjs';
+import { runDiag } from './diag.mjs';
+import { renderPage, startViewer } from './viewer.mjs';
+import { DIAG_FILE, stateSnapshot } from './logs.mjs';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 const VERSION = '1.0.0';
 const HOST_NAME = 'dev.mdhojayfa.mdh';
@@ -24,6 +29,8 @@ const log = (...args) => process.stderr.write(`mdh-host ${new Date().toISOString
 
 let cfg = null;
 const clients = new Map(); // server name -> McpClient
+/** One viewer per host process: a new port every click would leave a trail of open sockets. */
+let viewer = null;
 /** Tools the browser executes itself; the host only declares them. */
 const BUILTIN_LOCAL = new Set(builtinTools.filter((t) => t.local).map((t) => t.name));
 
@@ -158,8 +165,71 @@ async function handle(frame) {
       reply(id, { t: 'config', config: { ...cfg, servers: [...clients.keys()] }, paths });
       return;
 
+    /*
+     * Diagnostics. Deliberately **not** part of the tool catalogue: the model can read files and run
+     * commands, and it must not be able to ask "what is the user's public IP". These frames exist for the
+     * extension's own report builder and for a human who typed `mdh-log`.
+     */
+    case 'diag': {
+      const result = await runDiag(frame.op ?? 'system', frame);
+      if (frame.save) saveDiag(frame, result);
+      reply(id, { t: 'diag', ...result });
+      return;
+    }
+
+    case 'viewer': {
+      try {
+        if (!viewer) {
+          viewer = await startViewer({
+            getState: () => stateSnapshot({ hostVersion: VERSION }),
+            port: Number(cfg.viewerPort ?? 0),
+          });
+          log(`viewer listening on ${viewer.base} (loopback, token-gated)`);
+        }
+        reply(id, { t: 'viewer', url: viewer.url, port: viewer.port });
+      } catch (e) {
+        fail(id, 'VIEWER', `could not start the log viewer: ${e.message}`);
+      }
+      return;
+    }
+
+    case 'snapshot': {
+      try {
+        const file = join(paths.stateDir, 'log.html');
+        mkdirSync(dirname(file), { recursive: true });
+        writeFileSync(file, renderPage({ ...stateSnapshot({ hostVersion: VERSION }), generatedAt: Date.now() }));
+        reply(id, { t: 'snapshot', path: file });
+      } catch (e) {
+        fail(id, 'SNAPSHOT', `could not write the log page: ${e.message}`);
+      }
+      return;
+    }
+
     default:
       fail(id, 'PROTO', `unknown frame type ${frame.t}`);
+  }
+}
+
+/** Keep the last report on disk so the viewer and `mdh-log` can show it after the tab is gone. */
+function saveDiag(frame, probes) {
+  try {
+    mkdirSync(dirname(DIAG_FILE()), { recursive: true });
+    writeFileSync(
+      DIAG_FILE(),
+      JSON.stringify(
+        {
+          at: new Date().toISOString(),
+          summary: frame.summary ?? null,
+          hypotheses: frame.hypotheses ?? [],
+          diag: frame.diag ?? null,
+          probes,
+        },
+        null,
+        2,
+      ),
+    );
+  } catch (e) {
+    log(`could not save the diagnostic snapshot: ${e.message}`);
   }
 }
 

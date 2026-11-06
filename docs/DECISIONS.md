@@ -191,3 +191,38 @@ things: the ticker and BARBOS MODE. Everything that carries information — stat
 share sheet, failure cards — ignores the switch, and a test asserts that the strip and the sheet are not
 descendants of the elements the switch hides. Humour that cannot be turned off is a defect; help that can be
 turned off by accident is a worse one.
+
+**D33 · The control lives on the composer, and the popup becomes the settings drawer.**
+The popup closes the instant you click into the page, which is the exact moment you want to watch a task. So
+the primary control is a small pill anchored above the composer of whichever chat you are on: click to start,
+click to pause, click to continue, drag it if the layout is in the way. It lives in a shadow root because all
+eight platforms ship global CSS that would otherwise re-style it into uselessness on exactly one of them. The
+popup still does everything — this is an addition, not a replacement.
+
+**D34 · A report is built locally, reviewed by the user, and submitted by GitHub.**
+The request was "fill the issue with everything, then don't send it until the user confirms". That is exactly
+what happens: the card builds the body in the page, shows it in a `<details>` before anything is opened, and
+then opens GitHub's pre-filled form. There is no code path that posts anything anywhere, so "the user
+confirmed" is not a promise the extension makes about itself — it is GitHub's own Submit button.
+
+**D35 · The loopback log viewer is the one listening socket, and it is worth the exception.**
+An audit log written in JSONL is a file for a machine. A person at 11 pm needs a page: totals, percentiles,
+the newest calls first, and the last failure with its hypotheses. So `mdh-log` renders one, and can serve it
+live. The exception is bounded on purpose: opt-in per click, `127.0.0.1` only, a per-process 32-byte token
+compared with `timingSafeEqual`, a `404` (not `403`) for anything unauthorised, no CORS headers, no write
+endpoint, and a page whose CSP is `default-src 'none'`. `docs/SECURITY.md` C1b states the risk in the same
+breath as the mitigation.
+
+**D36 · Diagnostics are not tools, and the IP is not a default.**
+The host can measure the machine and, on request, ask one allowlisted endpoint what address the internet sees.
+None of that is in the tool catalogue: the model gets file access, and it must not be able to ask "what is
+this user's IP" — a prompt that can ask for a fact can exfiltrate it. The address is behind a checkbox that
+starts unticked, is used once, and is never stored. The report says `not included (the user chose not to send
+it)` when it is absent, because "no IP" and "we forgot" are different reports.
+
+**D37 · The signature table is the product's memory of its own support inbox.**
+Every entry in `core/diag.js` came from a class of failure that already cost somebody an evening: a Cloudflare
+ban that looked like a broken selector, a rate limit that looked like a crash, a clock skew that looked like a
+TLS bug, an MTU that looked like a flaky provider. The table is ordered, testable, and every row has an action.
+It is also labelled as hypotheses in every surface that shows it, because a confident wrong answer is more
+expensive than an honest guess.

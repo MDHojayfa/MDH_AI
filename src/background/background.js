@@ -49,6 +49,53 @@ async function welcomeOnce() {
   }
 }
 
+/**
+ * A one-shot native-messaging call from the background.
+ *
+ * The content script owns the long-lived port; the popup needs the host for two things — the log viewer URL
+ * and a diagnostic snapshot — and it has no port of its own. Rather than teach the popup the whole transport,
+ * this opens a port, sends one frame, and closes it. Same permission, same host, no second protocol.
+ */
+function askHost(frame, timeoutMs = 8000) {
+  let port;
+  try {
+    port = api.runtime.connectNative(MDH.HOST_NAME);
+  } catch (e) {
+    return Promise.reject(Object.assign(new Error('cannot reach the MDH host — is it installed?'), { code: 'NO_HOST', cause: e }));
+  }
+
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const finish = (fn, value) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try {
+        port.disconnect();
+      } catch {
+        /* already gone */
+      }
+      fn(value);
+    };
+
+    const timer = setTimeout(() => finish(reject, Object.assign(new Error(`host timed out after ${timeoutMs} ms`), { code: 'TIMEOUT' })), timeoutMs);
+
+    port.onMessage.addListener((msg) => {
+      if (msg?.t === 'error') finish(reject, Object.assign(new Error(msg.message ?? 'host error'), { code: msg.code ?? 'HOST_ERROR' }));
+      else finish(resolve, msg);
+    });
+    port.onDisconnect.addListener(() => {
+      finish(reject, Object.assign(new Error(api.runtime.lastError?.message ?? 'host disconnected'), { code: 'NO_HOST' }));
+    });
+
+    try {
+      port.postMessage({ ...frame, id: Date.now() });
+    } catch (e) {
+      finish(reject, Object.assign(new Error('the host port is closed'), { code: 'NO_HOST', cause: e }));
+    }
+  });
+}
+
 api.runtime.onInstalled.addListener((details) => {
   MDH.log.info('installed', details.reason);
   if (details.reason === 'install') welcomeOnce();
@@ -74,6 +121,50 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     api.tabs.create({ url: SITE_URL }).catch(() => {});
     sendResponse({ ok: true });
     return false;
+  }
+
+  if (msg.type === 'mdh:viewer') {
+    askHost({ t: 'viewer' })
+      .then((reply) => sendResponse({ ok: Boolean(reply?.url), url: reply?.url ?? null, port: reply?.port ?? null }))
+      .catch((e) => sendResponse({ ok: false, code: e.code ?? 'ERROR', message: e.message }));
+    return true;
+  }
+
+  if (msg.type === 'mdh:snapshot') {
+    askHost({ t: 'snapshot' })
+      .then((reply) => sendResponse({ ok: Boolean(reply?.path), path: reply?.path ?? null }))
+      .catch((e) => sendResponse({ ok: false, code: e.code ?? 'ERROR', message: e.message }));
+    return true;
+  }
+
+  /*
+   * Facts from the machine, for the popup's own report builder. Two frames, neither of which can return the
+   * user's public address: `system` reads the box, `clock` asks one endpoint for its Date header only.
+   */
+  if (msg.type === 'mdh:diagnose') {
+    Promise.all([
+      askHost({ t: 'diag', op: 'system' }).catch((e) => ({ ok: false, error: e.message })),
+      askHost({ t: 'diag', op: 'clock' }).catch((e) => ({ ok: false, error: e.message })),
+    ]).then(([sys, clock]) => {
+      sendResponse({
+        ok: Boolean(sys?.ok),
+        host: sys?.ok
+          ? {
+              version: sys.facts?.hostVersion ?? null,
+              pid: sys.facts?.pid ?? null,
+              node: sys.facts?.node ?? null,
+              kernel: sys.facts ? `${sys.facts.platform} ${sys.facts.release}` : null,
+              diskFreeGB: sys.disk?.freeGB ?? null,
+              diskOk: sys.disk?.ok ?? null,
+              tunnels: sys.facts?.tunnels ?? [],
+              smallMtu: sys.facts?.smallMtu ?? [],
+              clockSkewMs: clock?.ok ? clock.clockSkewMs : null,
+            }
+          : null,
+        error: sys?.error ?? null,
+      });
+    });
+    return true;
   }
 
   if (msg.type === 'mdh:settings') {
