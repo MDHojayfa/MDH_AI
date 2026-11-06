@@ -130,13 +130,16 @@ installer's own output; the popup switch is the one that lives in the browser.
 ## 5c · The local log page
 
 ```
+./install.sh --diagnose   # the machine facts a report would carry, printed for pasting
 mdh-log             # writes ~/.local/state/mdh/log.html and prints the path
 mdh-log --open      # …and opens it in your browser
 mdh-log --serve     # live view on 127.0.0.1, random port, token in the URL
 mdh-log --json      # summary for a script or a paste
 ```
 
-From the UI: **popup → Advanced → Log viewer**, or **Log viewer** on the failure card. The page shows totals,
+From the UI: **popup → Advanced → Log viewer**, or **Log viewer** on the failure card. The served page
+refreshes itself every five seconds; the saved file does not, because a page that reloads on disk is a page
+that cannot be read. The page shows totals,
 p50/p95 per tool, every call newest-first with its chain hash, and the last failure with its hypotheses. It is
 one file with inline CSS and **no script at all** — it works with the network unplugged. The live mode binds
 loopback only and refuses every request without the token printed next to the URL.

@@ -25,6 +25,10 @@ First release. One script, one extension, eight platforms, no API key.
   starts unticked.
 - **`docs/SCENARIOS.md`** — ten real failure classes walked through end to end, from the blocked IP to the
   filled disk, with the exact card and the next action.
+- **`./install.sh --diagnose`** — prints the machine facts a report would carry, for pasting, with the IP
+  explicitly left out, plus a CI job that proves `mdh-log` and the probe layer still run.
+- **Live viewer refresh** via `<meta http-equiv="refresh">`, so the served page updates without a single line
+  of script; the saved snapshot deliberately does not refresh itself.
 - **Save .md** on the failure card, for people who would rather attach a file than open a tab.
 - **`docs/DIAGNOSTICS.md`** — every field, every exclusion, the signature table and the three honest limits.
 - **Eight platform adapters** — ChatGPT, Claude, Gemini, DeepSeek, Kimi, Qwen, GLM/z.ai, Grok — each a
@@ -83,7 +87,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **154 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **155 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

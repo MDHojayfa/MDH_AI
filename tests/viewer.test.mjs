@@ -89,3 +89,12 @@ test('the live viewer answers only with the token, and only on loopback', async 
     await viewer.close();
   }
 });
+
+test('the served page refreshes itself without any script', () => {
+  const live = renderPage({ entries: [], live: true });
+  assert.match(live, /<meta http-equiv="refresh" content="5">/);
+  assert.match(live, /auto-refresh 5 s/);
+  assert.doesNotMatch(live, /<script/i, 'a refresh is not a reason to allow scripts');
+  const snapshot = renderPage({ entries: [] });
+  assert.doesNotMatch(snapshot, /http-equiv="refresh"/, 'a saved file must not reload itself');
+});

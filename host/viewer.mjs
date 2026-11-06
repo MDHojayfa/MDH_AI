@@ -140,7 +140,7 @@ footer { margin-top: 36px; color: #6b7280; font-size: 12px; border-top: 1px soli
  * Render the whole page from data. Pure: no I/O, no clock reads beyond the passed `generatedAt`, so a test
  * can compare two runs byte for byte.
  */
-export function renderPage({ entries = [], meta = {}, diag = null, generatedAt = Date.now() } = {}) {
+export function renderPage({ entries = [], meta = {}, diag = null, generatedAt = Date.now(), live = false } = {}) {
   const stat = summary(entries);
   const audit = meta.audit ?? null;
   const chain = audit ? (audit.ok ? '<span class="badge ok">chain verified</span>' : '<span class="badge bad">chain broken</span>') : '<span class="badge warn">not checked</span>';
@@ -194,13 +194,14 @@ export function renderPage({ entries = [], meta = {}, diag = null, generatedAt =
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
+${live ? '<meta http-equiv="refresh" content="5">' : ''}
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
 <title>${esc(title)}</title>
 <style>${CSS}</style>
 </head>
 <body>
 <h1>MDH_AI — local log</h1>
-<p class="sub">Generated ${esc(when(generatedAt))} · host ${esc(meta.hostVersion ?? '?')} · pid ${esc(meta.pid ?? '?')} · ${chain}</p>
+<p class="sub">Generated ${esc(when(generatedAt))}${live ? ' · auto-refresh 5 s' : ''} · host ${esc(meta.hostVersion ?? '?')} · pid ${esc(meta.pid ?? '?')} · ${chain}</p>
 
 <div class="tiles">${tiles}</div>
 ${diagBlock}
@@ -286,7 +287,7 @@ export function startViewer({ getState, port = 0, token = null, host = '127.0.0.
 
     if (url.pathname === '/' || url.pathname === '/index.html') {
       res.writeHead(200, headers());
-      res.end(renderPage(payload));
+      res.end(renderPage({ ...payload, live: true }));
       return;
     }
 

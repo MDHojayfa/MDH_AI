@@ -1,6 +1,6 @@
 # CI — three jobs, because they fail in three different ways and a red X should say which.
 #
-#   test  → the 72-unit layer, no browser, seconds
+#   test  → the unit layer, no browser, seconds
 #   build → both manifests, the invariants, the lint, the zips
 #   host  → a real spawn of the native host and a real pong
 #
@@ -63,6 +63,16 @@ jobs:
           node-version: '22'
       - name: the installer's last step, on its own
         run: node tools/selfcheck.mjs --quiet
+      - name: the log tool writes a page and a summary
+        run: |
+          node host/mdh-log.mjs --json > /tmp/mdh-log.json
+          node host/mdh-log.mjs --out /tmp/mdh-log.html
+          node -e "const j=require('/tmp/mdh-log.json'); if (!j.summary) throw new Error('no summary'); console.log('log tool ok ·', j.summary.calls, 'calls')"
+          test -s /tmp/mdh-log.html
+
+      - name: the diagnostics report a machine
+        run: node -e "import('./host/diag.mjs').then(async (m) => { const r = await m.runDiag('system'); if (!r.ok || !r.facts.node) process.exit(1); console.log('diag ok ·', r.facts.platform, r.facts.node); })"
+
       - name: shell syntax and a dry run that touches nothing
         run: |
           bash -n install.sh

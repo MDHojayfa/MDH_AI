@@ -15,6 +15,8 @@ Each item below is a promise with a condition attached — nothing is listed tha
 | Keys | none, ever — the logged-in web session is the model |
 | Tools | MCP servers the user already has + 13 builtin Linux tools |
 | Safety | path allowlist, 3-state per-tool approval, audit log, optional container |
+| Control | pill on the composer (start / pause / continue), popup as settings drawer |
+| Support | diagnostic reports with a signature table, opt-in IP, local log page (`mdh-log`) |
 | Language | English |
 
 **Not in v1:** Windows, macOS, stores, cloud, mobile, voice, multi-agent orchestration, Bangla.
@@ -22,6 +24,11 @@ Each item below is a promise with a condition attached — nothing is listed tha
 ---
 
 ## v1.1 — after the first month of real use
+
+- **A triage script for reports**: turn a pasted report into a checklist (`node tools/triage.mjs report.md`)
+- **Signature table contributions from users** — a report that matched nothing becomes a row, with a test
+- **Viewer filters** without breaking the no-script rule (anchor prefixes per tool, one page per tool)
+- **`mdh-log --watch`** to re-render the snapshot file as calls land, for people who prefer a file to a port
 
 - **Bangla** prompt + UI (the item consciously deferred so v1 ships in English only)
 - Firefox 121–139 support via `webextension-polyfill` — only if demand exists

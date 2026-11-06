@@ -6,6 +6,7 @@
 #   ./install.sh --uninstall  remove the host manifests and the wrappers
 #   ./install.sh --no-fun     mission control goes quiet (CI, logs, serious meetings)
 #   ./install.sh --barbos     also echo every shell command, boot-log style
+#   ./install.sh --diagnose   print the machine facts a bug report would carry, then exit
 #   ./install.sh --help
 #
 # HOUSE RULES for the jokes below, because a joke can still be a bug:
@@ -28,6 +29,7 @@ CONFIG_DIR="${HOME}/.config/mdh"
 
 DRY_RUN=0
 UNINSTALL=0
+DIAGNOSE=0
 FUN=1
 BARBOS=0
 for arg in "$@"; do
@@ -36,6 +38,7 @@ for arg in "$@"; do
     --uninstall) UNINSTALL=1 ;;
     --no-fun) FUN=0 ;;
     --barbos) BARBOS=1 ;;
+    --diagnose) DIAGNOSE=1 ;;
     -h|--help)
       sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
@@ -46,6 +49,18 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+# --diagnose: the same facts the failure card collects, printed for pasting into an issue. Read-only.
+if [ "$DIAGNOSE" -eq 1 ]; then
+  echo "MDH_AI diagnostics — paste this into a bug report if it helps. Nothing is uploaded."
+  echo "Paths are redacted. Your IP is not included; add it yourself only if you want to."
+  echo
+  if ! node "$ROOT/host/mdh-log.mjs" --json; then
+    echo "could not read the state directory; is node installed and the repo intact?" >&2
+    exit 1
+  fi
+  exit 0
+fi
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
   C_OK=$'\033[32m'; C_WARN=$'\033[33m'; C_ERR=$'\033[31m'
