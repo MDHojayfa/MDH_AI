@@ -42,6 +42,7 @@ bug and are not. Each one carries *what*, *why* and *what to do*, because a diag
 | `context-invalidated` | "extension context invalidated" | tab older than the extension | reload the tab |
 | `dom-drift` | "composer not found" | the site shipped a redesign | report it — the card names the selector |
 | `no-reply` | no answer, or an answer with no tool block | the model answered in prose | send `use your tools`, or start a fresh chat |
+| `phoenix` | "finish rejected: the completion code is missing or wrong" | the model ended with a sentence instead of the code | it is corrected once; if it fails twice, press *Mark as finished* |
 | `permission` | `PATH_DENIED` | the guard did its job | add the folder to `allowPaths` |
 | `truncated` | "unclosed fence" | a stream cut mid-block | Resume; the parser already retries once |
 

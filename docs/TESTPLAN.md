@@ -133,6 +133,21 @@ codebase to leak something by accident.
 | paused | a paused loop is one click from continuing, and a stop mid-send does not advertise a strange phase |
 | persistence | `dockPos` and `lastTask` are read and written |
 
+## 3g. Completion code — `tests/phoenix.test.mjs`
+
+Nine tests around the one comparison that ends a session:
+
+| Case | Expected |
+|---|---|
+| shape | `PHX-` + six symbols, alphabet excludes I, L, O, 0, 1 |
+| determinism | an injected random source yields the same code; real draws differ |
+| matching | case, dashes and spaces forgiven; `7KQ2MDX`, `DONE`, empty and wrong codes rejected |
+| prompt | the block shows the code, the exact JSON call, and says a sentence cannot finish |
+| rejection | `[MDH_PHOENIX] … [/MDH_PHOENIX]`, names the code, says the task is still running |
+| wiring | the module loads before prompt and agent; `finishAccepts` guards the completion path |
+| schema | the `finish` tool advertises the field, so the model is told twice |
+| reminders | every `reminder()` and `continuation()` accepts and prints the code |
+
 ## 4. Loop — deterministic parts
 
 The agent's `_internals` are exported for exactly this. The cases that decide whether the product is safe:

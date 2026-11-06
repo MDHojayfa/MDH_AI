@@ -59,7 +59,7 @@
    * @param {{tools: Array<{server:string,name:string,description?:string,inputSchema?:object}>}} ctx
    * @returns {string}
    */
-  function renderPrompt({ tools = [] } = {}) {
+  function renderPrompt({ tools = [], phoenix = null } = {}) {
     const grouped = groupByServer(tools);
     const lines = [];
 
@@ -95,8 +95,15 @@
       'The task ends in exactly one way: `finish`. A prose-only reply is treated as you getting stuck, and you will be asked again.');
     lines.push('8. The block must be valid JSON on one line: escape inner quotes as \\" and newlines as \\n, never a bare backslash in a path.');
     lines.push('9. Report what actually happened. Never describe a result you did not receive.');
-    lines.push('10. When the task is finished, call `finish` with a summary. If you need a decision only the user can make, call `ask_user`. ' +
+    lines.push('10. When the task is finished, call `finish` with a summary **and the session completion code**. If you need a decision only the user can make, call `ask_user`. ' +
       'For long work, call `update_plan` first and keep it current.');
+
+    // The completion code is the only thing that can end a session, so it goes in the prompt itself rather
+    // than in a reminder the model might skim past.
+    if (phoenix) {
+      lines.push('');
+      lines.push(MDH.phoenix?.block?.(phoenix) ?? `# Completion code\n\n${phoenix}`);
+    }
 
     lines.push('');
     lines.push('# Tools');
@@ -153,14 +160,15 @@
   }
 
   /** ~45 tokens, appended to every message we send. Without it, small models forget their tools by turn 3. */
-  function reminder(mode, { servers = ['builtin'], count = 0 } = {}) {
+  function reminder(mode, { servers = ['builtin'], count = 0, phoenix = null } = {}) {
+    const tail = phoenix ? ` Completion needs the code: ${MDH.phoenix?.call?.(phoenix) ?? phoenix}.` : '';
     if (mode === 'result') {
       return '[MDH] Tool result above. Continue: call the next tool the same way. ' +
-        'When the whole task is finished — not before — call `finish` with a one-line summary. ' +
-        'Do not end a task with a text-only reply.';
+        'When the whole task is finished — not before — call `finish` with a one-line summary and the completion code.' +
+        tail + ' Text alone does not end a task.';
     }
     return `[MDH] You have real local tools (${servers.join(', ')}: ${count}). To continue, reply with only the json block ` +
-      '{"mdh_call":{"tool":"…","arguments":{}}}. To end the task, call `finish`. Text alone does not end a task.';
+      '{"mdh_call":{"tool":"…","arguments":{}}}.' + tail + ' Text alone does not end a task.';
   }
 
   /**
@@ -168,11 +176,12 @@
    * turn two. It names the mistake, restates the shape, and gives the model a way out (`finish`) so a model
    * that genuinely finished does not have to invent more work to satisfy the loop.
    */
-  function continuation(n = 1) {
+  function continuation(n = 1, { phoenix = null } = {}) {
     const attempt = Number(n) >= 2 ? ' (second and last nudge)' : '';
     return '[MDH_CONTINUE] Your last reply was text with no tool call' + attempt + '. ' +
       'If the task is not finished: do the next step now, in a single json block, with nothing around it. ' +
-      'If it is finished: call `finish` with a one-line summary. Do not reply with prose alone. [/MDH_CONTINUE]';
+      'If it is finished: call `finish` with a one-line summary and the completion code' +
+      (phoenix ? ` (${phoenix})` : '') + '. Do not reply with prose alone. [/MDH_CONTINUE]';
   }
 
   function withReminder(text, mode, ctx) {

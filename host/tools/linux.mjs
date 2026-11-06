@@ -296,8 +296,15 @@ const LOCAL = [
   },
   {
     name: 'finish',
-    description: 'End the task with a one-paragraph summary',
-    inputSchema: { type: 'object', properties: { summary: str('what was done') }, required: ['summary'] },
+    description: 'End the task. Requires the session completion code printed in your instructions',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        summary: str('what was done'),
+        phoenix: str('the session completion code, e.g. PHX-7KQ2MD'),
+      },
+      required: ['summary', 'phoenix'],
+    },
     local: true,
   },
 ];

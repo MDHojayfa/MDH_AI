@@ -38,6 +38,9 @@
     // the single most common way a long task dies at turn 2, so it is nudged automatically, not silently.
     prose: 0,
     pauseReason: null,
+    // The completion code for this session. Nothing else can end the task (see core/phoenix.js).
+    phoenix: null,
+    badFinish: 0,
   };
 
   const LIMITS = {
@@ -415,6 +418,15 @@
         : { status: 'ok', body: `the user answered: ${answer}` };
     }
     if (tool === 'finish') {
+      if (!finishAccepts(call.arguments)) {
+        // Not an error the user should see as a crash: the task simply is not over. The loop answers the
+        // model itself, once, with the exact shape it needs.
+        return {
+          status: 'error',
+          phoenixMismatch: true,
+          body: 'finish rejected: the completion code is missing or wrong, so the task is still running.',
+        };
+      }
       const summary = String(call.arguments?.summary ?? '').trim();
       S.outcome = 'completed';
       S.phase = 'done';
@@ -435,6 +447,15 @@
     const reply = await MDH.transport.callTool(tool, call.arguments, { timeout: 130000 });
     const status = reply?.status ?? (reply?.ok === false ? 'error' : 'ok');
     return { status, body: reply?.body ?? reply?.result ?? '', meta: reply };
+  }
+
+  /**
+   * The gate that decides whether a finish call is real. Kept as a tiny named function because it is the most
+   * consequential comparison in the product: true ends the session, false keeps it running.
+   */
+  function finishAccepts(args = {}) {
+    const given = args?.phoenix ?? args?.code ?? '';
+    return Boolean(MDH.phoenix?.matches?.(given, S.phoenix ?? ''));
   }
 
   function frame({ tool, status, body }) {
@@ -472,7 +493,7 @@
 
     if (first) {
       await ensureTools().catch((e) => log()?.warn('tool list failed', e));
-      const prompt = MDH.prompt.renderPrompt({ tools: S.tools });
+      const prompt = MDH.prompt.renderPrompt({ tools: S.tools, phoenix: S.phoenix });
       message = MDH.prompt.wrapFirstMessage(prompt, S.task);
     } else {
       message = S.pendingText ?? '';
@@ -536,7 +557,7 @@
             `The model described the next step instead of taking it. Asking again (${S.prose}/${LIMITS.maxNudges}).`,
             { tone: 'warn', ms: 5500 },
           );
-          S.pendingText = `${MDH.prompt.continuation(S.prose)}\n\n${MDH.prompt.reminder('result')}`;
+          S.pendingText = `${MDH.prompt.continuation(S.prose, { phoenix: S.phoenix })}\n\n${MDH.prompt.reminder('result', { phoenix: S.phoenix })}`;
           return turn();
         }
         return pause('the model stopped calling tools', {
@@ -571,7 +592,7 @@
     const decision = await gate(call);
     if (decision === 'deny') {
       S.pendingText = frame({ tool: call.tool, status: 'denied', body: 'The user denied this call. Do not retry it.' }) +
-        '\n\n' + MDH.prompt.reminder('result');
+        '\n\n' + MDH.prompt.reminder('result', { phoenix: S.phoenix });
       return turn();
     }
 
@@ -597,10 +618,29 @@
       at: Date.now(), turn: S.turn, tool: call.tool, status: result.status, platform: adapter.id,
     }, 50);
 
+    if (result.phoenixMismatch) {
+      /*
+       * A finish without the code. The task is not over, so the loop answers the model instead of the user:
+       * once with the exact shape, then — if it still cannot manage it — a pause with "Mark as finished",
+       * because at that point the model is the problem and the human should decide.
+       */
+      S.badFinish += 1;
+      if (S.badFinish <= 1) {
+        log()?.warn('finish without the completion code; correcting');
+        MDH.ui.notice('A finish call arrived without the completion code — asking again.', { tone: 'warn', ms: 5000 });
+        S.pendingText = `${MDH.phoenix.rejection(S.phoenix)}\n\n${MDH.prompt.reminder('result', { phoenix: S.phoenix })}`;
+        return turn();
+      }
+      return pause('the model could not produce the completion code', {
+        detail: `It called finish twice without ${S.phoenix}. The work may well be done — the model just cannot follow the one rule that ends the session.`,
+        allowFinish: true,
+      });
+    }
+
     if (result.finish) return;
 
     await MDH.state.set('pending', null);
-    S.pendingText = `${frame({ tool: call.tool, status: result.status, body: result.body })}\n\n${MDH.prompt.reminder('result')}`;
+    S.pendingText = `${frame({ tool: call.tool, status: result.status, body: result.body })}\n\n${MDH.prompt.reminder('result', { phoenix: S.phoenix })}`;
 
     if (S.errors >= LIMITS.maxErrors) return stop('tool-errors');
     return turn();
@@ -754,12 +794,16 @@
   async function resume() {
     if (S.running) return;
     const pending = await MDH.state.get('pending');
+    if (!S.phoenix) {
+      const session = await MDH.state.get('session');
+      S.phoenix = session?.phoenix ?? MDH.phoenix?.make?.() ?? null;
+    }
     S.stopped = false;
     S.running = true;
     S.pauseReason = null;
     S.phase = 'resuming';
     if (pending?.call) {
-      S.pendingText = `${frame({ tool: pending.call.tool, status: 'error', body: 'The page reloaded before this call finished. It was not completed — decide whether to call it again.' })}\n\n${MDH.prompt.reminder('result')}`;
+      S.pendingText = `${frame({ tool: pending.call.tool, status: 'error', body: 'The page reloaded before this call finished. It was not completed — decide whether to call it again.' })}\n\n${MDH.prompt.reminder('result', { phoenix: S.phoenix })}`;
     } else {
       S.pendingText = '[MDH_NOTE] The task was resumed by the user. Continue. [/MDH_NOTE]';
     }
@@ -782,12 +826,21 @@
     S.errors = 0;
     S.parseFailures = 0;
     S.prose = 0;
+    S.badFinish = 0;
     S.pauseReason = null;
+    S.phoenix = MDH.phoenix?.make?.() ?? null;
     S.startedAt = Date.now();
     S.phase = 'starting';
     S.tools = [];
 
-    await MDH.state.set('session', { tabId: null, platform: S.adapter.id, startedAt: S.startedAt, phase: 'running', outcome: null });
+    await MDH.state.set('session', {
+      tabId: null,
+      platform: S.adapter.id,
+      startedAt: S.startedAt,
+      phase: 'running',
+      outcome: null,
+      phoenix: S.phoenix,
+    });
     MDH.ui.mount();
     MDH.dock?.sync?.();
 
@@ -810,7 +863,16 @@
     startedAt: S.startedAt,
     pauseReason: S.pauseReason,
     prose: S.prose,
+    phoenix: S.phoenix,
   });
 
-  MDH.agent = { start, stop, resume, pause, status, diagnostics, _internals: { setComposerText, composerText, isStreaming, assistantText, governorWait, dedupCheck } };
+  MDH.agent = {
+    start,
+    stop,
+    resume,
+    pause,
+    status,
+    diagnostics,
+    _internals: { setComposerText, composerText, isStreaming, assistantText, governorWait, dedupCheck, finishAccepts },
+  };
 })();

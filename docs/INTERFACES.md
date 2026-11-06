@@ -44,7 +44,8 @@ Every module is an IIFE that attaches exactly one object:
 | `MDH.state` | `get/set/patch`, `session`, `reset` |
 | `MDH.policy` | `normalize`, `isInside`, `pathsIn`, `check(call, policy)`, `describe(call, policy)` |
 | `MDH.parser` | `parse(text, ctx)`, `explain(reason)`, `repair(text)`, `coerceArguments()` |
-| `MDH.prompt` | `renderPrompt({tools})`, `wrapFirstMessage(prompt, text)`, `reminder(mode)`, `BUDGET_CHARS` |
+| `MDH.prompt` | `renderPrompt({tools, phoenix})`, `wrapFirstMessage(prompt, text)`, `reminder(mode, {phoenix})`, `continuation(n, {phoenix})`, `BUDGET_CHARS` |
+| `MDH.phoenix` | `make()`, `matches(given, code)`, `block(code)`, `banner(code)`, `call(code)`, `rejection(code)`, `size()` |
 | `MDH.platforms` | `register(adapter)`, `current(location)`, `get(id)` |
 | `MDH.transport` | `connect()`, `ping()`, `listTools()`, `callTool(name, args, opts)`, `hostDiag(op, extra)`, `openViewer()`, `writeSnapshot()`, `close()` |
 | `MDH.diag` | `collect(opts)`, `hypotheses(diag)`, `issueBody(diag)`, `issueUrl(diag)`, `factsTable()`, `summary()`, `bundle()`, `redact()` |
@@ -114,6 +115,12 @@ The only accepted envelope, inside a json fence:
 
 ```json
 {"mdh_call":{"tool":"run_command","arguments":{"cmd":"git status","cwd":"~/projects/app"}}}
+
+A `finish` call carries the session code, and nothing else ends a task:
+
+```
+{"mdh_call":{"tool":"finish","arguments":{"summary":"…","phoenix":"PHX-7KQ2MD"}}}
+```
 ```
 
 Two of them in one reply execute nothing. A bare object in prose is accepted only when it is call-shaped,

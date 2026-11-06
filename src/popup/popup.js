@@ -299,6 +299,8 @@
     }
     const rate = stored['mdh:rate'];
     if (rate?.hits) $('ladder').textContent = `hit ${rate.hits} · ${rate.phase || 'idle'}`;
+    // The code the model must echo to end the task. Shown because a hidden rule is a rule nobody can debug.
+    $('phoenix').textContent = status?.agent?.phoenix ?? '—';
 
     const history = stored['mdh:history'] ?? [];
     strip.history = history;

@@ -257,3 +257,27 @@ still saved, and a purple pill that says Continue. Silence is never an outcome t
 region and rotate them. A hotspot that works proves the address matters; it does not prove the product is
 fixed, and a hotspot that fails proves almost nothing. The signature table now says "another Wi-Fi first, then
 a hotspot, and treat the result as a hint" — and a test asserts that the hedge stays in the text.
+
+**D42 · A session ends with a code, not with a sentence.**
+The Phoenix code (`PHX-XXXXXX`, `src/core/phoenix.js`) is the only completion signal. Reasons, in order of how
+much they cost:
+
+1. **Prose is ambiguous by construction.** "Done", "next I would…", "all set" are indistinguishable to a parser
+   and mean three different things. A regex that guesses is a bug with a comment on top.
+2. **A `finish` tool alone is not enough either**, because a model that is tired, truncated or confused will
+   emit the tool call without having finished. A per-session code has to be *retrieved* rather than guessed.
+3. **The vendor cannot help.** `stop_reason` / `finish_reason` describe one generation, not a task that spans
+   twenty turns. Every serious loop ends on its own checkable state; this is ours.
+
+Practicalities that matter: the code is 6 characters from a 32-symbol alphabet with no `I/L/O/0/1` (about 888
+million values, so collisions are not a thing), matching tolerates case, dashes and spaces but **not** extra
+characters, it is regenerated per session but reused across Resume, it appears in the prompt, in every
+reminder, in the `finish` tool description, and in the popup's Advanced panel — a rule nobody can see is a rule
+nobody can debug. A wrong or missing code gets **one** correction, then a pause with *Mark as finished*, because
+at that point the model has failed the rule and the human should decide.
+
+**D43 · Sentinels are a convention you enforce, not a feature you hope for.**
+No vendor documents a canonical completion sentinel, and stop sequences solve a different problem (they cut a
+generation, not a loop). The pattern is only worth anything if the pipeline checks it on the consuming side —
+which is exactly what `finishAccepts()` does, in one place, with one comparison, and a test that asserts a wrong
+code can never reach the completion path.

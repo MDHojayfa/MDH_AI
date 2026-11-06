@@ -253,6 +253,25 @@ export function renderPage({
        </div>`
     : '';
 
+  /*
+   * Every link on the page is built from the current filters, so hiding the log does not silently throw away
+   * the filter you just set. This is the sort of small betrayal that makes a tool feel unreliable.
+   */
+  const base = new URLSearchParams();
+  base.set('token', meta.tokenValue ?? '');
+  for (const status of query.status ?? []) base.append('status', status);
+  for (const level of query.level ?? []) base.append('level', level);
+  if (query.q) base.set('q', query.q);
+  if (query.tool) base.set('tool', query.tool);
+  const link = (overrides = {}) => {
+    const params = new URLSearchParams(base);
+    for (const [key, value] of Object.entries(overrides)) {
+      if (value === null || value === undefined) params.delete(key);
+      else params.set(key, value);
+    }
+    return `?${params.toString()}`;
+  };
+
   const title = `MDH_AI · ${stat.calls} calls`;
 
   return `<!doctype html>
@@ -293,10 +312,10 @@ ${live ? '<meta http-equiv="refresh" content="5">' : ''}
   <div class="tools">
     ${
       view === 'stats'
-        ? `<a class="btn" href="?token=${esc(encodeURIComponent(meta.tokenValue ?? ''))}&view=all">Show log</a>`
-        : `<a class="btn" href="?token=${esc(encodeURIComponent(meta.tokenValue ?? ''))}&view=stats">Hide log</a>`
+        ? `<a class="btn" href="${esc(link({ view: 'all' }))}">Show log</a>`
+        : `<a class="btn" href="${esc(link({ view: 'stats' }))}">Hide log</a>`
     }
-    <a class="btn" href="?token=${esc(encodeURIComponent(meta.tokenValue ?? ''))}&confirm=archive">Archive &amp; clear…</a>
+    <a class="btn" href="${esc(link({ confirm: 'archive' }))}">Archive &amp; clear…</a>
   </div>
 </nav>
 ${archived ? `<p class="note ok-note">Archived <code>${esc(archived === '1' ? 'the previous chain' : archived)}</code> and started a new chain. The old file is still on disk.</p>` : ''}
@@ -308,7 +327,7 @@ ${
            genesis. Nothing is deleted: the record of what ran on this machine stays on this machine.</p>
          <form method="post" action="/archive?token=${esc(encodeURIComponent(meta.tokenValue ?? ''))}">
            <button class="danger-btn" type="submit">Yes, archive it</button>
-           <a class="reset" href="?token=${esc(encodeURIComponent(meta.tokenValue ?? ''))}">Cancel</a>
+           <a class="reset" href="${esc(link({ confirm: null }))}">Cancel</a>
          </form>
        </div>`
     : ''
@@ -338,7 +357,7 @@ ${diagBlock}
 <table><thead><tr><th>when</th><th>tool</th><th>status</th><th>hash</th><th>time</th><th>detail</th></tr></thead>
 <tbody>${
     view === 'stats'
-      ? `<tr><td colspan="6" class="muted">Log hidden — <a href="?token=${esc(encodeURIComponent(meta.tokenValue ?? ''))}&view=all">show it</a>. The totals above are still real.</td></tr>`
+      ? `<tr><td colspan="6" class="muted">Log hidden — <a href="${esc(link({ view: 'all' }))}">show it</a>. The totals above are still real.</td></tr>`
       : entryRows || '<tr><td colspan="6" class="muted">Empty. That is an honest zero, not an error.</td></tr>'
   }</tbody></table>
 

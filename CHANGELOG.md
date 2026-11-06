@@ -14,6 +14,9 @@ First release. One script, one extension, eight platforms, no API key.
 - **Log page controls**: `ok`/`denied`/`error` and `debug`/`info`/`warn`/`error` filters, free-text filter,
   *Hide log* / *Show log*, and **Archive & clear** — a confirm card over a token-bound POST that renames the
   chain and starts a fresh one instead of deleting anything. No script; one CSP relaxation for the form.
+- **A completion code ("phoenix")**: every session gets `PHX-XXXXXX`, and only a `finish` call carrying it ends
+  a task. A wrong or missing code gets one correction, then a pause with *Mark as finished*. Printed in the
+  prompt, every reminder, the tool schema and the popup's Advanced panel.
 - **A deal, not an ask**: every report form asks for a GitHub handle and promises a line in `CREDITS.md`'s
   community section when the report leads to a fix or the idea ships (anonymous accepted). The failure card
   carries **Send an idea ↗**; the popup strip carries the promise on every normal run and a nudge after a
@@ -102,7 +105,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **167 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **177 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

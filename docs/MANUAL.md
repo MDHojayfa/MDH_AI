@@ -120,6 +120,16 @@ On any of the eight platforms a small pill appears above the composer. It is the
 Drag it anywhere; the position is remembered per profile. `Esc` closes the panel. The task you typed last is
 remembered too, so **Start** after a refresh is one click and no retyping.
 
+## 2c · The completion code
+
+Every session gets a six-character code, shown in **Advanced → Completion code**. It is the only thing that can
+end a task: the model must call `finish` with `"phoenix":"PHX-XXXXXX"` in the arguments. A sign-off, a summary or
+the word "done" does nothing — the loop answers the model, asks once more, and then pauses with **Mark as
+finished** so you can overrule it.
+
+Why it exists: a sentence cannot be checked, a code can. If a task ever ends at the wrong moment, look at that
+code first — the transcript will show whether the model had it.
+
 ## 4c · Turning the chatter off
 
 `Advanced → Mission chatter → hide the jokes` stops the ticker and hides **BARBOS MODE**. The choice is

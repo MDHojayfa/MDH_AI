@@ -157,3 +157,26 @@ test('archiving is a two-step, token-bound POST that never deletes', async () =>
     await viewer.close();
   }
 });
+
+test('hiding the log keeps the filter you just set', async () => {
+  const html = renderPage({
+    entries,
+    allEntries: entries,
+    meta: { tokenValue: 'tok' },
+    query: { status: ['error'], q: 'exit' },
+    view: 'all',
+  });
+  const hideHref = html.match(/href="\?([^"]*view=stats[^"]*)"/)?.[1] ?? '';
+  assert.ok(hideHref, 'the hide link exists');
+  const params = new URLSearchParams(hideHref.replace(/&amp;/g, '&'));
+  assert.equal(params.get('status'), 'error', 'the status filter survives the toggle');
+  assert.equal(params.get('q'), 'exit');
+  assert.equal(params.get('token'), 'tok');
+
+  const hidden = renderPage({
+    entries, allEntries: entries, meta: { tokenValue: 'tok' },
+    query: { status: ['error'], view: 'stats' },
+  });
+  const showHref = hidden.match(/href="\?([^"]*view=all[^"]*)"/)?.[1] ?? '';
+  assert.equal(new URLSearchParams(showHref.replace(/&amp;/g, '&')).get('status'), 'error', 'and so does the way back');
+});
