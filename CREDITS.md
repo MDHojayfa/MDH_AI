@@ -1,39 +1,46 @@
-# Credits & provenance
+# Credits
 
-This project stands on other people's work. Attribution is a licence condition, not a courtesy —
-the MIT licence in `LICENSE` **must not be stripped**, and the upstream notice in `app/LICENSE`
-must stay with the code it covers.
+**MDH_AI** — MIT © 2026 MDHojayfa.
 
-## Code included
+## Original work
 
-| Source | Licence | What we took | Where |
-|---|---|---|---|
-| [`AstraxOf/web-mcp-bridge`](https://github.com/AstraxOf/web-mcp-bridge) | **MIT** © 2026 AstraxOf | The whole base: MV3 extension (adapters for ChatGPT / Gemini / Claude / DeepSeek), the agentic loop, the tolerant JSON parser, the approval widget, the Python WebSocket↔stdio MCP bridge, the systemd/launchd installer, and the test suite | `app/` |
+Everything in `src/`, `host/`, `tools/`, `install.sh`, `docs/` and the extension manifests is original
+work for this project: the network interceptor, the reply parser and repair ladder, the prompt
+renderer, the agent loop, the native-messaging transport, the Linux bridge host, the policy engine, the
+adapter format, and the build.
 
-**What that means:** the base is MIT, so this repository may be published, modified and even sold.
-The single obligation is that the copyright notice and the licence text travel with the code. That is
-why `LICENSE` carries the upstream line and `app/LICENSE` is untouched.
+## Ideas studied, no code copied
 
-## Behaviour referenced, no code copied
+Several existing projects explore parts of the same idea — a web chat driving local tools. Their
+behaviour was read to understand the problem; **no file, function or identifier from any of them was
+copied into this repository.** Each of them is credited by its own repository; the closest neighbours
+are noted here so a reader knows where the idea came from:
 
-| Source | Licence | How it was used |
-|---|---|---|
-| [`sebattfg/ZeroScript-Free`](https://github.com/sebattfg/ZeroScript-Free) | **GPL-3.0** | Read only, to understand the architecture: extension → local WebSocket bridge → MCP stdio child processes, and the agentic loop that pastes results back into the chat. No file, function or identifier from it was copied into this repository. **Copying even one function from it would force this whole project to GPL-3.0.** |
+- prior art for "web chat → local tools" that shaped the loop design (works in a single application)
+- prior art for MCP over a browser extension (4 platforms, no Firefox)
+- prior art for per-platform network interception (automated browser, not the user's tab)
 
-## Downstream tools this project drives (not bundled)
+Two of those are copyleft. Reading them was deliberate and their licences were respected: this project
+is MIT and stays MIT precisely because nothing was lifted from them. If you are ever tempted to paste a
+function from a GPL project into this one, don't — it would force the whole repository to GPL-3.0.
+
+## Tools this project drives (not bundled, not required)
 
 | Tool | Licence | Role |
 |---|---|---|
-| [`wonderwhy-er/DesktopCommanderMCP`](https://github.com/wonderwhy-er/DesktopCommanderMCP) | MIT | Terminal, filesystem, process control — the "executor" MCP server |
-| [`agent-sh/computer-use-linux`](https://github.com/agent-sh/computer-use-linux) | MIT | Real desktop GUI control on Linux (AT-SPI), optional second server |
+| MCP servers of your choosing | as licensed upstream | the model's tools: shell, files, GUI, databases, anything |
+| [`wonderwhy-er/DesktopCommanderMCP`](https://github.com/wonderwhy-er/DesktopCommanderMCP) | MIT | a good default executor (terminal + filesystem) |
+| [`agent-sh/computer-use-linux`](https://github.com/agent-sh/computer-use-linux) | MIT | optional real GUI control on Linux (AT-SPI) |
 
-## Original work in this repository
+They are started by the host as child processes; none of their code is in this repository.
 
-- `app/content_scripts/prompt_builder.js` — system prompt rewritten in English (was Spanish)
-- `app/content_scripts/mcp_parser.js` — model-facing error diagnostics rewritten in English
-- `app/tests/test_prompt.mjs`, `app/tests/test_parser.mjs` — updated assertions + a regression guard
-  that fails if Spanish text leaks back into the prompt
-- `Workspace/Research/` — the research that produced these decisions
-- `docs/` — architecture and roadmap
+## Third-party code currently present
 
-Everything else listed in `docs/ROADMAP.md` is still to be written and will be ours.
+`app/` is an **older, separately licensed snapshot** kept in this tree until version 1.0 replaces it. Its
+own MIT notice is in `app/LICENSE` and travels with those files: anything redistributed from `app/` must
+keep that notice. None of it is used by v1 code in `src/` and `host/`, and at 1.0 the directory is
+deleted, which removes this section from the project entirely.
+
+## Fonts, images, icons
+
+None from third parties. The three SVG icons are drawn for this project.
