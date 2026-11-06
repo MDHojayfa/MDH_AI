@@ -37,6 +37,7 @@ Expected shape of a good run:
 | lint | `npx web-ext lint` | 0 errors, 1 known warning |
 | weight | `npm run weigh` | inside every budget |
 | host | `./install.sh --diagnose` | `host answered … audit ok` |
+| browser | `npm run live-check` | worker registered, `pong` from the real host, 0 failed |
 | logs | `node host/mdh-log.mjs --json` | parses, `summary.calls` is a number |
 
 ## 1. Version, in seven places
@@ -67,6 +68,9 @@ source of truth for support questions, and the README links it.
 
 ## 3. The post-release checklist
 
+- [ ] `npm run live-check` on the machine you are about to tag from, with a real browser — it has never been run
+      in the environment the tests run in, and `docs/VERIFICATION.md` says so plainly
+- [ ] `npm run live-check -- --page <a platform you are signed into>` to see the pill mount on a live page
 - [ ] `install.sh --diagnose` on a machine that never had it installed
 - [ ] one full run on each platform that is marked tested
 - [ ] `mdh-log --serve` opens, filters, hides, archives (never deletes)

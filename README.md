@@ -20,8 +20,10 @@ one approval per step, one hash-chained log, no API key anywhere.</p>
 
 [Quickstart](#sixty-seconds) · [What it does](#what-it-does) · [Security](#security-in-three-sentences) · [Numbers](#the-numbers-measured) · [Docs](#docs) · [Credits](#credits)
 
-<sub>v1.0.0 — feature-complete, both zips built and verified, store submission next. What changed, and when:
-[`CHANGELOG.md`](CHANGELOG.md).</sub>
+<sub>v1.0.0 — the code is finished and the zips are built; what has and has not been proven is listed in
+[`docs/VERIFICATION.md`](docs/VERIFICATION.md), including the browser check that has not been run yet and the eight
+live sites nobody has pointed this at. Store submission is a person's next step, not a claim. What changed, and
+when: [`CHANGELOG.md`](CHANGELOG.md).</sub>
 
 </div>
 
