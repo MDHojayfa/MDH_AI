@@ -8,7 +8,7 @@ import { join } from 'node:path';
 const home = mkdtempSync(join(tmpdir(), 'mdh-audit-'));
 process.env.HOME = home;
 
-const { appendAudit, verifyAudit } = await import('../host/audit.mjs');
+const { appendAudit, resetCheckpoint, verifyAudit } = await import('../host/audit.mjs');
 const { paths } = await import('../host/config.mjs');
 
 test('an empty log verifies', () => {
@@ -48,6 +48,7 @@ test('only the first command line is kept', () => {
 test('a call carries the run it belonged to, and the chain still verifies', () => {
   // The tamper test above deliberately broke this chain; a fresh file is the only honest baseline.
   writeFileSync(paths.audit, '');
+  resetCheckpoint(); // a scratch log, not a truncated one
   const before = readFileSync(paths.audit, 'utf8').trim() ? 1 : 0;
   appendAudit({ tool: 'run_command', args: { cmd: 'npm test' }, status: 'ok', ms: 5, run: 'run-abc123' });
   const lines = readFileSync(paths.audit, 'utf8').trim().split('\n');

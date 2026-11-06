@@ -270,6 +270,19 @@ The docs are part of the product, so the late-v1 features have to exist in them:
 | page | every row shows who allowed it, and `?run=` keeps it in sequence |
 | terminal | `mdh-log --run` prints `allowed by: …` and the per-call column |
 
+## 3e8. A chain cannot see its own tail — `tests/truncation.test.mjs`
+
+| Case | Expected |
+|---|---|
+| whole chain | verifies, and the checkpoint agrees on the count and has lost nothing |
+| last entry | removed → `ok: false`, `truncated: true`, `missing: 1` |
+| several entries | `missing` is the number, not a shrug |
+| the file itself | gone → the largest truncation, not a clean slate |
+| then a new call | the count returns to normal and the loss is still reported |
+| archive | a new chain from genesis verifies; the archived file still exists |
+| corrupt checkpoint | no opinion, not a broken chain — the chain decides on its own |
+| the page | the sentence and the badge, and nothing red when nothing is wrong |
+
 ## 3f1. Run grants — `tests/grant.test.mjs`
 
 | Case | Expected |

@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const home = mkdtempSync(join(tmpdir(), 'mdh-via-'));
 process.env.HOME = home;
 
-const { appendAudit, verifyAudit } = await import('../host/audit.mjs');
+const { appendAudit, resetCheckpoint, verifyAudit } = await import('../host/audit.mjs');
 const { paths } = await import('../host/config.mjs');
 const { renderPage } = await import('../host/viewer.mjs');
 
@@ -26,6 +26,7 @@ const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 const reset = () => {
   mkdirSync(join(home, '.local', 'state', 'mdh'), { recursive: true });
   writeFileSync(paths.audit, '');
+  resetCheckpoint(); // these tests want a scratch log, not a truncated one
 };
 
 test('the audit records who allowed the call, and the chain still verifies', () => {

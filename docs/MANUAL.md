@@ -311,6 +311,11 @@ failed, and the sequence in order (`list_dir ok → run_command ok → write_fil
 a **details** arrow that reveals the summarised arguments, **who allowed the call**, the full hash and the run id
 — the audit entry itself, not a summary of it. No script is involved: `<details>` is HTML.
 
+If the chain is intact the header says **chain verified**. If entries were removed from the end it says
+**N entries missing from the end** and prints the sentence underneath — a hash chain cannot see its own tail, so
+a checkpoint file beside the log remembers how long the log was and what it ended with. Archiving resets that
+count, because a chain you deliberately put aside is not a missing one.
+
 *Who allowed it* is the column people ask for after the second week. `auto` means the policy allowed the call and
 nobody was asked; `approval` means a person clicked **Allow once**; `grant:run`, `grant:session` and
 `grant:site` mean a remembered approval answered, with the scope it was remembered at; `always-allow` means the

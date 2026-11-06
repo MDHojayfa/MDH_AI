@@ -99,5 +99,10 @@ Please do not file a public issue. Acknowledgement target: 72 h.
 
 1. Close the tab that was driving, or press **Stop** in the popup — the host exits when the port closes.
 2. Check the chain: `node -e "import('./host/audit.mjs').then(m=>console.log(m.verifyAudit()))"`.
+   The answer is `{ok, lines}` when everything is intact, and `{ok: false, truncated: true, missing: n, reason}`
+   when entries were removed from the end — the one failure a hash chain cannot see by itself. The count comes
+   from `audit.jsonl.checkpoint.json` beside the log, which also accumulates `lost`, so a call written after a
+   deletion cannot reset the evidence. It is a second file in the same directory: it raises the cost of a silent
+   edit, it does not make one impossible, and anyone with write access to both can still lie.
 3. Rotate anything that was ever moved out of the deny list into the allowlist.
 4. `./install.sh --uninstall`.

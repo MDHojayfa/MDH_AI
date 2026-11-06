@@ -165,6 +165,7 @@ body { margin: 0; padding: 28px 22px 60px; background: #0b0b12; color: #d7d9e3;
 h1 { font-size: 20px; margin: 0 0 4px; }
 h2 { font-size: 15px; margin: 28px 0 10px; color: #c7d2fe; font-weight: 600; letter-spacing: .02em; }
 .sub { color: #8b90a5; margin: 0 0 6px; }
+.bad-text { color: #fda4af; }
 code, pre, td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
 .badge { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; border: 1px solid; }
 .ok { color: #34d399; border-color: #14532d; background: #052e1a; }
@@ -248,7 +249,13 @@ export function renderPage({
   const stat = summary(entries);
   const hiddenCount = Math.max(0, total - entries.length);
   const audit = meta.audit ?? null;
-  const chain = audit ? (audit.ok ? '<span class="badge ok">chain verified</span>' : '<span class="badge bad">chain broken</span>') : '<span class="badge warn">not checked</span>';
+  const chain = !audit
+    ? '<span class="badge warn">not checked</span>'
+    : audit.ok
+      ? '<span class="badge ok">chain verified</span>'
+      : audit.truncated
+        ? `<span class="badge bad">${esc(audit.missing)} entries missing from the end</span>`
+        : '<span class="badge bad">chain broken</span>';
 
   const tiles = [
     ['calls', stat.calls],
@@ -402,6 +409,7 @@ ${live ? '<meta http-equiv="refresh" content="5">' : ''}
 <body>
 <h1>MDH_AI — local log</h1>
 <p class="sub">Generated ${esc(when(generatedAt))}${live ? ' · auto-refresh 5 s' : ''} · host ${esc(meta.hostVersion ?? '?')} · pid ${esc(meta.pid ?? '?')} · ${chain}</p>
+${audit && !audit.ok && audit.reason ? `<p class="sub bad-text">${esc(audit.reason)}</p>` : ''}
 
 <div class="tiles">${tiles}</div>
 ${runsBlock}

@@ -143,11 +143,13 @@ walks it: edit a line and it breaks, delete a line from the middle and it breaks
 and it verifies perfectly**. An agent that did something embarrassing, or anyone with write access to
 `~/.local/state/mdh/audit.jsonl`, can shorten the record and the page will still say "chain verified".
 
-So the current claim in the docs is true but narrower than it sounds, and the fix is small: persist the last
-hash and the entry count somewhere the audit file does not control, and compare on verify. That is **not**
-cryptographic tamper-proofing — an attacker with write access to both files can still lie — but it converts "you
-have to notice" into "the page notices for you". Queued as the next checkpoint with a test that deletes the tail
-and expects a red line.
+So the current claim in the docs was true but narrower than it sounded, and the fix is small: persist the last
+hash and the entry count somewhere the audit file does not control, and compare on verify. **Shipped in the
+checkpoint after this one** — `audit.jsonl.checkpoint.json` holds `{lines, lost, lastHash}`, `lost` accumulates
+so that appending after a deletion cannot bury the evidence, and the page prints the sentence rather than a
+mystery badge. That is **not** cryptographic tamper-proofing: an attacker with write access to both files can
+still lie, and `KNOWN-LIMITS.md` says exactly that. What it converts is "you would have to notice" into "the page
+notices for you" — which, for a log a person actually reads, is most of the value.
 
 ---
 

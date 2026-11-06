@@ -8,7 +8,7 @@
 import { existsSync, readFileSync, renameSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { paths } from './config.mjs';
-import { verifyAudit } from './audit.mjs';
+import { resetCheckpoint, verifyAudit } from './audit.mjs';
 
 export const DIAG_FILE = () => join(paths.stateDir, 'last-diag.json');
 
@@ -65,6 +65,9 @@ export function archiveAudit(now = new Date()) {
     const stamp = now.toISOString().replace(/[:.]/g, '-');
     const target = paths.audit.replace(/\.jsonl$/, `-${stamp}.jsonl`);
     renameSync(paths.audit, target);
+    // A new chain starts here. Without this, the next verify would call the archive a truncation — which is the
+    // right answer for a deleted file and the wrong one for a file the user deliberately put aside.
+    resetCheckpoint();
     return { ok: true, file: target, bytes: size };
   } catch (e) {
     return { ok: false, error: e.message };
