@@ -4,6 +4,9 @@
  * Wires the modules together, answers the popup, and decides what to do on this page. Deliberately thin:
  * a content script that can throw during load is a content script that silently does nothing, so every
  * step here is guarded and logged.
+ *
+ * It also holds the lease: one tab drives, the others watch and say so. Two tabs on one chat is not
+ * teamwork, it is two people answering the same phone.
  */
 (() => {
   'use strict';

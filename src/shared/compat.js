@@ -5,6 +5,9 @@
  * the only real differences we need to paper over are (a) which global holds the extension API and
  * (b) callback-vs-promise style. Both engines give promises for `storage` and `runtime` on the versions
  * we support (Chrome 116+, Firefox 140+), so this file is deliberately small.
+ *
+ * If you are here to add a polyfill: no. The shim is boring on purpose; boring is what survives a
+ * browser release cycle that renames things every eighteen months.
  */
 (() => {
   'use strict';

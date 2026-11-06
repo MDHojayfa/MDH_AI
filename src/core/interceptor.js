@@ -6,6 +6,7 @@
  * what the delta is, and when the turn is finished.
  *
  * It never throws into page code and never blocks a request: the wrapper is transparent by contract
+ * (and because a page that notices us is a page that can start lying to us).
  * (docs/ARCHITECTURE.md §3).
  */
 (() => {

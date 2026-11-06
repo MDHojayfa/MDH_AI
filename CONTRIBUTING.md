@@ -19,7 +19,7 @@ send was accepted" costs ten minutes.
 ## Build and test
 
 ```bash
-npm test                                        # 58 tests, no browser needed
+npm test                                        # 72 tests, no browser needed
 npm run build                                   # dist/chrome + dist/firefox, with manifest invariants
 npx web-ext lint --source-dir dist/firefox      # must stay at 0 errors
 node tools/selfcheck.mjs                        # spawns the host and waits for a real pong

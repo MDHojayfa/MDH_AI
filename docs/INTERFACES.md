@@ -11,7 +11,7 @@ src/
   shared/compat.js              MDH namespace, storage/ports/timers, hashing, small helpers
   core/
     log.js  state.js  policy.js  parser.js  prompt.js
-    ui.js  transport.js  interceptor.js  agent.js
+    fun.js  ui.js  transport.js  interceptor.js  agent.js
   platforms/
     base.js                     registry: pick(), pickString(), deepStrings()
     chatgpt.js claude.js gemini.js deepseek.js kimi.js
@@ -45,6 +45,7 @@ Every module is an IIFE that attaches exactly one object:
 | `MDH.platforms` | `register(adapter)`, `current(location)`, `get(id)` |
 | `MDH.transport` | `connect()`, `ping()`, `listTools()`, `callTool(name, args, opts)`, `close()` |
 | `MDH.interceptor` | `begin/end/finalize`, event emitter |
+| `MDH.fun` | `MISSION`, `QUOTES`, `missionAt/quoteAt/tagAt`, `chip(index)`, `rotate(node, opts)` |
 | `MDH.agent` | `start/stop/resume/status`, `_internals` for tests |
 | `MDH.ui` | `mount()`, `status()`, `card()`, `history()` |
 

@@ -94,3 +94,47 @@ footer a { color: var(--muted); text-decoration: none; }
 footer a:hover { color: var(--ok); }
 footer a#home { font-weight: 600; }
 footer .by { margin-left: auto; }
+
+
+/* ── the ticker and BARBOS MODE ─────────────────────────────────────────────────────────────────────
+   Why these exist: a popup that says "waiting" for ninety seconds reads as broken. A line that rotates
+   reads as alive. Tagging the joke `fun` is what keeps it honest. */
+.ticker {
+  display: flex; align-items: baseline; gap: 6px;
+  margin: 0 12px 8px; padding: 7px 9px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
+  font-size: 11.5px; color: var(--muted); font-style: italic; min-height: 30px;
+}
+.ticker #ticker { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.fun-tag {
+  flex: none; font-size: 9px; letter-spacing: .09em; text-transform: uppercase; font-style: normal;
+  color: #7dd3fc; border: 1px solid #1e3a4a; border-radius: 4px; padding: 0 4px;
+}
+
+.barbos { margin: 0 12px 10px; border: 1px solid var(--line); border-radius: 8px; background: #070b0e; }
+.barbos > summary {
+  display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none;
+  padding: 7px 9px; font-size: 10.5px; letter-spacing: .1em; color: var(--muted); text-transform: uppercase;
+}
+.barbos > summary::-webkit-details-marker { display: none; }
+.barbos .led {
+  width: 6px; height: 6px; border-radius: 50%; background: #4ade80;
+  box-shadow: 0 0 6px #4ade80aa; animation: blink 2.4s ease-in-out infinite;
+}
+@keyframes blink { 50% { opacity: .25; } }
+.barbos .count { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--dim); letter-spacing: 0; }
+.barbos-note { padding: 0 9px 6px; font-size: 10px; color: var(--dim); line-height: 1.4; }
+#barbos-log {
+  margin: 0; padding: 6px 9px 9px; max-height: 132px; overflow: auto;
+  font: 10.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap;
+}
+#barbos-log .row { display: flex; gap: 6px; }
+#barbos-log .t { color: #4b5563; flex: none; }
+#barbos-log .tag { flex: none; width: 62px; color: #7dd3fc; }
+#barbos-log .tag.sys { color: #4ade80; }
+#barbos-log .tag.host { color: #fbbf24; }
+#barbos-log .tag.moon, #barbos-log .tag.mars, #barbos-log .tag.jupiter,
+#barbos-log .tag.pluto, #barbos-log .tag.deep { color: #a78bfa; }
+#barbos-log .txt { color: #93a3b1; }
+@media (prefers-reduced-motion: reduce) { .barbos .led { animation: none; } }

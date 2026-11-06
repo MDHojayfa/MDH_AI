@@ -10,6 +10,8 @@
   const MDH = globalThis.MDH;
 
   const BUDGET_CHARS = 7200; // ≈1,800 tokens; see docs/prompt/SYSTEM.md §2
+  // The prompt is a contract; the reminder is a sticky note on the fridge. Both are needed because a
+  // model's memory of turn 1 is roughly as reliable as a human's memory of a shopping list.
 
   const oneLine = (text, max = 300) => String(text ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
 

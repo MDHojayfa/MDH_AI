@@ -124,6 +124,14 @@ No third-party notice, no upstream credit line, no borrowed header comment. Ever
 was written for this repository. If that ever changes, the licence and `CREDITS.md` change in the same
 commit — and until then, there is nothing else to attribute.
 
+**D25 · Humour is labelled, and never carries a status.**
+A tool that waits a lot needs to look alive, and a 90-second silence reads as a crash. So the waiting
+state shows one real sentence plus one rotating joke, and the popup's BARBOS MODE log tags every real
+event `sys`/`host` and every joke with a planet. Three rules are enforced by tests rather than good
+intentions: no joke may claim a success, mention the user's data, or reference credentials or the audit
+log. `--no-fun` turns it off entirely. A joke that can be mistaken for a progress report is a bug with a
+punchline.
+
 **D24 · No remote configuration.**
 The extension never fetches a config, a selector list, an update manifest or a font. A site change is a new
 release, reviewed like any other code. Remote config is a backdoor with a friendly name.

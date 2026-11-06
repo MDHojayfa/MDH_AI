@@ -43,6 +43,10 @@ function lastHash() {
   }
 }
 
+/**
+ * Append one line. If this ever throws, the call still happens — an audit log that can block work becomes
+ * an outage with extra steps, so failures are logged to stderr and swallowed.
+ */
 export function appendAudit({ tool, args, status, ms, detail }) {
   try {
     mkdirSync(dirname(paths.audit), { recursive: true });

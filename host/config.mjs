@@ -5,7 +5,8 @@
  *   ~/.config/mdh/config.json   policy (allowed folders, approval defaults) and runtime knobs
  *   ~/.config/mdh/servers.json  MCP servers to start
  *
- * The extension sends a policy copy for the approval card, but the host never trusts it: the files on
+ * The host reads these itself and never trusts the copy the extension sends: two opinions about safety
+ * is one opinion and one liability. The files on
  * disk are the authority, because they are the ones a user actually edited.
  */
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';

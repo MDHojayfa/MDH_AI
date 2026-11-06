@@ -48,6 +48,10 @@ function canonical(p) {
 
 const within = (child, root) => child === root || child.startsWith(root.endsWith('/') ? root : `${root}/`);
 
+/**
+ * The allowlist is the law; realpath is the bailiff. Symlinks are resolved *before* the comparison,
+ * because a path that lies about where it points is not a path, it is an ambush.
+ */
 export function guard(path, cfg, { mustExist = false } = {}) {
   if (typeof path !== 'string' || !path.trim()) throw new ToolError('PATH_DENIED', 'a path is required');
   const real = canonical(path);

@@ -3,12 +3,57 @@
  *
  * The pipeline strip exists because "it's stuck" is the only bug report you get otherwise: page found →
  * host connected → tools loaded → idle/running, each with a duration or a count.
+ *
+ * BARBOS MODE below is the same idea with jokes: real events are tagged `sys`/`host`, decoration is
+ * tagged with a planet, and the count in the corner is real, because a log that lies about its own size
+ * is the first step towards a log that lies about everything.
  */
 (() => {
   'use strict';
   const MDH = globalThis.MDH;
   const api = MDH.api;
   const $ = (id) => document.getElementById(id);
+
+  /* ── BARBOS MODE ────────────────────────────────────────────────────────────────────────────────
+     A log that is honest about which lines are real. `sys` and `host` come from the extension; every
+     other tag is decoration from core/fun.js, rotated so a 90-second wait does not look like a crash.
+     The counts are real, the aliens are not. */
+  const barboRows = [];
+  let barboTotal = 0;
+  let barboTick = 0;
+  let lastName = null;
+
+  function barbo(tag, text) {
+    barboRows.push({ at: new Date(), tag: String(tag).toLowerCase(), text: String(text) });
+    if (barboRows.length > 120) barboRows.shift();
+    barboTotal += 1;
+    renderBarbo();
+  }
+
+  function renderBarbo() {
+    const pre = $('barbos-log');
+    if (!pre) return;
+    const frag = document.createDocumentFragment();
+    for (const row of barboRows.slice(-80)) {
+      const line = document.createElement('div');
+      line.className = 'row';
+      const time = document.createElement('span');
+      time.className = 't';
+      time.textContent = row.at.toTimeString().slice(0, 8);
+      const tag = document.createElement('span');
+      tag.className = `tag ${row.tag}`;
+      tag.textContent = row.tag;
+      const text = document.createElement('span');
+      text.className = 'txt';
+      text.textContent = row.text;
+      line.append(time, tag, text);
+      frag.append(line);
+    }
+    pre.textContent = '';
+    pre.append(frag);
+    $('barbos-count').textContent = String(barboTotal);
+    pre.scrollTop = pre.scrollHeight;
+  }
 
   const startedAt = Date.now();
   let tabId = null;
@@ -65,6 +110,12 @@
     $('platform').textContent = s.platform
       ? `${s.platform.name} · ${s.interceptor}`
       : 'Unsupported page — open one of the 8 platforms.';
+
+    const name = `${s.platform?.id ?? 'none'}:${s.agent?.phase ?? 'idle'}:${s.host === true}`;
+    if (name !== lastName) {
+      lastName = name;
+      barbo('sys', `platform ${s.platform?.id ?? 'none'} · phase ${s.agent?.phase ?? 'idle'} · host ${s.host === true ? 'up' : 'offline'}`);
+    }
 
     if (!s.host) {
       setState('host offline', 'err');
@@ -132,6 +183,7 @@
 
   $('start').addEventListener('click', async () => {
     const task = $('task').value.trim();
+    barbo('sys', `start requested · ${task ? `${task.length} chars` : 'no task text'}`);
     $('start').disabled = true;
     const res = await send(tabId, { type: 'mdh:start', task, tabId });
     if (!res?.ok) {
@@ -144,6 +196,7 @@
   });
 
   $('stop').addEventListener('click', async () => {
+    barbo('sys', 'stop requested');
     await send(tabId, { type: 'mdh:stop' });
     setTimeout(refresh, 200);
   });
@@ -184,6 +237,20 @@
   setInterval(() => {
     if (status?.agent?.startedAt) $('elapsed').textContent = MDH.util.clock(Date.now() - status.agent.startedAt);
   }, 1000);
+
+  // The ticker: one line at a time, clearly tagged, paused while the popup is not visible.
+  MDH.fun?.rotate($('ticker'), { everyMs: 2600 });
+
+  // The mission log keeps filling while the popup is open, so the wait has something to look at.
+  setInterval(() => {
+    if (document.visibilityState !== 'visible' || !MDH.fun) return;
+    barboTick += 1;
+    if (barboTick % 5 === 0) barbo('deep', MDH.fun.quoteAt(barboTick));
+    else barbo(MDH.fun.tagAt(barboTick), MDH.fun.missionAt(barboTick));
+  }, 4200);
+
+  barbo('sys', `MDH_AI ${MDH.VERSION} · popup opened`);
+  barbo('deep', 'mission control online; no budget for an actual mission');
 
   refresh();
 })();

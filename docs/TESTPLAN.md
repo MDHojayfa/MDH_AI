@@ -5,7 +5,7 @@ runs before a release.
 
 ## 1. Units — `npm test`
 
-58 tests against the shipped files, loaded into a `vm` sandbox with a fake storage and a fake page. No
+72 tests against the shipped files, loaded into a `vm` sandbox with a fake storage and a fake page. No
 copies of the logic, so a green run means something about the extension itself.
 
 | Area | File | What it pins |
@@ -15,6 +15,8 @@ copies of the logic, so a green run means something about the extension itself.
 | prompt | `tests/prompt.test.mjs` | signatures not JSON Schema, budget respected with dropped tools named, verbatim task, credit present exactly once |
 | guard | `tests/guard.test.mjs` | realpath check, symlink escape, missing-path creation, empty input |
 | audit | `tests/audit.test.mjs` | chain verifies, silent edit detected, no file contents stored, only the first command line kept |
+| fun | `tests/fun.test.mjs` | pools are long enough, lines are short, no joke claims success, mentions data or credentials, rotation is deterministic |
+| installer | `tests/installer.test.mjs` | `--help`, `--dry-run` writes nothing, `--no-fun` removes every ☾ line, `--barbos` echoes commands, unknown flags fail |
 | host | `tests/host.test.mjs` | real `run_command` output, batched shell, timeout kill, atomic write, ambiguous edit, binary refusal, truncation |
 | manifests | `tests/manifest.test.mjs` | eight platforms, MAIN/ISOLATED split, module order, Firefox event page, Chrome key → stable ID, no `http://` |
 

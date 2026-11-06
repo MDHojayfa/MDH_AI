@@ -4,6 +4,9 @@
  * Stream: POST /chat/completion (SSE). Pacing: **6 s between sends, at most 5 per minute** — measured,
  * not guessed (`docs/PLATFORMS.md` §DeepSeek), because this site answers bursts with "Messages too frequent" and that
  * refusal is what escalates a cooldown into an account action.
+ *
+ * In other words: the site is quick to say "too frequent" in Chinese, and the correct reply is patience,
+ * not eloquence.
  */
 (() => {
   'use strict';

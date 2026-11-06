@@ -23,6 +23,11 @@
     <div class="stage" data-stage="run"><span class="tick">·</span><span class="name">idle</span><span class="meta"></span></div>
   </section>
 
+  <section class="ticker" id="ticker-box">
+    <span class="fun-tag">fun</span>
+    <span id="ticker" aria-hidden="true">contacting the aliens on the Moon…</span>
+  </section>
+
   <section class="platform">
     <span id="platform">not a supported page</span>
   </section>
@@ -63,6 +68,15 @@
     </div>
   </details>
 
+  <details id="barbos" class="barbos">
+    <summary>
+      <span class="led" aria-hidden="true"></span>BARBOS MODE
+      <span class="count" id="barbos-count">0</span>
+    </summary>
+    <div class="barbos-note">Real events are tagged <b>sys</b>/<b>host</b>. Everything else is decoration — the lasers are not real, the shell is.</div>
+    <pre id="barbos-log" aria-live="off"></pre>
+  </details>
+
   <footer>
     <a id="home" href="https://github.com/MDHojayfa" target="_blank" rel="noopener" title="Follow on GitHub">github.com/MDHojayfa</a>
     <a id="site" href="https://mdhojayfa.github.io/" target="_blank" rel="noopener">site</a>
@@ -70,6 +84,8 @@
   </footer>
 
   <script src="../shared/compat.js"></script>
+  <script src="../core/log.js"></script>
+  <script src="../core/fun.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

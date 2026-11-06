@@ -13,6 +13,7 @@
   const MDH = globalThis.MDH;
 
   const isAbs = (p) => typeof p === 'string' && p.startsWith('/');
+  // This file is the bouncer, the host is the lock. A bouncer can be talked into things; a lock cannot.
   const isHomeRelative = (p) => typeof p === 'string' && (p === '~' || p.startsWith('~/'));
 
   /** Collapse `.`/`..`/duplicate slashes without touching `~`. Purely lexical. */

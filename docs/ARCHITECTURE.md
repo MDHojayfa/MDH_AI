@@ -34,7 +34,8 @@ page  ── MAIN-world tap (injected.js)
 | Agent loop | `src/core/agent.js` | state machine, send governor, reply wait, refusal ladder, delivery, dedup | re-send after a refusal |
 | Policy | `src/core/policy.js` | lexical path check and approval verdict for the card | be the only guard |
 | Transport | `src/core/transport.js` | one native port, request/response by id, progress frames, disconnect → `NO_HOST` | log to stdout |
-| UI | `src/core/ui.js` + `src/popup/*` | status, approval card, history, popup | render remote HTML |
+| UI | `src/core/ui.js` + `src/popup/*` | status, approval card, mission card, history, popup | render remote HTML |
+| Decoration | `src/core/fun.js` | rotating lines that make a wait visible, always tagged `fun` | claim a status, mention data, or run when `--no-fun` |
 | Host | `host/*.mjs` | framing, tool dispatch, real path guard, audit chain, MCP lifecycle | trust the extension's policy copy |
 
 A layer may only call the layer below it. The tap and the adapter never meet: the tap knows nothing about

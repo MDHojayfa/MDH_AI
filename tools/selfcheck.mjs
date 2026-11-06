@@ -23,6 +23,8 @@ function frame(obj) {
   return Buffer.concat([header, json]);
 }
 
+// Every installer in this corner of the ecosystem assumes registration worked, and every support thread
+// is the consequence. This one asks the host directly and refuses to be optimistic.
 const child = spawn(process.execPath, [HOST], { stdio: ['pipe', 'pipe', 'pipe'] });
 let buffer = Buffer.alloc(0);
 let pong = false;

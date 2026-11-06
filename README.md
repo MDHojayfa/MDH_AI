@@ -70,6 +70,11 @@ directly; nothing needs to be bridged or rewritten.
 - **Hash-chained audit log** of every call under `~/.local/state/mdh/audit.jsonl`.
 - **Optional container mode** for commands: rootless podman, no network, only allowlisted folders mounted.
 - **One-driver-tab lease**, so two open tabs cannot race the same chat.
+- **A mission log that is honest about being a joke.** While a reply is pending you get one real sentence
+  ("waiting for the reply") and one rotating space-programme line, tagged `fun` — *contacting the aliens on
+  the Moon*, *taking data from Mars*, *setting up the laser weapon on Pluto*. In the popup there is
+  **BARBOS MODE**, a boot-log panel where real events are tagged `sys`/`host` and everything else is tagged
+  with a planet. Turn it all off with `./install.sh --no-fun`; it is decoration, not diagnostics.
 
 ## How it works
 
@@ -125,6 +130,7 @@ it over a pipe, which is why a web page cannot reach it. Details: [`docs/ARCHITE
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | what comes after v1 |
 | [`docs/TESTPLAN.md`](docs/TESTPLAN.md) | what is tested and how to reproduce it |
 | [`docs/SEO-AND-LAUNCH.md`](docs/SEO-AND-LAUNCH.md) | positioning, search and launch plan |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | why it is built this way (including why the jokes are labelled) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | build, test, add an adapter |
 
 ## Found a bug? Read this first (it is short, like the developer's budget)

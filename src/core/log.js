@@ -4,6 +4,8 @@
  * Everything the loop decides is worth being able to see after the fact: a user's bug report is only
  * useful if it can name a stage (`docs/INTERFACES.md` §3). The buffer is small on purpose — it lives
  * in the content script, is never persisted, and is exposed to the popup on request.
+ *
+ * Logs are a letter to the version of you who opens this at 2 a.m. Write for that person; they are tired.
  */
 (() => {
   'use strict';

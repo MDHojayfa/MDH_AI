@@ -58,6 +58,20 @@
       animation: in .18s ease-out;
     }
     @keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .fun-tag {
+      display: inline-block; font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+      color: #7dd3fc; border: 1px solid #1e3a4a; border-radius: 5px; padding: 1px 5px;
+      margin-right: 6px; vertical-align: 1px;
+    }
+    .mission .line { font-size: 13px; color: #93a3b1; min-height: 1.4em; }
+    .mission .real { font-size: 12px; color: #7d8b98; margin-top: 6px; }
+    .shimmer { height: 2px; background: #1e2830; overflow: hidden; }
+    .shimmer > i {
+      display: block; height: 100%; width: 30%; background: linear-gradient(90deg, transparent, #7dd3fc, transparent);
+      animation: sweep 1.6s ease-in-out infinite;
+    }
+    @keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
+    @media (prefers-reduced-motion: reduce) { .shimmer > i { animation: none; width: 100%; opacity: .4; } }
     input[type=text] {
       width: 100%; box-sizing: border-box; font: inherit; font-size: 13px; color: #e6edf3;
       background: #0b0f13; border: 1px solid #1e2830; border-radius: 8px; padding: 8px 10px;
@@ -243,6 +257,7 @@
     return card;
   }
 
+  /** One-shot toast. It disappears on its own; the audit log does not, which is the right way round. */
   /** One-shot toast. */
   function notice(text, { tone = 'info', ms = 5000 } = {}) {
     mount();
@@ -302,10 +317,44 @@
     return { close, card };
   }
 
+  /**
+   * The waiting card. One real sentence ("waiting for the reply") plus one rotating joke, labelled `fun`
+   * so nobody mistakes the Pluto laser for a progress report. Returns `{ close }`.
+   */
+  function mission({ title = 'Working', real = 'Waiting for the reply — the mission log below is decorative.' } = {}) {
+    mount();
+    const line = el('div', { class: 'line', 'aria-hidden': 'true' });
+    line.append(el('span', { class: 'fun-tag', text: 'fun' }), el('span', { text: '' }));
+    const joke = line.lastChild;
+    const body = el('div', { class: 'bd' },
+      line,
+      el('div', { class: 'real', role: 'status', 'aria-live': 'polite', text: real }),
+    );
+    const card = el('div', { class: 'card mission' },
+      el('div', { class: 'hd' }, el('span', { class: 'dot warn' }), el('span', { class: 'title', text: title })),
+      body,
+      el('div', { class: 'shimmer' }, el('i')),
+    );
+    card.id = 'mdh-mission';
+    root?.getElementById('mdh-mission')?.remove();
+    addCard(card);
+
+    const stop = MDH.fun?.rotate ? MDH.fun.rotate(joke, { everyMs: 2600 }) : () => {};
+    return {
+      close() {
+        stop();
+        removeCard(card);
+      },
+      setReal(text) {
+        body.querySelector('.real').textContent = text;
+      },
+    };
+  }
+
   function clear() {
     for (const card of [...stack]) card.remove();
     stack = [];
   }
 
-  MDH.ui = { mount, showApproval, askQuestion, showPlan, notice, countdown, clear, el, removeCard };
+  MDH.ui = { mount, showApproval, askQuestion, showPlan, notice, countdown, mission, clear, el, removeCard };
 })();

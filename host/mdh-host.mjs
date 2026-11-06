@@ -6,6 +6,9 @@
  * is protocol. Logs go to stderr. That single rule is the difference between working and the most common
  * bug in this corner of the ecosystem (`docs/INTERFACES.md` §4).
  *
+ * If you are tempted to add a `console.log` for debugging: do not. That is how a working host becomes a
+ * mysterious "Invalid native messaging message" and an evening of your life disappears.
+ *
  * Protocol: one JSON object per message, each prefixed with its 4-byte little-endian length, exactly as
  * Chromium and Firefox frame native messaging.
  */

@@ -6,6 +6,7 @@
  *
  * Contract (docs/ARCHITECTURE.md §3):
  *   · the caller gets exactly what it got before — same Response, same promise resolution, same errors;
+ *   · the page is the paying customer here. We are a passenger with a notebook, not the driver;
  *   · nothing is cancelled, re-written or delayed;
  *   · duplicate injection is detected and reported as `degraded`, not applied twice;
  *   · no extension API is used here, so a hostile page can break this file without gaining anything.

@@ -72,6 +72,26 @@ Read commands before approving. This is the only place a human is in the loop.
 Adding a folder: **Policy** → paste a path → **Add**. It is checked with `realpath`, so symlinks and `..`
 tricks do not sneak past it.
 
+## 4b · The mission log, and how to switch it off
+
+While a reply is pending, the in-page card shows two things: a real sentence about the real state, and a
+rotating line from mission control — *contacting the aliens on the Moon*, *routing packets through
+Apollo 11*, *setting up the laser weapon on Pluto*. The joke is tagged `fun`; the status is not.
+
+The popup has **BARBOS MODE**, a small boot log. Lines tagged `sys` and `host` are real events from the
+extension. Lines tagged `MOON`, `MARS`, `JUPITER`, `PLUTO` or `DEEP SPACE` are decoration, rotated from
+`src/core/fun.js`. The counter in the corner is real, because a log that lies about its own size is the
+first step towards a log that lies about everything.
+
+Turn all of it off:
+
+```bash
+./install.sh --no-fun      # a quiet install; nothing else changes
+```
+
+Nothing in the joke file can claim a success, mention your data, or touch credentials — there is a test
+that enforces each of those three rules (`tests/fun.test.mjs`).
+
 ## 5 · When it stops working
 
 | Symptom | Cause | Fix |

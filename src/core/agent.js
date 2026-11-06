@@ -140,7 +140,10 @@
     return base[key];
   }
 
-  /** Serialised, spaced, capped — `docs/ARCHITECTURE.md` §6. Every send goes through here. */
+  /**
+   * Serialised, spaced, capped — `docs/ARCHITECTURE.md` §6. Every send goes through here.
+   * Rushing a free tier is how a person ends up explaining a ban to their future self, who is not amused.
+   */
   async function governorWait(adapter) {
     const pace = await MDH.state.get('pace');
     const minGap = adapter?.pace?.minGapMs ?? 3000;
@@ -453,7 +456,14 @@
     await deliver(message, { first });
     S.phase = 'waiting-reply';
 
+    // A real sentence about the real state, plus nonsense that is visibly tagged as nonsense. The joke
+    // is not the status; if the two ever disagree, the status wins and the joke is just a joke.
+    const mission = MDH.ui.mission?.({
+      title: 'Working',
+      real: 'Waiting for the reply. The line above is decoration; the clock is not.',
+    });
     const { text, outcome, ms } = await waitForReply(adapter);
+    mission?.close();
     S.outcome = outcome;
     log()?.info('turn', S.turn, outcome, ms, 'chars', text.length);
 

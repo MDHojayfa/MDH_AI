@@ -14,6 +14,10 @@ if (typeof importScripts === 'function' && typeof globalThis.MDH === 'undefined'
 const MDH = globalThis.MDH;
 const api = MDH.api;
 
+// Where the first run points. Two doors, both open, neither a trick: the profile is where a follow
+// happens (one click, the user's choice), and the site is linked in the popup footer for as long as the
+// extension is installed. Nothing is collected, nothing is claimed. A redirect that silently followed
+// someone would be a dark pattern, and this product already has enough ways to get things wrong.
 // Where the first run points. GitHub has no URL that follows an account — the old
 // `/users/follow?target=` endpoint died in 2012 and required a POST with a CSRF token — so this is an
 // honest profile visit, not a trick. The "Follow" button is one click from there; the popup links it too.

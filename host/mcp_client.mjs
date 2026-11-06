@@ -8,7 +8,9 @@
  *   4. a call that times out kills the child rather than leaking a pending id;
  *   5. stderr is forwarded to our stderr, never parsed;
  *   6. tool results are text-only; images are described, not embedded;
- *   7. a dead server is reported as a tool error, never as a crash of the host.
+ *   7. a dead server is reported as a tool error, never as a crash of the host;
+ *   8. a server that prints a greeting to stdout before its JSON-RPC will be logged, ignored and judged
+ *      silently — every ecosystem has one, and it is always the one you need.
  */
 import { spawn } from 'node:child_process';
 

@@ -4,6 +4,8 @@
  * Everything durable is namespaced `mdh:` and survives a reload, because the two things that must
  * survive are the *pending call* and the *ladder's memory* (`docs/ARCHITECTURE.md` §4). An in-memory
  * mirror keeps the hot path synchronous; writes are debounced per key.
+ *
+ * The in-memory mirror is also why the popup can be honest in real time: the tab knows, so the UI knows.
  */
 (() => {
   'use strict';

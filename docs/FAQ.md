@@ -91,6 +91,16 @@ Because GitHub has no URL for that. The old endpoint died years ago and required
 CSRF token; arranging one silently would be a dark pattern wearing a marketing hat. The profile opens
 once, the button is one click away, and both are free.
 
+**Why does it keep talking about aliens on the Moon?**
+Because a tool that says "waiting" for ninety seconds looks broken, and a tool that says
+"contacting the aliens on the Moon…" looks alive. Every line is tagged `fun`, the real status is printed
+next to it, and `./install.sh --no-fun` removes the lot. The rule is simple: decoration may be silly,
+diagnostics may not. There is a test that stops a joke from claiming a success or mentioning your data.
+
+**Is the missile real?**
+No. The shell command is real, which is why it has an approval card, and the missile is a paper plane
+addressed to Jupiter. Do not confuse the two; that is the entire safety model in one sentence.
+
 **Why is the prompt in English only?**
 One canonical language keeps prompt behaviour testable. Bangla arrives in v1.1 as a translation file, not
 a fork.

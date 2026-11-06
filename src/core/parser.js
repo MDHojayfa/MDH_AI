@@ -15,6 +15,8 @@
   const MDH = globalThis.MDH;
 
   const CALL_KEYS = ['mdh_call', 'tool_call', 'mcp_call', 'call', 'action'];
+  // Five accepted spellings, because a model that has read other projects will invent a sixth. The
+  // envelope is data; being generous about its name costs nothing and saves a whole turn.
 
   const FOREIGN = [
     /<\|?[a-z_]*tool_call\|?>/i,

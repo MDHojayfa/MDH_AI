@@ -5,7 +5,9 @@
  *   node tools/build.mjs            → dist/chrome + dist/firefox
  *   node tools/build.mjs chrome     → only dist/chrome
  *
- * The engines differ in exactly three places, all declared in src/overlays/*.json:
+ * The engines differ in exactly three places, all declared in src/overlays/*.json (a `null` value
+ * deletes a key, which is how Firefox sheds Chromium-only fields). If a fourth difference appears, it
+ * belongs in an overlay too — not in an `if (firefox)` scattered through the code:
  *
  *   background   Chromium: MV3 service worker   → background.service_worker
  *                Firefox : event page (no workers, bug 1573659) → background.scripts
