@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * tests/version.test.mjs — one version string, in every place that shows it to somebody.
  *

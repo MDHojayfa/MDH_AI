@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * platforms/qwen-domestic.js
  * The domestic host is a separate file because its URL signature and its permission entries are separate.

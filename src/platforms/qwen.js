@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * platforms/qwen.js
  * Two hosts, one product: `chat.qwen.ai` speaks the international shape, the domestic hosts speak a

@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * tests/truncation.test.mjs — the one thing a hash chain cannot do on its own.
  *

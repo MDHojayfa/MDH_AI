@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * platforms/base.js
  * The registry is deliberately tiny: `pick`, `pickString`, `deepStrings`. Selector lists change shape on

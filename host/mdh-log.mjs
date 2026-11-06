@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * host/mdh-log.mjs — "show me what happened", from a terminal.
  *

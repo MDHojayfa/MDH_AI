@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * host/mdh-host.mjs — the native-messaging host.
  *
@@ -23,6 +24,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 const VERSION = '1.0.0';
+const AUTHOR = { name: 'MDHojayfa', repo: 'https://github.com/MDHojayfa/MDH_AI' };
 const HOST_NAME = 'dev.mdhojayfa.mdh';
 
 const log = (...args) => process.stderr.write(`mdh-host ${new Date().toISOString()} ${args.join(' ')}\n`);
@@ -152,7 +154,7 @@ async function handle(frame) {
 
   switch (frame.t) {
     case 'ping':
-      reply(id, { t: 'pong', host: HOST_NAME, version: VERSION, pid: process.pid, audit: verifyAudit().ok });
+      reply(id, { t: 'pong', host: HOST_NAME, version: VERSION, pid: process.pid, audit: verifyAudit().ok, by: AUTHOR.name });
       return;
 
     case 'list':

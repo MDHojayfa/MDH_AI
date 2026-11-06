@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * tools/make-readme-art.mjs — the pictures in the README, drawn here rather than screenshotted.
  *

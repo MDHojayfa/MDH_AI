@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI 
 # install.sh — one script, one extension, eight platforms.
 #
 #   ./install.sh              install (or repair) for every browser found

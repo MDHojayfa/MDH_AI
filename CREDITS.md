@@ -44,3 +44,11 @@ into. MCP servers are started by the host as child processes and remain under th
 own authors; none of their code lives here.
 
 Icons, diagrams and the interface are original to this project.
+
+## The name, and keeping it attached
+
+Every source file in this repository opens with one line naming its author, `npm test` fails if any of them loses
+it, and the same line is written into the built extension, the host's `pong` reply and the comment field of each
+release zip. This is not a lock — the licence is MIT and anyone may copy the code — it is a provenance trail that a
+copy has to work at to erase. [`docs/PROVENANCE.md`](docs/PROVENANCE.md) lists all five places and how to check
+each one in a command.

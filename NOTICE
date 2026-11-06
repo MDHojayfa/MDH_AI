@@ -1,0 +1,20 @@
+MDH_AI
+Copyright (c) 2026 MDHojayfa
+https://github.com/MDHojayfa/MDH_AI · https://mdhojayfa.github.io/
+
+This product is licensed under the MIT licence (see LICENSE). It is written, in full, by MDHojayfa.
+
+The name appears in more than one place, on purpose:
+
+  · a one-line banner at the top of all 90 source files (src/, host/, tools/, tests/, install.sh, site/)
+  · the same banner inside every JavaScript file `npm run build` puts in dist/
+  · the `by` field of the `pong` frame the host answers with, which `npm run live-check` prints
+  · the comment field of the release zips, which `unzip -z release/*.zip` prints
+  · the `author` field of package.json, the copyright line of LICENSE, CREDITS.md, and this file
+
+`npm test` fails if the banner goes missing from a source file, so a fork that strips the name is a build that does
+not pass. That is the whole of the protection: MIT lets anyone copy this code, and no amount of cleverness changes
+that. What the banners buy is that a copy cannot quietly pretend it came from somewhere else.
+
+Third-party work is credited in CREDITS.md, with the licence it arrived under. Nothing in this repository was
+copied from a project that is not named there.

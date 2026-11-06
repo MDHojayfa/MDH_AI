@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * platforms/chatgpt.js — ChatGPT (chatgpt.com, chat.openai.com).
  *

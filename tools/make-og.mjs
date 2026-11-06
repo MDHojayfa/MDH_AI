@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * tools/make-og.mjs — the social preview card, drawn with arithmetic again.
  *

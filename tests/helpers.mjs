@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * tests/helpers.mjs — load the extension's classic scripts into a sandbox.
  *

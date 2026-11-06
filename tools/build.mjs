@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * tools/build.mjs — one source, two artifacts.
  *
@@ -19,6 +20,7 @@
  * No bundler, no transpiler, no minifier: what ships is what you can read.
  */
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { BANNER, fingerprint } from './stamp.mjs';
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,6 +48,16 @@ function merge(base, overlay) {
     if (k.startsWith('_')) continue;
     if (v === null) delete out[k];
     else out[k] = structuredClone(v);
+  }
+  return out;
+}
+
+/** Every `.js` under a directory, in a stable order. */
+function walkJs(dir, out = []) {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) walkJs(full, out);
+    else if (entry.endsWith('.js')) out.push(full);
   }
   return out;
 }
@@ -129,6 +141,17 @@ function emit(target) {
   copyTree(SRC, out);
   writeFileSync(join(out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
+  // The author line again, in the artifact rather than only in the source: a copy of `dist/` that gets renamed and
+  // re-uploaded still says where it came from, in every file a reader would open first.
+  let stamped = 0;
+  for (const file of walkJs(out)) {
+    const text = readFileSync(file, 'utf8');
+    if (text.includes(BANNER)) continue;
+    writeFileSync(file, `${BANNER}\n${text}`);
+    stamped += 1;
+  }
+
+  if (stamped) console.log(`  ${target}: author line in ${stamped} emitted files · fingerprint ${fingerprint(manifest.version)}`);
   if (!verify(target, manifest)) return;
   const id = manifest.key ? extensionIdFromKey(manifest.key) : manifest.browser_specific_settings.gecko.id;
   console.log(`✔ dist/${target.padEnd(8)} id=${id}`);

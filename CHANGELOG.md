@@ -6,11 +6,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 First release. One script, one extension, eight platforms, no API key.
 
-**What ships:** 290 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
+**What ships:** 300 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
 `docs/RELEASE.md` is the checklist that was followed.
 
 ### Added
 
+- **`npm run live-check`: the check that uses a real browser.** Nothing in `tests/` runs inside Chrome — a `vm`
+  context is not a browser, and four things (service worker registration, `connectNative`, shadow-DOM layout, and
+  the pill's position above a live composer) can only be checked in one. `tools/live-check.mjs` drives the browser
+  you already have over the DevTools protocol with no npm packages: it loads `dist/chrome`, waits for the worker,
+  pings the real native host, and — with `--page` — checks that `#mdh-dock` mounted with a `.pill` in its shadow
+  root. `--click` presses Start. It is not part of `npm test`: a suite that needs a browser and a signed-in account
+  is a suite people learn to skip.
+- **`docs/VERIFICATION.md` says what is proven and what is not.** A table mapping each README claim to the test
+  that backs it, the six browser-only checks with the command for each, and a plain list of what has never been
+  done: no browser has run this repository's tests, the eight adapters have never been fired at the eight live
+  sites from here, no store has reviewed it, and Firefox is built but never driven.
+- **The author's name is in every file, and a test keeps it there.** 90 source files open with one line; the build
+  writes it into every emitted script, the host answers with `by` in its `pong`, and `tools/package.mjs` puts it in
+  the zip comment, where `unzip -z` prints it. `npm run stamp` adds a missing line, `npm run stamp --check` fails
+  the build without one, and `tests/credit.test.mjs` runs the same audit. MIT still permits a fork; the trail means
+  a fork cannot be a *silent* one. See `docs/PROVENANCE.md`.
 - **The landing page carries the same art, from its own folder.** `npm run art` now also writes `site/hero.gif`
   (760 px, 88 KB), `site/approval-card.png` and `site/og.png`, so the page never requests an image from another
   host. The loop sits under the headline with a caption saying what it is, and the approval card's copy on the page
@@ -197,7 +213,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **290 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **300 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * tools/selfcheck.mjs — does the host actually answer?
  *

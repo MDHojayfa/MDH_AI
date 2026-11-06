@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * tests/logcli.test.mjs — the log page's command line, and the grouping both it and the page share.
  *

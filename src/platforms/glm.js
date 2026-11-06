@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * platforms/glm.js — GLM / Z.ai (chat.z.ai, z.ai, chatglm.cn).
  *

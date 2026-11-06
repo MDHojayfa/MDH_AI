@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync, existsSync, statSync } from 'node:fs';

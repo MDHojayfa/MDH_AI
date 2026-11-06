@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * shared/compat.js — tiny surface that makes one codebase run in Chromium and Firefox.
  *

@@ -31,7 +31,7 @@ Expected shape of a good run:
 
 | Check | Where it comes from | Expected |
 |---|---|---|
-| tests | `node --test tests/*.test.mjs` | all passing, ~290 |
+| tests | `node --test tests/*.test.mjs` | all passing, ~300 |
 | tiers | `npm run build` | `dist/chrome`, `dist/firefox`, manifest rules |
 | bundles | `npm run package` | `release/mdh-ai-{chrome,firefox}-1.0.0.zip` |
 | lint | `npx web-ext lint` | 0 errors, 1 known warning |

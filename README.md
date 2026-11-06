@@ -9,7 +9,7 @@ The chat you are already signed into can read, write, run and search on your Lin
 one approval per step, one hash-chained log, no API key anywhere.</p>
 
 <p>
-<img alt="tests" src="https://img.shields.io/badge/tests-290%20passing-34d399?style=flat-square">
+<img alt="tests" src="https://img.shields.io/badge/tests-300%20passing-34d399?style=flat-square">
 <img alt="runtime dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-6d5efc?style=flat-square">
 <img alt="extension size" src="https://img.shields.io/badge/extension-140%20KB-8b5cf6?style=flat-square">
 <img alt="Chrome and Brave" src="https://img.shields.io/badge/Chrome%20%7C%20Brave-116%2B-4285F4?style=flat-square">
@@ -74,7 +74,24 @@ you   ⬛ Allow this command?  du -ah ~/projects | sort -h | tail -20
 host  [MDH_RESULT tool="run_command" status="ok"] … 3 files over 100 MB · 1.2 GB total
 ```
 
-**Eight chats, zero setup.** ChatGPT · Claude · Gemini · DeepSeek · Kimi · Qwen · GLM (z.ai) · Grok — the free
+### Press Start: what actually happens
+
+There is no wizard and no account. Three pieces, and you can point at each one:
+
+1. **The extension** is `dist/chrome`, built by `./install.sh` and loaded unpacked from that folder. It is the only
+   thing that talks to the page and to your machine; everything else in the repo is source for it.
+2. **The host** is `host/mdh-host.mjs`, registered as a native-messaging app (`dev.mdhojayfa.mdh`) by the same
+   script. That registration is the whole "setup": a JSON file in `~/.config/*/NativeMessagingHosts` that names the
+   extension id it is allowed to answer.
+3. **The pill** appears on the chat page above the composer — `▶ Start` — the moment the page loads on a supported
+   site. Nothing runs before you press it.
+
+Then: you press Start → the extension types a kickoff prompt into the composer you can see and sends it → the model
+replies with a tool call instead of prose → the approval card appears *on the chat page* → you allow it → the host
+runs the command → the result is typed back into the same chat as `[MDH_RESULT]`. The chat is the interface. There
+is no second window to keep in sync.
+
+ · Claude · Gemini · DeepSeek · Kimi · Qwen · GLM (z.ai) · Grok — the free
 web UIs, with no plugin from any of them. Chrome 116+, Brave (same artifact), and Firefox 140+ as a first-class
 target, not a port of last resort. **Linux only in v1**; the host is the only OS-specific layer and it is small.
 
@@ -119,10 +136,10 @@ not marketing: [`docs/KNOWN-LIMITS.md`](docs/KNOWN-LIMITS.md).
 
 | | |
 |---|---|
-| extension | **140 KB** zipped · 401 KB unpacked · 40 files |
+| extension | **140 KB** zipped · 404 KB unpacked · 40 files |
 | host | **~70 ms** to ready · **55 MB** resident · 0 npm dependencies |
-| source | 11,333 lines, tests included |
-| tests | **290**, run with `node --test tests/*.test.mjs` |
+| source | 11,376 lines, tests included |
+| tests | **300**, run with `node --test tests/*.test.mjs` |
 | budgets | 300 KB zip · 80 MB RSS · 1,500 ms startup · 0 dependencies — a build fails when one is crossed |
 
 `npm run weigh` prints that table on your machine, compares the prose in the docs against the real artifact, and
@@ -149,7 +166,9 @@ runs.
 | [`docs/RESEARCH.md`](docs/RESEARCH.md) | the sources behind the safety story, and what each one changed |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | why it is built this way, decision by decision |
 | [`docs/TESTPLAN.md`](docs/TESTPLAN.md) | what is tested and how to reproduce it |
-| [`docs/RELEASE.md`](docs/RELEASE.md) | the shipping checklist: verify, version in four places, stores |
+| [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | what is proven, by which test, and the list of what is not |
+| [`docs/PROVENANCE.md`](docs/PROVENANCE.md) | where the author's name is written, and what that can and cannot prevent |
+| [`docs/RELEASE.md`](docs/RELEASE.md) | the shipping checklist: verify, the version in seven places, stores |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | threat model, controls, residual risk |
 | [`docs/DIAGNOSTICS.md`](docs/DIAGNOSTICS.md) | what a failure collects, what it refuses to, the signature table |
 | [`docs/SCENARIOS.md`](docs/SCENARIOS.md) | fifteen real failures, walked through from screen to fix |
@@ -164,10 +183,17 @@ runs.
 <a href="https://github.com/MDHojayfa"><img src="https://github.com/MDHojayfa.png" width="76" align="right" alt="MDHojayfa"></a>
 
 **MDH_AI** is designed and written by **[MDHojayfa](https://mdhojayfa.github.io/)** — extension, host,
-installers, docs, the lot. One person, a Linux box, and a rule that nothing ships until the tests and the
-numbers agree. If you report a bug that leads to a fix, or suggest something that ships,
-[`CREDITS.md`](CREDITS.md) names you permanently; that is the deal behind every *Send an idea* button in the
-product.
+installers, docs, the approvals, the 300 tests that argue with him, the lot. One person, one potato PC that
+wheezes when Firefox is open, and a rule that nothing ships until the tests and the numbers agree. The 140 KB
+budget is not a marketing figure; it is what the machine could build without catching fire.
+
+If you report a bug that leads to a fix, or suggest something that ships, [`CREDITS.md`](CREDITS.md) names you
+permanently; that is the deal behind every *Send an idea* button in the product.
+
+The author line is in every file — 90 of them, plus the built artifact, the host's handshake and the comment field
+of each release zip — and `npm test` fails if it goes missing from one. MIT still lets anyone fork this; see
+[`docs/PROVENANCE.md`](docs/PROVENANCE.md) for what that actually buys, and [`NOTICE`](NOTICE) for the short
+version.
 
 The images at the top are **illustrations, not recordings**: they are generated by
 [`tools/make-readme-art.mjs`](tools/make-readme-art.mjs) from the same labels, states and buttons the extension

@@ -1,3 +1,4 @@
+/* MDH_AI · MDHojayfa · MIT · https://github.com/MDHojayfa/MDH_AI */
 /**
  * core/prompt.js — the model-facing text. The final wording lives in docs/prompt/SYSTEM.md; this file
  * renders it with the live tool catalogue and refuses to emit an oversized prompt.
