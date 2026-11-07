@@ -9,7 +9,7 @@ The chat you are already signed into can read, write, run and search on your Lin
 one approval per step, one hash-chained log, no API key anywhere.</p>
 
 <p>
-<img alt="tests" src="https://img.shields.io/badge/tests-305%20passing-34d399?style=flat-square">
+<img alt="tests" src="https://img.shields.io/badge/tests-325%20passing-34d399?style=flat-square">
 <img alt="runtime dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-6d5efc?style=flat-square">
 <img alt="extension size" src="https://img.shields.io/badge/extension-140%20KB-8b5cf6?style=flat-square">
 <img alt="Chrome and Brave" src="https://img.shields.io/badge/Chrome%20%7C%20Brave-116%2B-4285F4?style=flat-square">
@@ -42,7 +42,7 @@ on your own machine, and it will not touch anything you have not approved.
 | **No account, no daemon** | no gateway, no bot token, no port to keep open; close the browser and it is gone |
 | **No `npm install`** | zero dependencies: the host is Node's standard library and this repository |
 | **No hidden calls** | loopback only, hash-chained audit on your disk, an approval before anything runs |
-| **No heavyweight setup** | 140 KB zipped extension · ~70 ms to a ready host · 55 MB resident — `npm run weigh` measures it, and a budget breaks the build, not a paragraph |
+| **No heavyweight setup** | 147 KB zipped extension · ~70 ms to a ready host · 55 MB resident — `npm run weigh` measures it, and a budget breaks the build, not a paragraph |
 
 The full comparison against API-key agents, CLI coding agents and self-hosted gateways — **including the things
 they do better** — is [`docs/WHY.md`](docs/WHY.md). What comes next is [`docs/V2-NOTES.md`](docs/V2-NOTES.md),
@@ -152,10 +152,10 @@ not marketing: [`docs/KNOWN-LIMITS.md`](docs/KNOWN-LIMITS.md).
 
 | | |
 |---|---|
-| extension | **140 KB** zipped · 404 KB unpacked · 40 files |
+| extension | **147 KB** zipped · 416 KB unpacked · 40 files |
 | host | **~70 ms** to ready · **55 MB** resident · 0 npm dependencies |
-| source | 11,395 lines, tests included |
-| tests | **305**, run with `node --test tests/*.test.mjs` |
+| source | 11,702 lines, tests included |
+| tests | **325**, run with `node --test tests/*.test.mjs` |
 | budgets | 300 KB zip · 80 MB RSS · 1,500 ms startup · 0 dependencies — a build fails when one is crossed |
 
 `npm run weigh` prints that table on your machine, compares the prose in the docs against the real artifact, and
@@ -202,8 +202,8 @@ runs.
 <a href="https://github.com/MDHojayfa"><img src="https://github.com/MDHojayfa.png" width="76" align="right" alt="MDHojayfa"></a>
 
 **MDH_AI** is designed and written by **[MDHojayfa](https://mdhojayfa.github.io/)** — extension, host,
-installers, docs, the approvals, the 305 tests that argue with him, the lot. One person, one potato PC that
-wheezes when Firefox is open, and a rule that nothing ships until the tests and the numbers agree. The 140 KB
+installers, docs, the approvals, the 325 tests that argue with him, the lot. One person, one potato PC that
+wheezes when Firefox is open, and a rule that nothing ships until the tests and the numbers agree. The 147 KB
 budget is not a marketing figure; it is what the machine could build without catching fire.
 
 If you report a bug that leads to a fix, or suggest something that ships, [`CREDITS.md`](CREDITS.md) names you
