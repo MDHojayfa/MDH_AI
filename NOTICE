@@ -6,7 +6,7 @@ This product is licensed under the MIT licence (see LICENSE). It is written, in 
 
 The name appears in more than one place, on purpose:
 
-  · a one-line banner at the top of all 92 source files (src/, host/, tools/, tests/, install.sh, site/)
+  · a one-line banner at the top of all 94 source files (src/, host/, tools/, tests/, install.sh, site/)
   · the same banner inside every JavaScript file `npm run build` puts in dist/
   · the `by` field of the `pong` frame the host answers with, which `npm run live-check` prints
   · the comment field of the release zips, which `unzip -z release/*.zip` prints

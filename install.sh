@@ -7,6 +7,7 @@
 #   ./install.sh --uninstall  remove the host manifests and the wrappers
 #   ./install.sh --no-fun     mission control goes quiet (CI, logs, serious meetings)
 #   ./install.sh --barbos     also echo every shell command, boot-log style
+#   ./install.sh --doctor     check every part and print the fix for whatever is wrong, then exit
 #   ./install.sh --diagnose   print the machine facts a bug report would carry, then exit
 #   ./install.sh --help
 #
@@ -36,6 +37,7 @@ CONFIG_DIR="${HOME}/.config/mdh"
 DRY_RUN=0
 UNINSTALL=0
 DIAGNOSE=0
+DOCTOR=0
 FUN=1
 BARBOS=0
 for arg in "$@"; do
@@ -45,6 +47,7 @@ for arg in "$@"; do
     --no-fun) FUN=0 ;;
     --barbos) BARBOS=1 ;;
     --diagnose) DIAGNOSE=1 ;;
+    --doctor) DOCTOR=1 ;;
     -h|--help)
       sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
@@ -55,6 +58,11 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+# --doctor: read-only, one line per thing that can be wrong, each with the command that fixes it.
+if [ "${DOCTOR:-0}" -eq 1 ]; then
+  exec node "$ROOT/tools/doctor.mjs"
+fi
 
 # --diagnose: the same facts the failure card collects, printed for pasting into an issue. Read-only.
 if [ "$DIAGNOSE" -eq 1 ]; then
@@ -161,9 +169,11 @@ say "${C_B}3/6${C_0} building the extension"
 fun "compiling 400 lines of JavaScript using no compiler, because it is JavaScript"
 fun "defragmenting the asteroid belt… (already defragmented, thank you)"
 if [ "$DRY_RUN" -eq 1 ]; then
-  say "  would run: npm run build"
+  say "  would run: node tools/build.mjs"
 else
-  ( cd "$ROOT" && npm run build --silent )
+  # Not `npm run build`. npm is not needed to build this and requiring it was the first thing that stopped a real
+  # person: they did not have npm, ran it under sudo to get it, and were left with root-owned files in the tree.
+  ( cd "$ROOT" && node tools/build.mjs )
 fi
 [ -f "$ROOT/dist/firefox/manifest.json" ] || [ "$DRY_RUN" -eq 1 ] || die "build produced no dist/firefox"
 fun "both artifacts built. NASA would have needed a review board and a launch window."
@@ -335,6 +345,9 @@ say "${C_B}Next${C_0} load the extension (once per browser)"
 say "   chrome://extensions        → Developer mode → Load unpacked → ${ROOT}/dist/chrome"
 say "   (Brave uses the same artifact: brave://extensions)"
 say "   about:debugging#/runtime/this-firefox → Load Temporary Add-on → ${ROOT}/dist/firefox/manifest.json"
+say ""
+say "If no pill appears, run: ${ROOT}/install.sh --doctor"
+say "The one step nothing can do for you is Load unpacked — browsers have no command for it."
 say ""
 say "Then open one of the 8 platforms and use the small pill on the chat box — click to start, click to pause,
 click to continue. The toolbar icon opens the settings drawer; it is no longer the only way in."

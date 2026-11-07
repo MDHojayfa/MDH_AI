@@ -50,14 +50,28 @@ marked as notes, not promises.
 
 ## Sixty seconds
 
+**What you need:** Linux, [Node.js 20+](https://nodejs.org) (the only thing that may need `sudo`, and only to
+install Node itself), and Chrome 116+/Brave/Firefox 140+. **Not** npm — it is not used to install, build or run
+anything here.
+
 ```bash
 git clone https://github.com/MDHojayfa/MDH_AI && cd MDH_AI
 ./install.sh                    # builds both browsers, registers the host, checks itself
 ```
 
-Then load the extension once — Chrome/Brave: `dist/chrome`, Firefox: `dist/firefox` — open any of the eight
-chats, and press **Start** on the pill above the composer. Full walkthrough, including the uninstall:
-[`docs/MANUAL.md`](docs/MANUAL.md).
+Then one manual step, because no browser has a command for it: open `chrome://extensions` → *Developer mode* →
+*Load unpacked* → pick `dist/chrome` (Firefox: `about:debugging` → *Load Temporary Add-on* → `dist/firefox/manifest.json`).
+Open any of the eight chats and press **Start** on the pill above the composer.
+
+**If anything is wrong, in any of the above:**
+
+```bash
+./install.sh --doctor           # one line per part, with the fix under every line that failed
+```
+
+[`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) is the same information as a decision tree — no pill, pill does
+nothing, `NO_HOST`, "should I use sudo?", "invalid native messaging host name", and the rest. Full walkthrough,
+including the uninstall: [`docs/MANUAL.md`](docs/MANUAL.md).
 
 <img src="assets/terminal.gif" width="820" alt="Terminal: clone, install, three checks pass, then mdh-log --runs lists a run.">
 
@@ -168,6 +182,7 @@ runs.
 | [`docs/RESEARCH.md`](docs/RESEARCH.md) | the sources behind the safety story, and what each one changed |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | why it is built this way, decision by decision |
 | [`docs/TESTPLAN.md`](docs/TESTPLAN.md) | what is tested and how to reproduce it |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | it does not work: the decision tree, and the one-command doctor |
 | [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | what is proven, by which test, and the list of what is not |
 | [`docs/PROVENANCE.md`](docs/PROVENANCE.md) | where the author's name is written, and what that can and cannot prevent |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | the shipping checklist: verify, the version in seven places, stores |

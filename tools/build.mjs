@@ -157,16 +157,25 @@ function emit(target) {
   console.log(`✔ dist/${target.padEnd(8)} id=${id}`);
 }
 
-const only = process.argv[2];
-for (const t of only ? [only] : TARGETS) {
-  if (!TARGETS.includes(t)) {
-    console.error(`unknown target: ${t} (expected ${TARGETS.join(' | ')})`);
-    process.exitCode = 1;
-    continue;
+/**
+ * Run only when this file is the program. `tools/doctor.mjs` imports `extensionIdFromKey` from here, and without
+ * the guard that import rebuilt `dist/` as a side effect — the same bug that made every CI run fail when the
+ * packager did it (tools/package.mjs has the story).
+ */
+function main(argv) {
+  const only = argv[0];
+  for (const t of only ? [only] : TARGETS) {
+    if (!TARGETS.includes(t)) {
+      console.error(`unknown target: ${t} (expected ${TARGETS.join(' | ')})`);
+      process.exitCode = 1;
+      continue;
+    }
+    emit(t);
   }
-  emit(t);
+
+  if (process.exitCode) process.exit(process.exitCode);
+  const key = readJson(join(SRC, 'overlays', 'chrome.json')).key;
+  console.log(`  chrome id: ${extensionIdFromKey(key)}   ← install.sh writes this into the host manifest`);
 }
 
-if (process.exitCode) process.exit(process.exitCode);
-const key = readJson(join(SRC, 'overlays', 'chrome.json')).key;
-console.log(`  chrome id: ${extensionIdFromKey(key)}   ← install.sh writes this into the host manifest`);
+if (process.argv[1]?.endsWith('build.mjs')) main(process.argv.slice(2));
