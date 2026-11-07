@@ -6,7 +6,7 @@ it is in the second or the third, and it should not be read as tested.
 
 ## 1. What the suite proves
 
-`npm test` runs `node --test tests/*.test.mjs` — 305 checks, no browser needed, ~16 seconds on one core. The
+`npm test` runs `node --test tests/*.test.mjs` — 325 checks, no browser needed, ~16 seconds on one core. The
 tests load **the same script files the extension ships** into a `vm` context with a fake `chrome.*`, a fake page
 and a fake storage (`tests/helpers.mjs`). There is no second copy of the logic anywhere, which is why the
 numbers below mean something.
@@ -82,7 +82,7 @@ Said plainly, because the alternative is a README that lies:
 
 ```bash
 git clone https://github.com/MDHojayfa/MDH_AI && cd MDH_AI
-npm test                       # 305 checks, no network, no browser
+npm test                       # 325 checks, no network, no browser
 npm run weigh                  # the numbers in the README, measured again
 ./install.sh --diagnose        # the host, talking to itself
 npm run live-check             # the four things a fake page cannot test

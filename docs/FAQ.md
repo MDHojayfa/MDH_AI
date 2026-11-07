@@ -140,7 +140,7 @@ can widen a deny rule.
 
 **"Runs on a potato" — prove it.**
 `npm run weigh`. It weighs the extension, starts the host for real, times it to the first `ready` frame, reads
-its memory, counts dependencies, and re-checks the KB figures quoted in the docs. Current: 140 KB zipped,
+its memory, counts dependencies, and re-checks the KB figures quoted in the docs. Current: 147 KB zipped,
 ~60 ms to ready, 55 MB resident, 0 npm dependencies. Any of those crossing a budget fails the command.
 
 **How do I know it would tell me if my network was the problem?**

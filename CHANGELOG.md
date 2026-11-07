@@ -6,7 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: [SemVer](ht
 
 First release. One script, one extension, eight platforms, no API key.
 
-**What ships:** 305 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
+**What ships:** 325 tests · `release/mdh-ai-{chrome,firefox}-1.0.0.zip` · 0 runtime dependencies ·
 `docs/RELEASE.md` is the checklist that was followed.
 
 ### Added
@@ -135,7 +135,7 @@ First release. One script, one extension, eight platforms, no API key.
 - **Copy handoff**: a pause card button that copies a short, useful continuation prompt — task, plan, the last
   three real results, next step, the completion code — so a stuck run can move to another chat by hand today.
 - **The numbers behind "lightweight"**: `npm run weigh` measures the extension, the host's startup and memory,
-  and the dependency count — and fails the build when a budget is crossed. 140 KB zipped · 51 ms to ready ·
+  and the dependency count — and fails the build when a budget is crossed. 147 KB zipped · 51 ms to ready ·
   55 MB resident · **0 npm dependencies**. `docs/WHY.md` is the honest comparison against API-key agents, CLI
   coding agents and self-hosted gateways, including the things they do better.
 - **`docs/V2-NOTES.md`**: platform rotation (three chat URLs, a handoff prompt, evidence-based triggers, hard
@@ -265,7 +265,7 @@ First release. One script, one extension, eight platforms, no API key.
   Firefox, the permission justification table a reviewer asks for, and a list of claims not to publish.
 - **A runtime switch for the chatter** (`Advanced → Mission chatter`) that persists per profile and hides
   only the jokes — the issue strip, the share button and every real status line stay put.
-- **305 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
+- **325 tests**, a build that fails on manifest invariants, and `web-ext lint` at zero errors.
 
 ### Security
 
