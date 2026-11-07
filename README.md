@@ -185,6 +185,7 @@ runs.
 | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | it does not work: the decision tree, and the one-command doctor |
 | [`docs/RUN-STATES.md`](docs/RUN-STATES.md) | every way a run can end, every pause reason, and what survives a reload |
 | [`docs/REMOTE-TESTING.md`](docs/REMOTE-TESTING.md) | testing this on a machine that is not the author's, and what to send back |
+| [`docs/TEMP-USER.md`](docs/TEMP-USER.md) | the laptop test, command by command: a throwaway user, screenshots, and how to delete it all |
 | [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | what is proven, by which test, and the list of what is not |
 | [`docs/PROVENANCE.md`](docs/PROVENANCE.md) | where the author's name is written, and what that can and cannot prevent |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | the shipping checklist: verify, the version in seven places, stores |
