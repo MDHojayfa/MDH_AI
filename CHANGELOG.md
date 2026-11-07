@@ -15,6 +15,14 @@ First release. One script, one extension, eight platforms, no API key.
   composer rather than replaying the platform's own request — endpoint/CSRF fragility, and a request the user
   cannot see is a request the user cannot check — and what the real latency work turned out to be. D47 records
   what the per-turn result tag is and, more importantly, what it is not.
+- **Screenshots, so a person can see the page instead of describing it.** `live-check --screenshot <dir>` captures
+  the page through the DevTools protocol after the pill mounts and again after Start is pressed. `selftest
+  --browser --screenshots` passes a folder through and reports what landed in it.
+- **`docs/TEMP-USER.md`**: the laptop test written for somebody who does not live in a terminal — create the user,
+  read the prompts, install Node if it is missing, run the doctor and the selftest, get the report and the PNGs out,
+  the by-hand Firefox checklist, and one command to delete the account. It also says plainly why SSH from this
+  sandbox cannot work (allowlisted egress, and a home connection behind NAT) and what replaces it: the report as
+  text and the screenshots as attachments.
 - **`node tools/selftest.mjs` produces a report on a machine that is not this one.** The sandbox that builds this
   repository has no browser and no route to anyone else's, so the browser half of testing has to happen where the
   browser is. The selftest runs the doctor, talks to a real host over the real wire in a throwaway HOME (so the

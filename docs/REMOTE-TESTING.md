@@ -8,6 +8,9 @@ running has to happen where the browser is, and the report has to travel by copy
 `tools/selftest.mjs` exists to make that one step short. It is written to be run by somebody who is not a developer,
 on a machine they intend to delete afterwards.
 
+> The expanded, beginner-level version of this page — every command explained, plus what to do with the
+> screenshots and how to delete the account completely — is [`docs/TEMP-USER.md`](TEMP-USER.md).
+
 ## 1. The throwaway user, as you described it
 
 ```bash
