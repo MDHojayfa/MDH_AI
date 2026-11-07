@@ -11,6 +11,17 @@ First release. One script, one extension, eight platforms, no API key.
 
 ### Added
 
+- **`node tools/selftest.mjs` produces a report on a machine that is not this one.** The sandbox that builds this
+  repository has no browser and no route to anyone else's, so the browser half of testing has to happen where the
+  browser is. The selftest runs the doctor, talks to a real host over the real wire in a throwaway HOME (so the
+  user's own audit log is untouched), lists the adapters, and with `--browser` drives a real Chrome/Brave through
+  `tools/live-check.mjs`. It writes `~/.local/state/mdh/selftest-<timestamp>.md`: results, versions, and nothing
+  else — no file contents, no conversation text, no commands the agent ran.
+- **`docs/REMOTE-TESTING.md`** says the awkward part plainly: the report travels by copy and paste, because this
+  machine cannot accept a connection to anybody's laptop. It also gives the throwaway-user recipe and the by-hand
+  browser checklist for Firefox, which no dependency-free driver here can automate.
+- **`docs/RUN-STATES.md`**: every phase on the pill, every pause reason with its cause and its advice, the four
+  things that are not pauses, and what survives a page reload versus what deliberately does not.
 - **A full conversation is now a pause with a way out, not a stall.** ChatGPT stops accepting messages in a long
   thread and says so on the page; the agent used to read that as "no reply arrived" and wait. It now recognises the
   wording (four phrasings, tested against the real strings), pauses with reason `context-full`, and offers

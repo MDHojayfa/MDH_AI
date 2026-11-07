@@ -202,3 +202,30 @@ at all.
    multi-agent cases.
 4. Anthropic's own write-ups of the 93% / 97% approval telemetry, for the method rather than the number.
 5. Schneier & Kelsey on secure audit logs, for what a log should do after the checkpoint lands.
+
+## Two findings from the 2026 pass, and what each one changed
+
+### The conversation has a ceiling, and it is the platform's, not the model's
+
+ChatGPT's current wording is *"You've reached the maximum length for this conversation, but you can keep talking by
+starting a new chat"*; the older *"This conversation is too long, please start a new one"* is still in circulation,
+and OpenAI does not publish the length. Anthropic's help centre describes the opposite behaviour — Claude summarises
+earlier messages and keeps going — which is why this failure is platform-shaped rather than universal.
+
+What it changed: `src/platforms/base.js` recognises four phrasings and `agent.pause('context-full')` carries a
+handoff brief into a new chat instead of waiting for a reply that cannot come (`docs/SCENARIOS.md` §19). The brief is
+written from the extension's own state — plan, results, next step, completion code — not from a summary the model
+would have to produce with the context it has already lost.
+
+### Delimiters are a speed bump, and the paper says so
+
+*The Attacker Moves Second* (Nasr et al., arXiv:2510.09023) reports spotlighting and delimiting at roughly 1% attack
+success against a static attacker and **above 95% under an adaptive one**; the same collapse is reported for prompt
+sandwiching, StruQ, circuit breakers and detector models. OWASP's LLM01:2026 entry reaches the same conclusion from
+the other direction: the defensible posture is architectural, with authorisation, approval gates and containment
+*outside* the model.
+
+What it changed, and what it did not: the result block is closed by a per-turn tag the model cannot predict
+(`docs/INTERFACES.md` §5), which stops a file from forging a host message. It is **not** described anywhere as an
+injection defence. What stops an injected instruction from doing damage is that every write and every command still
+stops at an approval card showing the parsed call rather than the model's prose.
