@@ -320,6 +320,28 @@ grouping accepts both rather than guessing which caller it has. An unknown run i
 a CLI that prints an empty table for a run it cannot find is a CLI that says "nothing happened" about work that
 did.
 
+**D48 · We write into the composer instead of replaying the request.**
+The obvious way to cut latency is to skip the page and POST to the platform's own endpoint — no composer, no
+click, no waiting for a text field to accept a paste. It was considered and refused, for reasons that are about
+the product rather than about speed. (1) It requires reverse-engineering endpoints, CSRF tokens and request shapes
+that change without notice, so the failure mode becomes "the extension stopped working last Tuesday" instead of
+"the selector moved". (2) It is a request written *as* the user, with their cookies, in a way no page they are
+looking at can show — and the whole design principle here is that the chat you can see is the chat that is acting.
+(3) The latency it would save is not the latency people feel: writing into the composer is one `execCommand`
+(`core/agent.js` → `setComposerText`), not per-character typing, and the wait is then the model's own stream. So
+the send path stays DOM-level, and the *real* latency work happened elsewhere — not truncating results into a
+60 KB message, and not waiting for a reply that a full conversation was never going to produce.
+What would change our mind: a platform publishing a supported message API for signed-in web sessions. None does.
+
+**D47 · The result block is tagged per turn, and the tag is not a security boundary.**
+`[MDH_RESULT#a1b2c3d4 …]` exists because the boundary used to be a fixed string, and a file containing
+`[/MDH_RESULT]` could close the block and have its own text arrive looking like the host. The tag is derived from
+the completion code, the turn and the platform, rotates every turn, and is scrubbed from tool output before the
+block is built. It is documented as a boundary and **not** as an injection defence, because the literature is
+clear that delimiters collapse under an adaptive attacker (*The Attacker Moves Second*, arXiv:2510.09023, and
+OWASP LLM01:2026 both say so). The defence remains architectural: an approval card that shows the parsed call,
+a policy that denies by default, and an audit chain that records who said yes.
+
 **D46 · A run id, because a log is not a story until something groups it.**
 Every call carries `run` — ten hex characters minted when the run starts — into the host frame, into the audit
 entry, and therefore into the hash. The log page groups by it, so "show me everything that run did" is a URL
