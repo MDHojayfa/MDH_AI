@@ -324,6 +324,20 @@
     const adapter = S.adapter;
     if (!adapter) throw Object.assign(new Error('no adapter'), { code: 'NO_TAB' });
 
+    const limit = Number(adapter.limits?.maxChars) || 6000;
+    const parts = chunkText(text, limit);
+    if (parts.length > 1) {
+      log()?.info('message split', parts.length, 'parts', String(text ?? '').length, 'chars');
+    }
+    for (let index = 0; index < parts.length; index += 1) {
+      const body = parts.length === 1 ? parts[index] : `(part ${index + 1}/${parts.length})\n${parts[index]}`;
+      await deliverOne(body, { first: first && index === 0, last: index === parts.length - 1 });
+    }
+  }
+
+  async function deliverOne(text, { first = false } = {}) {
+    const adapter = S.adapter;
+
     await governorWait(adapter);
     if (isStreaming(adapter)) {
       // Never click a button that is currently "Stop": that cancels the model's answer.
@@ -543,11 +557,59 @@
     return null;
   }
 
+  /**
+   * The tag that closes a result block, rotated every turn.
+   *
+   * The block boundary used to be the fixed string `[/MDH_RESULT]`, which means any file the model reads could
+   * contain that string and end the block early — everything after it, forged by the file, would arrive looking
+   * like the host talking. A tag the model cannot predict from the transcript closes that door for the cheap
+   * version of the attack. It is not a defence against prompt injection in general: the research is unambiguous
+   * that delimiters fail under an adaptive attacker (docs/RESEARCH.md), which is why the approvals, not the
+   * markers, are what actually stops a bad instruction from running anything.
+   */
+  function frameTag() {
+    const seed = `${S.phoenix ?? 'no-run'}:${S.turn ?? 0}:${S.adapter?.id ?? ''}`;
+    return MDH.util.hash(seed).slice(0, 8);
+  }
+
+  /** Remove this turn's tag from tool output, so the content cannot close — or open — a block of its own. */
+  function scrubTag(text, tag) {
+    return String(text ?? '').split(tag).join('·'.repeat(8));
+  }
+
   function frame({ tool, status, body }) {
-    const safe = MDH.util.truncate(String(body ?? ''), 128 * 1024);
+    const tag = frameTag();
+    const safe = scrubTag(MDH.util.truncate(String(body ?? ''), 128 * 1024), tag);
     const hint = status === 'ok' ? null : hintFor(safe);
     const tail = hint ? `\n[MDH_HINT] ${hint}` : '';
-    return `[MDH_RESULT tool="${tool}" status="${status}"]\n${safe}${tail}\n[/MDH_RESULT]`;
+    return `[MDH_RESULT#${tag} tool="${tool}" status="${status}"]\n${safe}${tail}\n[/MDH_RESULT#${tag}]`;
+  }
+
+  /**
+   * Split a message the composer will not take in one piece.
+   *
+   * The measured failure this fixes: a 60 KB `read_file` result is a legitimate thing to send back, and ChatGPT's
+   * composer accepts it while the *conversation* then refuses the next turn — so the run dies three steps later
+   * with no explanation. Splitting at paragraph boundaries, numbering the parts, and telling the model in the
+   * prompt that only the last part is complete turns one silent failure into a slow but honest delivery.
+   */
+  function chunkText(text, limit) {
+    const whole = String(text ?? '');
+    if (!limit || whole.length <= limit) return [whole];
+    const parts = [];
+    let rest = whole;
+    while (rest.length > limit) {
+      // Prefer a blank line, then a newline, then a space. Never cut inside a word unless the word is the paragraph.
+      const window = rest.slice(0, limit);
+      const cut = Math.max(window.lastIndexOf('\n\n'), window.lastIndexOf('\n'), window.lastIndexOf(' '));
+      // A break in the last quarter of the window is close enough: an 800-character part beats a 900-character one
+      // that ends mid-word, and refusing the break is what makes a split look machine-made in the transcript.
+      const at = cut >= limit * 0.25 ? cut : limit;
+      parts.push(rest.slice(0, at).replace(/\s+$/, ''));
+      rest = rest.slice(at).replace(/^\n+/, '');
+    }
+    if (rest) parts.push(rest);
+    return parts;
   }
 
   /**
@@ -1132,6 +1194,11 @@
       finishAccepts,
       handoffText,
       hintFor,
+      frame,
+      frameTag,
+      scrubTag,
+      chunkText,
+      state: () => S,
     },
   };
 })();

@@ -178,3 +178,41 @@ test('a malformed length does not take the process down', async (t) => {
   assert.match(host.stderr(), /framing error/, 'and it said so where logs go, not on stdout');
   assert.equal(host.child.exitCode, null, 'still alive');
 });
+
+test('a large result is spilled to a file, and the file is readable through the same host', async (t) => {
+  const { home, projects } = sandbox();
+  const host = startHost(home);
+  t.after(() => host.stop());
+
+  // 40 KB of generated text, inside the allowlist, is exactly the shape of result that used to kill a run: the
+  // host would send all of it, the composer would take it, and the conversation would refuse the next turn.
+  const big = join(projects, 'big.txt');
+  writeFileSync(big, Array.from({ length: 2000 }, (_, i) => `line ${i + 1}: ${'x'.repeat(16)}`).join('\n'));
+
+  host.send({ t: 'call', id: 10, name: 'read_file', arguments: { path: big }, run: 'run-spill' });
+  const reply = await host.next((f) => f.t === 'reply' && f.id === 10, 15000);
+  assert.equal(reply.status, 'ok');
+  assert.ok(reply.body.length < 6000, `the body is bounded (${reply.body.length} chars), not 40 KB`);
+  const spilled = /The full output is (\/\S+\.txt)/.exec(reply.body);
+  assert.ok(spilled, 'the body names the file the full output went to');
+  assert.ok(spilled[1].startsWith('/tmp/mdh/spill/run-spill/'), `spilled into the run folder: ${spilled[1]}`);
+  assert.ok(reply.spilled?.lines >= 2000, 'and the reply says how long it is');
+
+  host.send({ t: 'call', id: 11, name: 'read_file', arguments: { path: spilled[1], offset: 1, limit: 3 }, run: 'run-spill' });
+  const back = await host.next((f) => f.t === 'reply' && f.id === 11, 15000);
+  assert.equal(back.status, 'ok', 'the model can read what it was given');
+  assert.match(back.body, /line 1:/);
+  assert.match(back.body, /line 3:/);
+  assert.ok(!back.body.includes('line 4:'), 'and the line range is honoured');
+});
+
+test('a result under the limit is sent whole', async (t) => {
+  const { home, projects } = sandbox();
+  const host = startHost(home);
+  t.after(() => host.stop());
+
+  host.send({ t: 'call', id: 12, name: 'run_command', arguments: { cmd: 'echo small', cwd: projects }, run: 'run-small' });
+  const reply = await host.next((f) => f.t === 'reply' && f.id === 12, 15000);
+  assert.equal(reply.spilled, undefined, 'nothing is spilled for the ordinary case');
+  assert.match(reply.body, /small/);
+});

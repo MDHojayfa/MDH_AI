@@ -22,6 +22,9 @@ export const paths = {
   config: join(HOME, '.config', 'mdh', 'config.json'),
   servers: join(HOME, '.config', 'mdh', 'servers.json'),
   stateDir: join(HOME, '.local', 'state', 'mdh'),
+  // Deliberately under /tmp/mdh: it is in the default allowlist on both sides of the wire, so a spilled result is
+  // something the model can actually read back. Files are 0600 in a 0700 folder and cleaned after a day.
+  spillDir: '/tmp/mdh/spill',
   audit: join(HOME, '.local', 'state', 'mdh', 'audit.jsonl'),
   sessions: join(HOME, '.local', 'state', 'mdh', 'sessions.json'),
 };
@@ -53,10 +56,14 @@ function readJson(file, fallback) {
 
 export function loadConfig() {
   const fromDisk = readJson(paths.config, {});
+  const allowPaths = fromDisk.allowPaths ?? DEFAULTS.allowPaths;
+  // The spill folder is written by this host, so this host may read it back — otherwise a spilled result is a
+  // path the model is told to read and then refused. It is the only addition made for the host itself.
+  if (!allowPaths.includes(paths.spillDir)) allowPaths.push(paths.spillDir);
   return {
     ...DEFAULTS,
     ...fromDisk,
-    allowPaths: fromDisk.allowPaths ?? DEFAULTS.allowPaths,
+    allowPaths,
     denyPaths: fromDisk.denyPaths ?? DEFAULTS.denyPaths,
   };
 }

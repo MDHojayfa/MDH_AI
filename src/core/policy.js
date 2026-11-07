@@ -127,11 +127,12 @@ function grantable(call) {
         return { decision: 'ask', rule: 'unknown-tool', reason: `${tool} is not in the policy` };
       }
 
-      for (const p of pathsIn(call)) {
+      const spill = MDH.SPILL_DIR ?? '/tmp/mdh/spill';
+    for (const p of pathsIn(call)) {
         if (isInside(p, policy.denyPaths ?? [])) {
           return { decision: 'deny', rule: 'deny-path', reason: `${p} is on the deny list` };
         }
-        if (!isInside(p, policy.allowPaths ?? [])) {
+        if (!isInside(p, policy.allowPaths ?? []) && !isInside(p, [spill])) {
           return { decision: 'deny', rule: 'outside-allowlist', reason: `${p} is outside the allowed folders` };
         }
       }

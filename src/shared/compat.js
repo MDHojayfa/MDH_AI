@@ -21,6 +21,9 @@
   ns.HOME = 'https://mdhojayfa.github.io/';
   ns.HOST_NAME = 'dev.mdhojayfa.mdh';
   ns.GECKO_ID = 'mdh@mdhojayfa.dev';
+  // Where the host spills a result too large to send. It is in the default allowlist already; naming it here means
+  // a user who tightens that list does not get a model told to read a file it is then denied.
+  ns.SPILL_DIR = '/tmp/mdh/spill';
 
   // Firefox exposes `browser`; Chromium exposes `chrome` and (from 148) also `browser`.
   ns.api = g.browser && g.browser.runtime ? g.browser : g.chrome;

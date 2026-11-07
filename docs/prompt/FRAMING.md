@@ -45,9 +45,9 @@ Re-injection rules:
 ## 2. Result frame
 
 ```
-[MDH_RESULT tool="{{tool}}" status="{{ok|error|denied|timeout}}"]
+[MDH_RESULT#{{tag}} tool="{{tool}}" status="{{ok|error|denied|timeout}}"]
 {{body}}
-[/MDH_RESULT]
+[/MDH_RESULT#{{tag}}]
 ```
 
 Body rules:
