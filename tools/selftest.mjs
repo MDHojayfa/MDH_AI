@@ -6,14 +6,15 @@
  * Every test in `tests/` runs in a sandbox with no browser. This runs on the machine that has the browser, the
  * desktop session and the distribution nobody has tried yet, and writes down what happened:
  *
- *   node tools/selftest.mjs             # everything that can run without a window
- *   node tools/selftest.mjs --browser   # …and drive a real Chrome/Brave if one is installed
+ *   node tools/selftest.mjs                  # everything that can run without a window
+ *   node tools/selftest.mjs --browser        # …and drive a real Chrome/Brave if one is installed
+ *   node tools/selftest.mjs --browser --screenshots   # …and save PNGs of what the page looked like
  *
  * It writes `selftest-<timestamp>.md` into the state folder and prints the path. That file contains check results,
  * versions and paths under the home directory — no file contents, no conversation text, no commands the agent ran.
  */
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -76,6 +77,7 @@ function talkToHost(frames, { home, ms = 15000 } = {}) {
 
 async function main(argv) {
   const wantBrowser = argv.includes('--browser');
+  const wantScreenshots = argv.includes('--screenshots');
   process.stdout.write('\n  mdh selftest — what this machine actually does\n\n');
 
   const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
@@ -107,11 +109,17 @@ async function main(argv) {
     rmSync(home, { recursive: true, force: true });
   }
 
+  const shots = wantScreenshots ? join(process.env.HOME ?? tmpdir(), '.local/state/mdh', `screenshots-${new Date().toISOString().replace(/[:.]/g, '-')}`) : null;
   if (wantBrowser) {
-    const browser = spawnSync(process.execPath, [join(ROOT, 'tools/live-check.mjs')], { encoding: 'utf8', timeout: 180000 });
+    const args = [join(ROOT, 'tools/live-check.mjs'), ...(shots ? ['--screenshot', shots] : [])];
+    const browser = spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 180000 });
     record('the browser check', browser.status === 0, browser.status === 0 ? 'all checks passed' : 'see the report');
     for (const line of (browser.stdout || '').split('\n').filter((l) => /^ {2}(ok|FAIL|note)/.test(l))) {
       steps.push({ name: '  ↳ live-check', ok: null, detail: line.trim() });
+    }
+    if (shots) {
+      const images = existsSync(shots) ? readdirSync(shots).filter((f) => f.endsWith('.png')) : [];
+      record('screenshots', images.length > 0, images.length ? `${images.length} PNG${images.length === 1 ? '' : 's'} in ${shots}` : `none were saved (browser capture refused, or --page was not used) — folder ${shots}`);
     }
   } else {
     record('the browser check', null, 'not run — pass --browser to drive a real Chrome/Brave');

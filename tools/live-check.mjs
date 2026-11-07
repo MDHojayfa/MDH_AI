@@ -22,9 +22,9 @@
  * Exit code 0 means every check that ran passed. A check that could not run says so and is not counted as a pass.
  */
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -38,6 +38,7 @@ const usage = `live-check — prove the extension works in the browser you alrea
 
   --browser <path>   browser binary (default: the first Chrome-family browser found)
   --page <url>       open this page and check that the pill mounted above the composer
+  --screenshot <dir> save a PNG of the page (and of the pill) into <dir>; works with --page
   --click            with --page: press Start, which fills the composer and sends it
   --headless         run without a window (extensions may still need a header)
   --keep             leave the browser running and print the profile path
@@ -48,13 +49,14 @@ const usage = `live-check — prove the extension works in the browser you alrea
 `;
 
 function parseArgs(argv) {
-  const out = { page: null, click: false, headless: false, keep: false, dryRun: false, json: false, timeout: 20000, browser: null };
+  const out = { page: null, click: false, headless: false, keep: false, dryRun: false, json: false, timeout: 20000, browser: null, screenshot: null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     switch (arg) {
       case '--browser': out.browser = argv[++i]; break;
       case '--page': out.page = argv[++i]; break;
       case '--timeout': out.timeout = Number(argv[++i]); break;
+      case '--screenshot': out.screenshot = argv[++i]; break;
       case '--click': out.click = true; break;
       case '--headless': out.headless = true; break;
       case '--keep': out.keep = true; break;
@@ -66,6 +68,7 @@ function parseArgs(argv) {
     }
   }
   if (!Number.isFinite(out.timeout) || out.timeout < 1000) throw new Error('--timeout must be at least 1000');
+  if (out.screenshot !== null && !out.screenshot) throw new Error('--screenshot needs a folder');
   return out;
 }
 
@@ -158,6 +161,18 @@ function cdp(wsUrl, { timeout = 20000 } = {}) {
       });
     });
   });
+}
+
+/**
+ * Save what the page actually looks like. A screenshot is the one piece of evidence that survives a language
+ * barrier: it does not need to be described, and it cannot be paraphrased by whoever is looking at it.
+ */
+export async function saveScreenshot(client, sessionId, file) {
+  const shot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false }, sessionId);
+  if (!shot?.data) throw new Error('the browser returned no image data');
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, Buffer.from(shot.data, 'base64'));
+  return file;
 }
 
 /** Evaluate a promise inside a target's JS context and return the resolved value. */
@@ -308,6 +323,17 @@ async function run(options) {
       })()`), options.timeout, 'the pill to mount');
       record('the pill mounted', Boolean(mounted), `labelled "${mounted.label}" at y=${mounted.top} on ${new URL(options.page).host}`);
 
+      if (options.screenshot) {
+        const host = new URL(options.page).host.replace(/[^\w.-]/g, '_');
+        const file = join(options.screenshot, `${host}-pill.png`);
+        try {
+          await saveScreenshot(client, attached.sessionId, file);
+          record('a screenshot of the page', true, file);
+        } catch (error) {
+          record('a screenshot of the page', false, `${error.message} — the page may be refusing capture in this mode`);
+        }
+      }
+
       if (options.click) {
         const clicked = await evaluate(client, attached.sessionId, `(() => {
           const host = document.getElementById('mdh-dock');
@@ -323,6 +349,17 @@ async function run(options) {
           return { label };
         })()`);
         record('Start pressed', clicked && turn.label !== 'Start', `pill now says "${turn.label}" — a change means the click reached the agent`);
+
+        if (options.screenshot && clicked) {
+          const host = new URL(options.page).host.replace(/[^\w.-]/g, '_');
+          const file = join(options.screenshot, `${host}-after-start.png`);
+          try {
+            await saveScreenshot(client, attached.sessionId, file);
+            record('a screenshot after Start', true, file);
+          } catch (error) {
+            record('a screenshot after Start', false, error.message);
+          }
+        }
       }
     }
   } finally {

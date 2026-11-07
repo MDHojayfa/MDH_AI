@@ -140,3 +140,46 @@ test('evaluation returns values and turns an exception into an error', async () 
     globalThis.WebSocket = original;
   }
 });
+
+test('a screenshot is written from what the browser returned, and a silent browser is an error', async () => {
+  const { mkdtempSync, readFileSync, existsSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { saveScreenshot } = await import('../tools/live-check.mjs');
+
+  const original = globalThis.WebSocket;
+  const png = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex');
+  globalThis.WebSocket = fakeSocket((request) => {
+    if (request.method !== 'Page.captureScreenshot') return null;
+    if (request.params.format !== 'png') return { result: {} };
+    return { result: { data: png.toString('base64') } };
+  });
+  try {
+    const client = await cdp('ws://example.test/devtools/browser/3', { timeout: 300 });
+    const dir = mkdtempSync(join(tmpdir(), 'mdh-shot-'));
+    const file = join(dir, 'nested', 'chatgpt.com-pill.png');
+    const written = await saveScreenshot(client, 'session-1', file);
+    assert.equal(written, file);
+    assert.ok(existsSync(file), 'the folder is created and the file written');
+    assert.deepEqual(readFileSync(file), png, 'the bytes are what the browser sent, decoded');
+    client.close();
+  } finally {
+    globalThis.WebSocket = original;
+  }
+
+  const silent = fakeSocket(() => ({ result: {} }));
+  globalThis.WebSocket = silent;
+  try {
+    const client = await cdp('ws://example.test/devtools/browser/4', { timeout: 300 });
+    const dir = mkdtempSync(join(tmpdir(), 'mdh-shot-'));
+    await assert.rejects(() => saveScreenshot(client, 's', join(dir, 'none.png')), /no image data/);
+    client.close();
+  } finally {
+    globalThis.WebSocket = original;
+  }
+});
+
+test('--screenshot is a folder, and asking for one without a value is refused', () => {
+  assert.equal(parseArgs(['--screenshot', '/tmp/shots']).screenshot, '/tmp/shots');
+  assert.throws(() => parseArgs(['--screenshot']), /needs a folder/);
+});
