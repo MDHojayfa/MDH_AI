@@ -22,7 +22,7 @@ test('--dry-run says what it would do and changes nothing', () => {
   const out = sh(['--dry-run']);
   assert.match(out, /dry run/);
   assert.match(out, /would write:/);
-  assert.match(out, /would run: npm run build/);
+  assert.match(out, /would run: node tools\/build\.mjs/);
   // The self-check is announced, never executed, in a dry run.
   assert.match(out, /would run: node tools\/selfcheck\.mjs/);
 });

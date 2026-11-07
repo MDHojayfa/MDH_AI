@@ -26,7 +26,8 @@
     "art": "node tools/make-readme-art.mjs",
     "live-check": "node tools/live-check.mjs",
     "stamp": "node tools/stamp.mjs",
-    "stamp:check": "node tools/stamp.mjs --check"
+    "stamp:check": "node tools/stamp.mjs --check",
+    "doctor": "node tools/doctor.mjs"
   },
   "files": [
     "src",

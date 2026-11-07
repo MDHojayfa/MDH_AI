@@ -11,6 +11,19 @@ First release. One script, one extension, eight platforms, no API key.
 
 ### Added
 
+- **`./install.sh --doctor` answers "it doesn't work".** Twelve read-only checks — Node, the build, the extension
+  id, the native-host manifests for all four browsers, the wrapper, the config files, a real ping to the host, the
+  state folder, the audit log, detected browsers — each with the one command that fixes it printed underneath. It
+  needs no npm, no root and no browser, and exits 1 when anything failed.
+- **npm is gone from the install path.** `install.sh` called `npm run build`, which is why the first person to try
+  this ended up running npm under sudo to get a package manager it never needed. It calls `node tools/build.mjs`.
+  The README says plainly that npm is not used, and the troubleshooting page says why sudo is only for installing
+  Node itself.
+- **`docs/TROUBLESHOOTING.md`**: the decision tree for "no pill", "pill does nothing", `NO_HOST`, "invalid native
+  messaging host name", "message not accepted by the page", plus what to paste in a report. README links it next to
+  the quickstart.
+- **Importing `tools/build.mjs` no longer rebuilds.** `tools/doctor.mjs` needs `extensionIdFromKey` from it, and the
+  import ran the whole build — the same bug that made CI fail for a week when the packager did it.
 - **Tool results are no longer sent whole.** Above 24,000 characters the host writes the full text to
   `/tmp/mdh/spill/<run>/` (0600 in a 0700 folder, cleared after a day) and sends a head, a tail and the path. The
   old behaviour was a 128 KB result in one message: accepted by the composer, and enough to make the conversation
