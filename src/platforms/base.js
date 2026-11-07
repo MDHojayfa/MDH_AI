@@ -56,9 +56,36 @@
    */
   const DEFAULT_LIMITS = { maxChars: 6000 };
 
+  /**
+   * The sentences a platform uses when it will not take another message in this conversation.
+   *
+   * Measured, not invented: ChatGPT's is "You've reached the maximum length for this conversation, but you can keep
+   * talking by starting a new chat", and the older wording — "This conversation is too long, please start a new
+   * one" — is still in circulation. Claude compacts and carries on, so it rarely appears there; the patterns cover
+   * the family of wording rather than one site's string.
+   *
+   * Deliberately strict: "you could start a new chat" is something a model says in prose, and treating that as an
+   * error would move a working run out of its conversation for no reason.
+   */
+  const EXHAUSTED = [
+    /maximum length for this conversation/i,
+    /(this )?conversation is too long/i,
+    /context (window|length) (is )?(full|reached|exceeded)/i,
+    /(chat )?memory (is )?full/i,
+    /you('ve| have) reached the (maximum|context) (length|limit)/i,
+  ];
+
+  /** Pure, so the test can feed it the strings instead of a browser. */
+  const looksExhausted = (text) => {
+    const value = String(text ?? '');
+    if (!value) return false;
+    return EXHAUSTED.some((pattern) => pattern.test(value));
+  };
+
   const list = [];
 
   MDH.platforms = {
+    looksExhausted,
     list,
     util: { pick, pickString, deepStrings },
 
@@ -73,6 +100,17 @@
 
     match(hostname = location.hostname, pathname = location.pathname) {
       return list.find((a) => (a.match ? a.match(hostname, pathname) : a.host.test(hostname))) ?? null;
+    },
+
+    /**
+     * Is this page refusing the conversation? Reads visible text, capped, so a 40-message thread does not cost a
+     * full parse every turn. `body.innerText` is not in a `vm` test, which is why the patterns are tested directly.
+     */
+    exhausted(adapter) {
+      if (!adapter) return false;
+      const node = document.body;
+      const text = String(node?.innerText ?? node?.textContent ?? '');
+      return looksExhausted(text.slice(-6000));
     },
   };
 })();

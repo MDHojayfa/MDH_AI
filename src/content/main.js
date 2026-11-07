@@ -207,6 +207,32 @@
     }
   }
 
+  /**
+   * A continuation parked by `agent.continueInNewChat()`: the brief from a chat that hit its length limit.
+   *
+   * It is started here rather than from the agent because the page is new — the agent has no state, the tab has no
+   * run — and because a kickoff that is not consumed within fifteen minutes is stale enough to be noise rather
+   * than help. One shot, then the flag is cleared whether or not it worked.
+   */
+  async function maybeContinue() {
+    const parked = await MDH.state.get('kickoff').catch(() => null);
+    if (!parked?.text || parked.platform !== adapter?.id) return;
+    const age = Date.now() - Number(parked.at ?? 0);
+    await MDH.state.patch('kickoff', null).catch(() => {});
+    if (!(age >= 0 && age < 15 * 60 * 1000)) {
+      log.info('dropped a stale kickoff', Math.round(age / 1000), 's old');
+      return;
+    }
+    const settings = await MDH.state.get('settings');
+    if (!settings.enabled) return;
+    MDH.ui.notice('Continuing from the last chat — the brief was parked a moment ago.', { tone: 'info', ms: 6000 });
+    log.info('continuing a run from a parked brief', parked.text.length, 'chars');
+    // The composer needs the page to have painted. Same reason the first-run path waits.
+    setTimeout(() => {
+      MDH.agent.start(parked.text, adapter).catch((error) => log.warn('continuation failed', error));
+    }, 1500);
+  }
+
   /** After a reload the pending call must be *offered*, never re-sent automatically. */
   async function maybeResume() {
     const pending = await MDH.state.get('pending');
@@ -247,6 +273,7 @@
     setTimeout(() => checkLayout().catch(() => {}), 4000);
     setTimeout(() => checkLayout().catch(() => {}), 15000);
     maybeResume();
+    maybeContinue().catch(() => {});
     log.info(`MDH ${MDH.VERSION} on ${adapter.name}`);
   }
 

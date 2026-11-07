@@ -17,6 +17,8 @@
     id: 'qwen-domestic',
     name: 'Qwen (通义千问)',
     host: /(^|\.)(tongyi\.aliyun\.com|qianwen\.aliyun\.com|qianwen\.com|chat2\.qianwen\.com)$/,
+    // Where to continue when this conversation refuses another message (see docs/SCENARIOS.md §19).
+    newChat: 'https://tongyi.aliyun.com/qianwen/',
     home: 'https://tongyi.aliyun.com/qianwen/',
     sse: {
       apiPattern: /(chat2-api|chat\/completions|\/api\/v[12]\/chat\/completion)/,

@@ -18,6 +18,8 @@
     id: 'claude',
     name: 'Claude',
     host: /(^|\.)claude\.ai$/,
+    // Where to continue when this conversation refuses another message (see docs/SCENARIOS.md §19).
+    newChat: 'https://claude.ai/new',
     home: 'https://claude.ai/new',
     sse: {
       apiPattern: /\/chat_conversations\/[^/]+\/(completion|retry_completion)/,

@@ -19,6 +19,8 @@
     id: 'kimi',
     name: 'Kimi',
     host: /(^|\.)(kimi\.com|kimi\.moonshot\.cn|moonshot\.cn)$/,
+    // Where to continue when this conversation refuses another message (see docs/SCENARIOS.md §19).
+    newChat: 'https://www.kimi.com/',
     home: 'https://www.kimi.com/',
     sse: {
       apiPattern: /(completion\/stream|ChatService\/Chat|kimi\.gateway\.chat)/,

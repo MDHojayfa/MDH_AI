@@ -222,3 +222,26 @@ was not written by the host.
 **What it is not.** A defence against prompt injection. Delimiters are a speed bump that an adaptive attacker walks
 over (`docs/RESEARCH.md`). What stops an injected instruction from doing damage is that every write and every
 command still stops at an approval card.
+
+## 19. The conversation that will not take another message
+
+**What happened.** Ten turns into a real task, ChatGPT answers with *"You've reached the maximum length for this
+conversation, but you can keep talking by starting a new chat"* — and then accepts nothing more. The agent read the
+silence as a stall, paused with *no reply arrived*, and waited for a reply that could not come. Claude behaves
+differently: it compacts the earlier messages and carries on, so this failure is platform-shaped.
+
+**What happens now.** The wording is recognised (four phrasings — the current one, the older *"This conversation is
+too long, please start a new one"*, the context-window family, and *"chat memory full"*). The run pauses with a
+reason that names the cause, and the card's first action is **Continue in a new chat**:
+
+1. the handoff brief is built — task, plan, the last three real results, the next step, and the same `PHX-XXXXXX`;
+2. it is parked in extension storage with the platform it belongs to and a timestamp;
+3. the tab moves to that platform's new-chat URL (`https://claude.ai/new`, `https://chatgpt.com/`, …);
+4. `content/main.js` sees the parked brief on load, drops it if it is more than fifteen minutes old, and starts a
+   normal run with it as the first message.
+
+One click. Nothing is pasted. The completion code is the same one, so `finish` still means the task is done.
+
+**Why the brief is not a summary.** A summary is what a model writes when it has already lost the detail. The brief
+is written from the run's own state — the plan it last set, the results that actually executed, and the next step
+it was on — because that state lives in the extension, not in the conversation.
