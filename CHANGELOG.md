@@ -11,6 +11,10 @@ First release. One script, one extension, eight platforms, no API key.
 
 ### Added
 
+- **Two decisions written down instead of argued in a chat.** D48 records why the send path writes into the
+  composer rather than replaying the platform's own request — endpoint/CSRF fragility, and a request the user
+  cannot see is a request the user cannot check — and what the real latency work turned out to be. D47 records
+  what the per-turn result tag is and, more importantly, what it is not.
 - **`node tools/selftest.mjs` produces a report on a machine that is not this one.** The sandbox that builds this
   repository has no browser and no route to anyone else's, so the browser half of testing has to happen where the
   browser is. The selftest runs the doctor, talks to a real host over the real wire in a throwaway HOME (so the
