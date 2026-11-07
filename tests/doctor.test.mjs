@@ -14,8 +14,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ROOT } from './helpers.mjs';
 import { runChecks, failed, hostLocations } from '../tools/doctor.mjs';
+import { extensionIdFromKey } from '../tools/build.mjs';
 
 const DOCTOR = join(ROOT, 'tools', 'doctor.mjs');
+const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
 
 /** A HOME that has never had this installed. */
 const bare = () => mkdtempSync(join(tmpdir(), 'mdh-bare-'));
@@ -23,30 +25,26 @@ const bare = () => mkdtempSync(join(tmpdir(), 'mdh-bare-'));
 /** A HOME where `./install.sh` has run: host manifests, wrapper, config, state. */
 function installed() {
   const home = mkdtempSync(join(tmpdir(), 'mdh-installed-'));
-  const id = JSON.parse(readFileSync(join(ROOT, 'src/overlays/chrome.json'), 'utf8')).key;
-
   const wrapperDir = join(home, '.local/share/mdh');
   mkdirSync(wrapperDir, { recursive: true });
   const wrapper = join(wrapperDir, 'host.sh');
   writeFileSync(wrapper, `#!/bin/sh\nexec "${process.execPath}" "${join(ROOT, 'host/mdh-host.mjs')}" "$@"\n`);
   chmodSync(wrapper, 0o755);
 
+  // The id comes from the key, not from a built artifact: these tests run before `npm run build` in CI, and a test
+  // that needs dist/ passes on the author's machine and fails on a clean clone.
+  const id = extensionIdFromKey(readJson(join(ROOT, 'src/overlays/chrome.json')).key);
   const chromiumDir = join(home, '.config/chromium/NativeMessagingHosts');
   mkdirSync(join(home, '.config/chromium'), { recursive: true });
   mkdirSync(chromiumDir, { recursive: true });
-  // The real id comes from the key; borrow the value the build derives rather than re-deriving it here.
-  const distManifest = JSON.parse(readFileSync(join(ROOT, 'dist/chrome/manifest.json'), 'utf8'));
-  const expected = spawnSync(process.execPath, [join(ROOT, 'tools/build.mjs'), 'chrome'], { encoding: 'utf8' });
-  const parsed = /id=([a-p]{32})/.exec(expected.stdout + expected.stderr);
-  assert.ok(parsed, 'the build prints the id');
   writeFileSync(
     join(chromiumDir, 'dev.mdhojayfa.mdh.json'),
-    `${JSON.stringify({ name: 'dev.mdhojayfa.mdh', path: wrapper, type: 'stdio', allowed_origins: [`chrome-extension://${parsed[1]}/`] }, null, 2)}\n`,
+    `${JSON.stringify({ name: 'dev.mdhojayfa.mdh', path: wrapper, type: 'stdio', allowed_origins: [`chrome-extension://${id}/`] }, null, 2)}\n`,
   );
+
   mkdirSync(join(home, '.config/mdh'), { recursive: true });
   writeFileSync(join(home, '.config/mdh/config.json'), JSON.stringify({ allowPaths: [home], denyPaths: [] }));
   writeFileSync(join(home, '.config/mdh/servers.json'), '{"servers":[]}');
-  assert.ok(distManifest.version, 'the artifact has a version');
   return home;
 }
 
@@ -79,7 +77,11 @@ test('an installed machine passes the parts that can be checked without a browse
   assert.equal(byId['host-manifests'].ok, true, byId['host-manifests'].detail);
   assert.equal(byId.wrapper.ok, true, byId.wrapper.detail);
   assert.equal(byId.config.ok, true, byId.config.detail);
-  assert.equal(byId.build.ok, true, byId.build.detail);
+  // Whether `dist/` exists is a property of this checkout, not of the fake home: the suite runs before the build in
+  // CI, so the honest assertion is "the doctor agrees with the filesystem".
+  const built = existsSync(join(ROOT, 'dist/chrome/manifest.json'));
+  assert.equal(byId.build.ok, built, byId.build.detail);
+  if (!built) assert.match(byId.build.fix, /node tools\/build\.mjs/, 'and it says how to fix that');
   assert.equal(byId.identity.ok, true);
   assert.equal(byId['host-answers'].ok, true, byId['host-answers'].detail);
 });
@@ -91,9 +93,17 @@ test('the command exits non-zero when something is wrong, and zero when it is no
   assert.match(bad.stdout, /fix: /);
   assert.match(bad.stdout, /doctor — one line per thing that can be wrong/);
 
+  const built = existsSync(join(ROOT, 'dist/chrome/manifest.json'));
   const good = spawnSync(process.execPath, [DOCTOR], { encoding: 'utf8', env: { ...process.env, HOME: installed() } });
-  assert.equal(good.status, 0, good.stdout);
-  assert.match(good.stdout, /Nothing is broken/);
+  if (built) {
+    assert.equal(good.status, 0, good.stdout);
+    assert.match(good.stdout, /Nothing is broken/);
+  } else {
+    // A clean clone has no dist/, and the doctor must say so rather than pretend.
+    assert.equal(good.status, 1, good.stdout);
+    assert.match(good.stdout, /FAIL {2}the extension is built/);
+    assert.match(good.stdout, /node tools\/build\.mjs/);
+  }
 });
 
 test('it is read-only, offline, and never needs npm or root', () => {

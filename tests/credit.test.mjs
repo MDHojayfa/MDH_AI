@@ -2,7 +2,7 @@
 /**
  * tests/credit.test.mjs — the name, in every file, checked rather than promised.
  *
- * `docs/PROVENANCE.md` says the author line is in 95 source files, in the built artifact, in the host handshake and
+ * `docs/PROVENANCE.md` says the author line is in 96 source files, in the built artifact, in the host handshake and
  * in the release zip. This file is what keeps that true after somebody edits one of them: it runs the same audit the
  * stamping tool runs, and it reads the source of the build and the packager rather than a stale `dist/`.
  *
@@ -22,7 +22,7 @@ const total = Object.values(groups).reduce((sum, files) => sum + files.length, 0
 
 test('every source file carries the author line, and the count is not a lie', () => {
   assert.equal(missing.length, 0, `missing from: ${missing.map((m) => m.file).join(', ')}`);
-  assert.equal(total, 95, `the audit walks ${total} files; docs/PROVENANCE.md and NOTICE quote 91`);
+  assert.equal(total, 96, `the audit walks ${total} files; docs/PROVENANCE.md and NOTICE quote 91`);
   for (const kind of ['js', 'host', 'tools', 'tests', 'shell', 'html']) {
     assert.ok(groups[kind].length > 0, `${kind} is part of the audit`);
   }
