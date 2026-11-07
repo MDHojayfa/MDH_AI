@@ -379,6 +379,9 @@
       if (composerText(el) === '') accepted = true;
       else {
         setComposerText(el, '');
+        if (contextFull()) {
+          throw Object.assign(new Error('this conversation is full'), { code: 'CONTEXT_FULL' });
+        }
         throw Object.assign(new Error('the message was not accepted by the page'), { code: 'SEND_FAILED' });
       }
     }
@@ -711,7 +714,19 @@
     }
 
     S.phase = 'injecting';
-    await deliver(message, { first });
+    try {
+      await deliver(message, { first });
+    } catch (error) {
+      if (error?.code === 'CONTEXT_FULL') {
+        return pause('context-full', {
+          detail:
+            'This conversation has reached the platform\'s length limit, so it will not take another message. ' +
+            'The brief — task, plan, the last results and the completion code — is ready; a new chat starts with it.',
+          allowFinish: true,
+        });
+      }
+      throw error;
+    }
     S.phase = 'waiting-reply';
     MDH.dock?.sync?.();
 
@@ -725,6 +740,17 @@
     mission?.close();
     S.outcome = outcome;
     log()?.info('turn', S.turn, outcome, ms, 'chars', text.length);
+
+    // A stall with the limit message on screen is not a stall, and saying so is the difference between "it hung"
+    // and "this chat is full, continue in a new one".
+    if (contextFull()) {
+      return pause('context-full', {
+        detail:
+          'The platform is refusing this conversation because it has reached its length limit. Nothing is lost: the ' +
+          'brief carries the task, the plan, the last results and the completion code into a fresh chat.',
+        allowFinish: true,
+      });
+    }
 
     if (outcome === 'stalled' || (!text && outcome !== 'completed')) {
       MDH.ui.countdown({
@@ -953,6 +979,50 @@
    * A pause is not a stop. The work is still there, the pending call is still saved, and the only thing
    * missing is one click. It exists because a loop that can only run or die has no way to say "your turn".
    */
+  /**
+   * The conversation has hit its ceiling. ChatGPT stops accepting messages and says so on the page; Claude compacts
+   * and carries on. Detecting it matters because the alternative — waiting for a reply that will never come — is the
+   * stall that looks like the agent hanging, ten turns in, with no error at all.
+   */
+  function contextFull() {
+    const check = MDH.platforms?.exhausted;
+    if (typeof check !== 'function') return false;
+    try {
+      return Boolean(check(S.adapter));
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Move the run into a fresh chat, with the brief as the first message.
+   *
+   * The brief is the one `prompt.handoff` already writes (task, plan, the last three real results, next step, the
+   * completion code), so nothing about the task lives only in the old thread. It is parked in storage, the page is
+   * navigated to the platform's new-chat URL, and `content/main.js` starts the run again from that brief when the
+   * new page loads — one click, no copy-paste, and the same completion code, so `finish` still means the same run.
+   */
+  async function continueInNewChat() {
+    const adapter = S.adapter;
+    if (!adapter) return { ok: false, reason: 'no adapter' };
+    const url = adapter.newChat ?? `https://${String(adapter.host).replace(/^.*\|\(\?:/, '').replace(/\$.*$/, '')}`;
+    const text = handoffText(
+      'The conversation reached its length limit, so this is a continuation. The brief above is the whole context; ' +
+        'carry on from the next step and do not restart the task.',
+    );
+    await MDH.state.patch('kickoff', {
+      platform: adapter.id,
+      text,
+      phoenix: S.phoenix,
+      task: S.task,
+      at: Date.now(),
+    });
+    MDH.ui.notice('Opening a new chat and continuing there — the brief goes in first.', { tone: 'info', ms: 5000 });
+    log()?.info('continuing in a new chat', adapter.id, url, text.length, 'chars');
+    location.assign(url);
+    return { ok: true, url, chars: text.length };
+  }
+
   async function pause(reason, { detail = '', allowFinish = false } = {}) {
     S.running = false;
     S.stopped = false;
@@ -964,9 +1034,15 @@
     recordRun('paused', reason);
     await MDH.state.patch('session', { phase: 'paused', outcome: 'paused', reason }).catch(() => {});
 
-    const actions = [
-      { label: 'Continue', primary: true, fn: (close) => { close(); resume(); } },
-    ];
+    const actions = [];
+    if (reason === 'context-full') {
+      actions.push({
+        label: 'Continue in a new chat',
+        primary: true,
+        fn: (close) => { close(); continueInNewChat(); },
+      });
+    }
+    actions.push({ label: 'Continue', primary: reason !== 'context-full', fn: (close) => { close(); resume(); } });
     if (allowFinish) {
       actions.push({
         label: 'Mark as finished',
@@ -1184,6 +1260,7 @@
     diagnostics,
     handoffText,
     copyHandoff,
+    continueInNewChat,
     _internals: {
       setComposerText,
       composerText,
@@ -1198,6 +1275,8 @@
       frameTag,
       scrubTag,
       chunkText,
+      contextFull,
+      continueInNewChat,
       state: () => S,
     },
   };

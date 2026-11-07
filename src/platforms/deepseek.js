@@ -18,6 +18,8 @@
     id: 'deepseek',
     name: 'DeepSeek',
     host: /(^|\.)chat\.deepseek\.com$/,
+    // Where to continue when this conversation refuses another message (see docs/SCENARIOS.md §19).
+    newChat: 'https://chat.deepseek.com/',
     home: 'https://chat.deepseek.com/',
     sse: {
       apiPattern: /\/chat\/completion/,

@@ -19,6 +19,8 @@
     id: 'grok',
     name: 'Grok',
     host: /(^|\.)grok\.com$/,
+    // Where to continue when this conversation refuses another message (see docs/SCENARIOS.md §19).
+    newChat: 'https://grok.com/',
     match: (hostname, pathname) => /(^|\.)grok\.com$/.test(hostname) || (/^(\/i\/grok|.*\/grok)$/.test(pathname ?? '') && /(^|\.)x\.com$/.test(hostname)),
     home: 'https://grok.com/',
     sse: {

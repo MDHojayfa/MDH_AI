@@ -16,6 +16,8 @@
     id: 'qwen',
     name: 'Qwen',
     host: /(^|\.)chat\.qwen\.ai$/,
+    // Where to continue when this conversation refuses another message (see docs/SCENARIOS.md §19).
+    newChat: 'https://chat.qwen.ai/',
     home: 'https://chat.qwen.ai/',
     sse: {
       apiPattern: /(\/api\/v2\/chat\/completions|\/chat\/completions)/,

@@ -55,6 +55,8 @@
     id: 'gemini',
     name: 'Gemini',
     host: /(^|\.)gemini\.google\.com$/,
+    // Where to continue when this conversation refuses another message (see docs/SCENARIOS.md §19).
+    newChat: 'https://gemini.google.com/app',
     home: 'https://gemini.google.com/app',
     sse: {
       apiPattern: /(BardChatUi|StreamGenerate|batchexecute)/,

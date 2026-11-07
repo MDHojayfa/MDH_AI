@@ -17,6 +17,8 @@
     id: 'glm',
     name: 'GLM / Z.ai',
     host: /(^|\.)(chat\.z\.ai|z\.ai|chatglm\.cn|chat\.glm\.cn)$/,
+    // Where to continue when this conversation refuses another message (see docs/SCENARIOS.md §19).
+    newChat: 'https://chat.z.ai/',
     home: 'https://chat.z.ai/',
     sse: {
       apiPattern: /(\/chat\/completion|\/api\/chat\/completion|assistant\/stream)/,

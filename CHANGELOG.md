@@ -11,6 +11,13 @@ First release. One script, one extension, eight platforms, no API key.
 
 ### Added
 
+- **A full conversation is now a pause with a way out, not a stall.** ChatGPT stops accepting messages in a long
+  thread and says so on the page; the agent used to read that as "no reply arrived" and wait. It now recognises the
+  wording (four phrasings, tested against the real strings), pauses with reason `context-full`, and offers
+  **Continue in a new chat**: the handoff brief — task, plan, the last three results, next step and the completion
+  code — is parked in storage, the page moves to that platform's new-chat URL, and the content script starts the run
+  again from the brief when it loads. One click, nothing pasted, same completion code. Every adapter now declares
+  its own `newChat` URL, and a test refuses a URL on a host the adapter does not claim.
 - **`./install.sh --doctor` answers "it doesn't work".** Twelve read-only checks — Node, the build, the extension
   id, the native-host manifests for all four browsers, the wrapper, the config files, a real ping to the host, the
   state folder, the audit log, detected browsers — each with the one command that fixes it printed underneath. It

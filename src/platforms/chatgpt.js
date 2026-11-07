@@ -18,6 +18,8 @@
     id: 'chatgpt',
     name: 'ChatGPT',
     host: /(^|\.)(chatgpt\.com|chat\.openai\.com)$/,
+    // Where to continue when this conversation refuses another message (see docs/SCENARIOS.md §19).
+    newChat: 'https://chatgpt.com/',
     home: 'https://chatgpt.com/',
     sse: {
       apiPattern: /\/backend-api\/conversation/,
