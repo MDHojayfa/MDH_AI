@@ -36,8 +36,10 @@ test('an unknown failure gets no invented advice', () => {
 
 test('the hint rides below the real error, never instead of it', () => {
   assert.match(agent, /\[MDH_HINT\]/);
-  const block = agent.slice(agent.indexOf('function frame('), agent.indexOf('function frame(') + 420);
-  assert.match(block, /const safe = MDH\.util\.truncate\(String\(body \?\? ''\), 128 \* 1024\);/);
+  const block = agent.slice(agent.indexOf('function frame('), agent.indexOf('function frame(') + 700);
+  // The body is truncated and tag-scrubbed before the hint is computed, so a hint cannot be triggered by text
+  // that was cut away — and the text the model reads is the text the hint was chosen from.
+  assert.match(block, /const safe = scrubTag\(MDH\.util\.truncate\(String\(body \?\? ''\), 128 \* 1024\), tag\)/);
   assert.match(block, /\$\{safe\}\$\{tail\}/, 'the error text is untouched, the hint is appended');
   assert.match(block, /status === 'ok' \? null : hintFor\(safe\)/, 'a successful call never gets a warning hint');
 });

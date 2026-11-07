@@ -47,6 +47,15 @@
     return out;
   }
 
+  /**
+   * How much text the composer will take in one message.
+   *
+   * Not documented by any of the platforms, and not the binding constraint anyway: a 60 KB message is accepted and
+   * then the *conversation* refuses the turn after it. 6,000 is the number that keeps a long result from turning
+   * into a dead chat, and an adapter that measures something better can say so.
+   */
+  const DEFAULT_LIMITS = { maxChars: 6000 };
+
   const list = [];
 
   MDH.platforms = {
@@ -54,6 +63,7 @@
     util: { pick, pickString, deepStrings },
 
     register(adapter) {
+      if (!adapter.limits) adapter.limits = DEFAULT_LIMITS;
       if (!adapter?.id || !adapter?.host) throw new Error('adapter needs an id and a host pattern');
       const existing = list.findIndex((a) => a.id === adapter.id);
       if (existing >= 0) list[existing] = adapter;

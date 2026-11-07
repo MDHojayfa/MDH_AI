@@ -20,7 +20,7 @@ import { ensureConfigFiles, loadConfig, loadServers, paths } from './config.mjs'
 import { runDiag } from './diag.mjs';
 import { renderPage, startViewer } from './viewer.mjs';
 import { DIAG_FILE, archiveAudit, stateSnapshot } from './logs.mjs';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 const VERSION = '1.0.0';
@@ -167,7 +167,7 @@ async function handle(frame) {
         run: frame.run,
         via: frame.via,
       });
-      reply(id, { t: 'reply', ...result });
+      reply(id, { t: 'reply', ...spillLarge(result, { tool: frame.name, run: frame.run }) });
       return;
     }
 
@@ -248,6 +248,56 @@ function saveDiag(frame, probes) {
   }
 }
 
+/* ─────────────────────────────────────────────────────────── large results */
+
+/**
+ * A 60 KB file read is a legitimate result and a terrible chat message: it burns the conversation's whole budget
+ * in one turn, and ChatGPT answers the turn after by refusing the conversation. So anything over the limit is
+ * written to disk under `/tmp/mdh/spill` — a folder both guards already allow — and the model gets the head, the
+ * tail and the path. `read_file` with `offset`/`limit` then costs exactly what the answer needs.
+ */
+const SPILL_CHARS = 24000;
+const SPILL_TTL_MS = 24 * 60 * 60 * 1000;
+
+/** Spilled results are a scratch folder, not an archive: yesterday's are gone before today's are written. */
+function pruneSpills() {
+  try {
+    for (const entry of readdirSync(paths.spillDir)) {
+      const full = join(paths.spillDir, entry);
+      try {
+        const age = Date.now() - statSync(full).mtimeMs;
+        if (age > SPILL_TTL_MS) rmSync(full, { recursive: true, force: true });
+      } catch { /* a file removed while we looked is not an error */ }
+    }
+  } catch { /* no spill folder yet */ }
+}
+
+function spillLarge(result, { tool, run }) {
+  const body = String(result?.body ?? '');
+  if (body.length <= SPILL_CHARS) return result;
+  try {
+    const dir = join(paths.spillDir, String(run ?? 'no-run').replace(/[^\w.-]/g, '_'));
+    mkdirSync(dir, { recursive: true, mode: 0o700 });
+    const file = join(dir, `${Date.now()}-${String(tool ?? 'tool').replace(/[^\w.-]/g, '_')}.txt`);
+    writeFileSync(file, body, { mode: 0o600 });
+    const head = body.slice(0, 2000);
+    const tail = body.slice(-500);
+    const lines = body.split('\n').length;
+    const skipped = body.length - head.length - tail.length;
+    return {
+      ...result,
+      body: `${head}\n\n[…${skipped} characters skipped. The full output is ${file} — ${body.length} characters, ` +
+        `${lines} lines. Read the part you need: read_file with path="${file}" and offset/limit, or grep it with ` +
+        `search_files.]\n\n${tail}`,
+      spilled: { file, chars: body.length, lines },
+    };
+  } catch (error) {
+    // Never lose a result because the disk said no: fall back to the truncating path the caller already had.
+    log(`spill failed for ${tool}: ${error.message}`);
+    return result;
+  }
+}
+
 /* ────────────────────────────────────────────────────────────────── boot */
 
 function readLoop() {
@@ -306,6 +356,7 @@ function readLoop() {
 
 async function main() {
   ensureConfigFiles();
+  pruneSpills();
   cfg = loadConfig();
   log(`start pid=${process.pid} allow=${cfg.allowPaths.join(',')}`);
 

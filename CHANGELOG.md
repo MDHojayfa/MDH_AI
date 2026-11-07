@@ -11,6 +11,18 @@ First release. One script, one extension, eight platforms, no API key.
 
 ### Added
 
+- **Tool results are no longer sent whole.** Above 24,000 characters the host writes the full text to
+  `/tmp/mdh/spill/<run>/` (0600 in a 0700 folder, cleared after a day) and sends a head, a tail and the path. The
+  old behaviour was a 128 KB result in one message: accepted by the composer, and enough to make the conversation
+  refuse the next turn, which looked like the agent dying for no reason. Both guards allow the spill folder by
+  name, so the model can actually read back what it was given.
+- **Long messages are split instead of truncated.** Anything over 6,000 characters is delivered as `(part 1/3)`,
+  `(part 2/3)`, `(part 3/3)` at paragraph boundaries, and the prompt says only the last part completes the message.
+- **The result block is closed by a per-turn tag.** `[MDH_RESULT tool=…]` had a fixed boundary string, so a file
+  whose contents included `[/MDH_RESULT]` could end the block and have its own text arrive looking like the host.
+  The tag is now eight hex characters derived from the completion code, the turn and the platform, and any
+  occurrence of it inside tool output is scrubbed before the block is built. It is a boundary, not an injection
+  defence — the research on that is unambiguous — and the docs say which is which.
 - **The host no longer swallows a chunk after a framing error.** A bad length prefix discarded the whole buffer,
   including frames that had arrived in the same read — so one stray byte made the host ignore everything the
   browser said afterwards, quietly and for as long as the port lived. It now logs the error and walks forward to

@@ -182,3 +182,43 @@ right place, with the right next action — and to make the eleventh one report 
 become a test.
 
 If you hit one that is not here, the failure card is already holding the form.
+
+## 16. A result too large to send
+
+**What happened.** `read_file` on a 400 KB log, or `search_files` across a monorepo, returns more text than a chat
+message can carry. The old path sent up to 128 KB in one message. ChatGPT accepted it, answered once, and then
+refused the conversation (`You've reached the maximum length for this conversation`) — so a run that was working
+died three turns later, with an error that blamed the conversation rather than the 128 KB the tool had just posted.
+
+**What happens now.** Above 24,000 characters the host writes the full text to `/tmp/mdh/spill/<run>/` (0600,
+folder 0700, cleared after a day) and the block carries the head, the tail, the character and line counts, and the
+path — with the exact `read_file` call to use. The model reads the range it needs. Nothing is lost, and the
+conversation keeps its budget.
+
+**How to check it.** `npm test` → "a large result is spilled to a file, and the file is readable through the same
+host". The second half matters as much as the first: a spilled file the model cannot read is worse than no spill.
+
+## 17. The message that arrives in pieces
+
+**What happened.** A 30 KB tool result, or a handoff pasted into an empty chat, goes into the composer in one go.
+Some layouts take it and slow to a crawl; others silently drop the tail — and the model then answers a question
+that was cut in half, which reads as the model being stupid rather than the message being truncated.
+
+**What happens now.** Anything over 6,000 characters is delivered as `(part 1/3)` … at paragraph boundaries, each
+part waiting for the composer to accept the previous one. The prompt tells the model that only the last part
+completes the message, so it does not act on the first third of a result.
+
+## 18. A file that tries to end the block
+
+**What happened.** The result envelope ended with the fixed string `[/MDH_RESULT]`. A file — a README from a cloned
+repository, a log line, a web page saved to disk — could contain that string, end the block early, and have every
+following line arrive looking like output from the host, including a `finish` the user never saw.
+
+**What happens now.** The closing tag is eight hex characters derived from the run's completion code, the turn and
+the platform, and it changes every turn. Any occurrence of the current tag inside tool output is replaced with
+`········`. A file can no longer close a block, and the model is told in the prompt that text outside the real tag
+was not written by the host.
+
+**What it is not.** A defence against prompt injection. Delimiters are a speed bump that an adaptive attacker walks
+over (`docs/RESEARCH.md`). What stops an injected instruction from doing damage is that every write and every
+command still stops at an approval card.

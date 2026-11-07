@@ -116,14 +116,39 @@ Error codes: `TOOL_MISSING`, `TOOL_FAILED`, `NOT_FOUND`, `PATH_DENIED`, `AMBIGUO
 Everything the model sees from a tool arrives as one bounded block:
 
 ```
-[MDH_RESULT tool="read_file" status="ok"]
+[MDH_RESULT#<tag> tool="read_file" status="ok"]
 1│ # notes
 2│ …
-[/MDH_RESULT]
+[/MDH_RESULT#<tag>]
 ```
 
-`status` is `ok`, `error` or `denied`. The prompt declares this block as data, never as instructions, and
-the host truncates to 128 KB per result so a large file cannot eat the context window.
+`status` is `ok`, `error` or `denied`. The prompt declares this block as data, never as instructions.
+
+`<tag>` is eight hex characters derived from the run's completion code, the turn number and the platform, and it
+**changes every turn**. It exists because the boundary used to be a fixed string: a file whose contents included
+`[/MDH_RESULT]` could close the block and have the rest of its text arrive looking like the host. Any occurrence of
+the current tag inside tool output is replaced with `········` before the block is built, so the content can neither
+close the block nor open one. This is a boundary, not a defence: delimiters lose to an adaptive attacker (see
+`docs/RESEARCH.md`), and what actually stops an injected instruction from doing damage is the approval card, not the
+marker.
+
+Above 24,000 characters the result is **not** sent in full. The host writes it to `/tmp/mdh/spill/<run>/` (mode 0600
+in a 0700 folder, cleared after a day) and the block carries a head, a tail and the path:
+
+```
+[MDH_RESULT#<tag> tool="read_file" status="ok"]
+<first 2000 characters>
+
+[…488312 characters skipped. The full output is /tmp/mdh/spill/run-7kq/1699…-read_file.txt — 490312 characters,
+11802 lines. Read the part you need: read_file with path="…" and offset/limit, or grep it with search_files.]
+
+<last 500 characters>
+[/MDH_RESULT#<tag>]
+```
+
+The extension also splits an outbound message over 6,000 characters (`(part 1/3)` … ) because a single 60 KB
+message is accepted by the composer and then makes the *conversation* refuse the following turn. The third part is
+the one that completes the message; the prompt says so.
 
 ## 6. Tool call shape
 
@@ -136,10 +161,10 @@ When a tool fails with a code the host is known to return, the result frame carr
 untouched error text:
 
 ```
-[MDH_RESULT tool="read_file" status="error"]
+[MDH_RESULT#<tag> tool="read_file" status="error"]
 [PATH_DENIED] /etc/shadow is on the deny list
 [MDH_HINT] pick a path inside the allowed folders (or ask the user to widen the list in ~/.config/mdh/config.json)
-[/MDH_RESULT]
+[/MDH_RESULT#<tag>]
 ```
 
 A `finish` call carries the session code, and nothing else ends a task:
